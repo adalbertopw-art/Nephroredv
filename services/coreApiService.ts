@@ -1,0 +1,90 @@
+
+import { ResearchUpdate, Article, Topic } from "../types";
+import { getGeneralTopicQuery } from "../utils/searchContexts";
+import { calculateBaseClinicalScore } from "../constants/searchConstants";
+
+const CORE_API_BASE = 'https://api.core.ac.uk/v3/search/works';
+
+export const fetchCoreArticles = async (
+  topic: Topic | string,
+  language: 'es' | 'original' = 'original',
+  customQuery?: string,
+  apiKey?: string
+): Promise<ResearchUpdate> => {
+  try {
+    const term = customQuery || getGeneralTopicQuery(topic);
+    const query = customQuery 
+        ? `(${term})` 
+        : `(${term}) AND (nephrology OR kidney)`;
+    
+    try {
+        const headers: HeadersInit = {
+            'Content-Type': 'application/json'
+        };
+        if (apiKey) {
+            headers['Authorization'] = `Bearer ${apiKey}`;
+        }
+
+        const response = await fetch(CORE_API_BASE, {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({
+                q: query,
+                limit: 60, // Increased to 60
+                offset: 0,
+                sort: 'publishedDate:desc'
+            })
+        });
+
+        if (!response.ok) {
+            return { summary: "CORE API Limit/Error", articles: [] };
+        }
+        
+        const data = await response.json();
+        const results = data.results || [];
+
+        const articles: Article[] = results.map((item: any) => {
+          const title = item.title || 'Untitled';
+          const abstract = item.abstract || "No abstract available.";
+          const source = item.publisher || 'CORE Repository';
+          const date = item.publishedDate ? item.publishedDate.substring(0, 4) : 'N/A';
+          const year = item.yearPublished || 0;
+          
+          const relevance = calculateBaseClinicalScore(title, abstract, source, typeof topic === 'string' ? topic : '', 0, year);
+
+          let authorsStr = "";
+          if (item.authors && item.authors.length > 0) {
+              authorsStr = item.authors.map((a: any) => a.name).slice(0,3).join(', ');
+          }
+          
+          const link = item.downloadUrl || item.fullTextIdentifier || `https://core.ac.uk/display/${item.id}`;
+
+          return {
+            id: `core-${item.id}`,
+            title: title,
+            summary: abstract,
+            source: source,
+            authors: authorsStr,
+            url: link,
+            date: date,
+            category: 'Research',
+            relevanceScore: relevance,
+            topic: typeof topic === 'string' ? topic : 'General',
+            isFree: true
+          };
+        });
+
+        return {
+          summary: `CORE: ${articles.length} OA results.`,
+          articles: articles
+        };
+
+    } catch (networkError) {
+        return { summary: "CORE unavailable", articles: [] };
+    }
+
+  } catch (error) {
+    console.warn("CORE Service Error:", error);
+    return { summary: "Error fetching CORE", articles: [] };
+  }
+};
