@@ -104,9 +104,10 @@ const translations = {
 
 const extractStats = (text: string) => {
   const nMatch = text.match(/\bn\s*[=:]\s*(\d+(?:,\d+)*)/i);
-  const pMatch = text.match(/p\s*[<>=]\s*[\d\.]+/i);
-  // Extract HR, RR, OR
-  const ratioMatch = text.match(/\b(HR|RR|OR)\s*[:=]?\s*([\d\.]+)/i);
+  // Improved Regex: Strict word boundary for 'p' to avoid matching 'BP', 'SpO2', etc.
+  const pMatch = text.match(/\bp\s*[<>=]\s*[\d\.]+/i);
+  // Improved Regex: Case sensitive matching for HR/RR/OR to avoid matching 'or' conjunction
+  const ratioMatch = text.match(/\b(HR|RR|OR)\s*[:=]?\s*([\d\.]+)/);
   
   return {
     n: nMatch ? nMatch[1] : null,

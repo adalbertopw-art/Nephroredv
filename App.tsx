@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Bookmark, RefreshCw, AlertCircle, Loader2, Search, Settings, Moon, Sun, ChevronDown, ChevronUp, Sparkles, X, History, Clock, Trash2, Mic, Volume2, Key, Check, Zap, Database, Book, FlaskConical, Library, Building2, Languages, Palette, CalendarClock, ArrowUp, Info, BookOpen, Download, Workflow, StickyNote, Bell, GraduationCap, Quote, Lock, Unlock, FileText, SlidersHorizontal, Microscope, Radar, ArrowLeft, BrainCircuit, WifiOff, Eye, Plus, Tag, ArrowUpCircle, ArrowDownCircle, GripVertical, Undo2, User, Home, LayoutGrid, ScanEye, Layers, Filter, Calendar, List, ArrowRight, RotateCcw, Activity, ExternalLink, ShieldCheck, Type, Newspaper, Globe, Server, Mail, Flame, Scale, Share2, Image as ImageIcon } from 'lucide-react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
@@ -364,6 +365,11 @@ export default function App() {
     setTranslationNotice(null);
     setCurrentPage(1);
     
+    // Reset scroll position to top
+    if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTop = 0;
+    }
+    
     const newTopic = term.trim();
     if (!topics.includes(newTopic)) {
         setTopics(prev => [...prev, newTopic]);
@@ -392,6 +398,11 @@ export default function App() {
       setSummary('');
       setTranslationNotice(null);
       setCurrentPage(1); 
+      
+      // Reset scroll position to top
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTop = 0;
+      }
 
       try {
         const refined = await refinePicoTerms(picoData.p, picoData.i, picoData.c, picoData.o, geminiApiKey);
@@ -492,6 +503,11 @@ export default function App() {
   }, [history, historyFilter, historyTopicFilter]);
 
   const handleTopicClick = (topic: Topic) => {
+    // Reset scroll position
+    if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTop = 0;
+    }
+
     if (selectedTopic === topic && activeTab === 'discover') {
       fetchNews(topic, '', undefined, undefined, true);
     } else {
@@ -836,6 +852,12 @@ export default function App() {
       setSelectedTopic(DEFAULT_TOPICS[0]);
       setSearchQuery('');
       setCurrentPage(1);
+      
+      // Reset scroll position
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTop = 0;
+      }
+
       // Fix: Explicitly pass empty query string
       fetchNews(DEFAULT_TOPICS[0], '');
       if (navigator.vibrate) navigator.vibrate(50);
