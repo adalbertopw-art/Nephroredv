@@ -1,5 +1,6 @@
+
 import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
-import { ResearchUpdate, Article, Topic, Language } from "../types";
+import { ResearchUpdate, Article, Topic, Language, DeepAnalysisResult, ChatMessage } from "../types";
 
 const sanitizeUrl = (url: string): string => {
   if (!url || typeof url !== 'string') return '';
@@ -21,9 +22,6 @@ const getAIClient = (apiKey?: string) => {
   const key = apiKey || process.env.API_KEY;
   if (!key) {
       console.warn("No Gemini API Key provided.");
-      // We return a client that will likely fail, or we could throw. 
-      // Throwing might be better to catch earlier.
-      // However, existing flow might depend on env var being there.
   }
   return new GoogleGenAI({ apiKey: key || "" });
 };
@@ -171,10 +169,6 @@ export const searchMedicalGoogle = async (
     }
 };
 
-/**
- * Specifically translates Spanish queries to English terms optimized for cross-database searching.
- * Generates a clean boolean string compatible with PubMed, OpenAlex, etc.
- */
 export const translateSimpleQuery = async (query: string, apiKey?: string): Promise<string> => {
     if (!query) return query;
     const ai = getAIClient(apiKey);
@@ -280,4 +274,84 @@ export const fetchRelatedArticles = async (articleTitle: string, language: Langu
   } catch (error) {
     return [];
   }
+};
+
+// --- NEW DEEP ANALYSIS & CHAT FEATURES ---
+
+export const generateDeepAnalysis = async (
+    title: string,
+    content: string, // Full text or Summary
+    apiKey?: string
+): Promise<DeepAnalysisResult | null> => {
+    const ai = getAIClient(apiKey);
+    const prompt = `Act as an expert Academic Nephrologist. Perform a rigorous Methodological and Clinical Analysis of the following study.
+    
+    Target Structure (JSON):
+    1. keyResults: Array of objects { group: "Intervention/Control", outcome: "Primary Outcome", pValue: "0.0x" }. Summarize quantitative data table.
+    2. biasRisk: "Low", "Moderate", or "High".
+    3. biasReason: Short explanation of bias assessment (e.g. "Open-label design", "Loss to follow-up").
+    4. limitations: Array of strings listing methodological limitations.
+
+    Study Title: ${title}
+    Study Content: ${content.substring(0, 15000)} (Truncated if too long)`;
+
+    try {
+        const response = await fetchWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
+            model: "gemini-3-pro-preview",
+            contents: prompt,
+            config: { responseMimeType: "application/json" }
+        }));
+        return JSON.parse(cleanJson(response.text || '{}')) as DeepAnalysisResult;
+    } catch (e) {
+        console.error("Deep Analysis Failed", e);
+        return null;
+    }
+};
+
+export const chatWithArticle = async (
+    history: ChatMessage[],
+    newMessage: string,
+    context: string, // Article full text or summary
+    apiKey?: string
+): Promise<string> => {
+    const ai = getAIClient(apiKey);
+    const systemPrompt = `You are an expert Nephrology Research Assistant. You are analyzing a specific scientific article.
+    Context:
+    ${context.substring(0, 20000)}...
+    
+    Instructions:
+    1. Answer ONLY based on the provided text. If the text doesn't say, state "The article does not specify...".
+    2. Be precise with data (doses, p-values, N).
+    3. Keep answers concise and clinical.`;
+
+    const chat = ai.chats.create({
+        model: "gemini-3-flash-preview",
+        config: { systemInstruction: systemPrompt }
+    });
+
+    // Replay history (simplified for single-turn API or mapped correctly if stateful)
+    // Gemini SDK chats are stateful, but here we just send the message sequence manually if re-initializing,
+    // or just use history prop to build a prompt. For simplicity with the new SDK patterns, let's treat it as a fresh generation or maintain session in UI.
+    // Here we will just send the full prompt chain if we want stateless, or use the object.
+    
+    // Construct history for the model
+    const historyParts = history.map(h => ({
+        role: h.role,
+        parts: [{ text: h.content }]
+    }));
+
+    // Actually, create with history
+    const chatSession = ai.chats.create({
+        model: "gemini-3-flash-preview",
+        config: { systemInstruction: systemPrompt },
+        history: historyParts
+    });
+
+    try {
+        const result = await chatSession.sendMessage({ message: newMessage });
+        return result.text || "No response generated.";
+    } catch (e) {
+        console.error("Chat Failed", e);
+        return "Error connecting to AI assistant.";
+    }
 };

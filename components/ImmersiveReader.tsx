@@ -1,10 +1,13 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { X, ChevronUp, Calendar, Users, BookOpen, Highlighter, StickyNote, Plus, Trash2, Check, Copy, Image as ImageIcon, Activity, Type, Link as LinkIcon } from 'lucide-react';
-import { Article, FontStyle } from '../types';
+import { X, ChevronUp, Calendar, Users, BookOpen, Highlighter, StickyNote, Plus, Trash2, Check, Copy, Image as ImageIcon, Activity, Type, Link as LinkIcon, FileText, MessageSquare, BarChart2, Zap, Flame, AlertTriangle, ShieldCheck, AlertCircle, FileText as PdfIcon, Download } from 'lucide-react';
+import { Article, FontStyle, DeepAnalysisResult } from '../types';
 import { highlightMedicalText } from '../utils/semanticHighlighter';
 import { applyUserHighlights, CitationHeat } from './ArticleCard';
 import MermaidDiagram from './MermaidDiagram';
+import PdfViewer from './PdfViewer';
+import ArticleChat from './ArticleChat';
+import { generateDeepAnalysis } from '../services/geminiService';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ImmersiveReaderProps {
@@ -16,7 +19,10 @@ interface ImmersiveReaderProps {
   onRemoveHighlight?: (articleId: string, index: number) => void;
   onUpdateReadingStatus?: (articleId: string, status: 'completed') => void;
   fontStyle?: FontStyle;
+  geminiApiKey?: string;
 }
+
+type Tab = 'text' | 'pdf' | 'chat' | 'analysis';
 
 const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({ 
   article, 
@@ -26,61 +32,48 @@ const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
   onAddHighlight, 
   onRemoveHighlight, 
   onUpdateReadingStatus,
-  fontStyle
+  fontStyle,
+  geminiApiKey
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [swipeCount, setSwipeCount] = useState(0);
-  const touchStartY = useRef(0);
-  const [imageError, setImageError] = useState(false);
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const [activeTab, setActiveTab] = useState<Tab>('text');
   const [activeFont, setActiveFont] = useState<FontStyle>(fontStyle || 'serif');
   const [showFontMenu, setShowFontMenu] = useState(false);
   
-  // Selection State
+  const [swipeCount, setSwipeCount] = useState(0);
+  const touchStartY = useRef(0);
   const [selection, setSelection] = useState<{ text: string; x: number; y: number } | null>(null);
   const [showNotes, setShowNotes] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [imageError, setImageError] = useState(false);
   
-  // Auto-Read Logic Refs
-  const minTimePassed = useRef(false);
-  const hasMarkedRead = useRef(false);
-  
+  const [analysisData, setAnalysisData] = useState<DeepAnalysisResult | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
   useEffect(() => {
       if (article) {
           document.body.style.overflow = 'hidden';
-          const timer = setTimeout(() => {
-              minTimePassed.current = true;
-          }, 5000);
-          return () => {
-              document.body.style.overflow = '';
-              clearTimeout(timer);
-          };
-      } else {
-          document.body.style.overflow = '';
+          setImageError(false);
+          // Prioritize PDF if available and not explicitly set otherwise (could add logic here)
+          if (article.localPdfData && activeTab === 'text') setActiveTab('pdf');
+          return () => { document.body.style.overflow = ''; };
       }
   }, [article]);
 
-  useEffect(() => {
-      if (fontStyle) setActiveFont(fontStyle);
-  }, [fontStyle]);
-
   const handleMouseUp = useCallback(() => {
+    if (activeTab !== 'text') { setSelection(null); return; }
     const sel = window.getSelection();
     if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
         const range = sel.getRangeAt(0);
         const rect = range.getBoundingClientRect();
         const text = sel.toString().trim();
-        
         if (text.length > 0) {
-            setSelection({
-                text,
-                x: rect.left + rect.width / 2,
-                y: rect.top - 10
-            });
+            setSelection({ text, x: rect.left + rect.width / 2, y: rect.top - 10 });
         }
     } else {
         setSelection(null);
     }
-  }, []);
+  }, [activeTab]);
 
   const addSelectionToHighlights = (color: string = 'yellow') => {
     if (selection && article && onAddHighlight) {
@@ -88,7 +81,6 @@ const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
         onAddHighlight(article.id, payload);
         setSelection(null);
         window.getSelection()?.removeAllRanges();
-        if (navigator.vibrate) navigator.vibrate(10);
     }
   };
 
@@ -100,423 +92,349 @@ const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
         setShowNotes(true);
         setSelection(null);
         window.getSelection()?.removeAllRanges();
-        if (navigator.vibrate) navigator.vibrate(10);
     }
   };
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-      touchStartY.current = e.touches[0].clientY;
-  };
-
+  const handleTouchStart = (e: React.TouchEvent) => { touchStartY.current = e.touches[0].clientY; };
+  
   const handleTouchEnd = (e: React.TouchEvent) => {
-      if (!containerRef.current) return;
-      
+      if (!containerRef.current || activeTab !== 'text') return;
       const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
       const isAtBottom = Math.abs(scrollHeight - clientHeight - scrollTop) < 10;
-      
-      const touchEndY = e.changedTouches[0].clientY;
-      const deltaY = touchEndY - touchStartY.current;
-      
+      const deltaY = e.changedTouches[0].clientY - touchStartY.current;
       if (isAtBottom && deltaY < -50) {
           setSwipeCount(prev => prev + 1);
-          if (swipeCount >= 1) {
-              onClose();
-          } else {
-              if (navigator.vibrate) navigator.vibrate(50);
-          }
+          if (swipeCount >= 1) onClose();
       } else {
-          if (!isAtBottom) {
-              setSwipeCount(0);
-          }
+          setSwipeCount(0);
       }
   };
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+      if (activeTab !== 'text') return;
       const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
-      
-      // Update Progress Bar
       const totalScroll = scrollHeight - clientHeight;
-      const currentProgress = totalScroll > 0 ? (scrollTop / totalScroll) * 100 : 0;
-      setScrollProgress(currentProgress);
+      setScrollProgress(totalScroll > 0 ? (scrollTop / totalScroll) * 100 : 0);
+  };
 
-      const isAtBottom = Math.abs(scrollHeight - clientHeight - scrollTop) < 50;
-      if (!isAtBottom) {
-          setSwipeCount(0);
-      }
-
-      if (!hasMarkedRead.current && minTimePassed.current && article && onUpdateReadingStatus) {
-          if (scrollHeight - scrollTop - clientHeight < 200) {
-              hasMarkedRead.current = true;
-              onUpdateReadingStatus(article.id, 'completed');
-              if (navigator.vibrate) navigator.vibrate([10, 30, 10]);
-          }
-      }
+  const runDeepAnalysis = async () => {
+      if (!article || isAnalyzing || analysisData) return;
+      setIsAnalyzing(true);
+      const content = article.fullTextContent || article.summary;
+      const result = await generateDeepAnalysis(article.title, content, geminiApiKey);
+      if (result) setAnalysisData(result);
+      setIsAnalyzing(false);
   };
 
   if (!article) return null;
 
   const rawAbstractContent = highlightMedicalText(article.summary, isDarkMode);
   const abstractWithHighlights = applyUserHighlights(rawAbstractContent, article.highlights || [], isDarkMode);
-
-  const glassButtonStyle = `p-3 rounded-full transition-all duration-300 backdrop-blur-md ${
-    isDarkMode 
-      ? 'bg-slate-800/50 text-white hover:bg-slate-700 border border-white/10' 
-      : 'bg-white/50 text-slate-900 shadow-sm hover:bg-white border border-white/40'
-  }`;
-
-  const fontClass = {
-    sans: 'font-sans',
-    serif: 'font-serif',
-    modern: 'font-modern'
-  }[activeFont];
+  const fontClass = { sans: 'font-sans', serif: 'font-serif', modern: 'font-modern' }[activeFont];
 
   return (
     <motion.div 
-        initial={{ opacity: 0, scale: 0.98, y: 20 }}
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className={`fixed inset-0 z-[100] flex items-center justify-center sm:p-4 md:p-6 backdrop-blur-3xl ${isDarkMode ? 'bg-slate-950/80' : 'bg-slate-200/50'}`}
+        className={`fixed inset-0 z-[100] flex flex-col backdrop-blur-3xl ${isDarkMode ? 'bg-slate-950/80' : 'bg-slate-50/80'}`}
         onMouseUp={handleMouseUp}
     >
-        {/* Floating Selection Toolbar */}
+        {/* Selection Toolbar */}
         <AnimatePresence>
-            {selection && (
+            {selection && activeTab === 'text' && (
                 <motion.div 
                     initial={{ opacity: 0, y: 10, scale: 0.9 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.9 }}
-                    style={{ 
-                        position: 'fixed', 
-                        left: selection.x, 
-                        top: selection.y, 
-                        transform: 'translate(-50%, -100%)',
-                        zIndex: 1000 
-                    }}
-                    className={`flex items-center gap-1 p-1 rounded-2xl border shadow-2xl backdrop-blur-xl ${isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}
+                    style={{ position: 'fixed', left: selection.x, top: selection.y, transform: 'translate(-50%, -100%)', zIndex: 1000 }}
+                    className={`flex items-center gap-1 p-1.5 rounded-xl border shadow-2xl backdrop-blur-xl ${isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}
                 >
-                    <div className="flex gap-1 p-1 border-r border-slate-200 dark:border-slate-700">
-                        <button onClick={() => addSelectionToHighlights('yellow')} className="w-6 h-6 rounded-full bg-yellow-400 hover:scale-110 transition-transform"></button>
-                        <button onClick={() => addSelectionToHighlights('green')} className="w-6 h-6 rounded-full bg-emerald-400 hover:scale-110 transition-transform"></button>
-                        <button onClick={() => addSelectionToHighlights('red')} className="w-6 h-6 rounded-full bg-rose-400 hover:scale-110 transition-transform"></button>
+                    <div className="flex gap-1.5 p-1 border-r border-slate-200 dark:border-slate-700 pr-2">
+                        {['yellow', 'green', 'red'].map(c => (
+                            <button key={c} onClick={() => addSelectionToHighlights(c)} className={`w-5 h-5 rounded-full hover:scale-110 transition-transform ${c === 'yellow' ? 'bg-amber-400' : c === 'green' ? 'bg-emerald-400' : 'bg-rose-400'}`} />
+                        ))}
                     </div>
-                    <button 
-                        onClick={() => addSelectionToHighlights('yellow')}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all ${isDarkMode ? 'hover:bg-slate-800 text-slate-300' : 'hover:bg-slate-100 text-slate-600'}`}
-                    >
-                        <Highlighter size={16} />
-                    </button>
-                    <div className={`w-px h-4 ${isDarkMode ? 'bg-slate-700' : 'bg-slate-200'}`} />
-                    <button 
-                        onClick={addSelectionToNote}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all ${isDarkMode ? 'hover:bg-slate-800 text-amber-400' : 'hover:bg-slate-100 text-amber-600'}`}
-                    >
-                        <StickyNote size={16} />
+                    <button onClick={addSelectionToNote} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all ${isDarkMode ? 'hover:bg-slate-800 text-amber-400' : 'hover:bg-slate-100 text-amber-600'}`}>
+                        <StickyNote size={14} /> <span className="text-xs font-bold">Nota</span>
                     </button>
                 </motion.div>
             )}
         </AnimatePresence>
 
-        {/* Right Vertical Action Bar (Close, Typography, Notes) */}
-        <div className="absolute top-6 right-6 z-[110] flex flex-col gap-3">
-            
-            {/* 1. Close Button */}
-            <button 
-                onClick={onClose} 
-                className={glassButtonStyle}
-                title="Cerrar"
-            >
-                <X size={24} />
-            </button>
-
-            {/* 2. Typography Button */}
-            <div className="relative">
-                <button 
-                    onClick={() => setShowFontMenu(!showFontMenu)} 
-                    className={glassButtonStyle}
-                    title="Tipografía"
-                >
-                    <Type size={24} />
+        {/* Header (Sticky) - Always Visible */}
+        <div className={`flex items-center justify-between px-4 h-14 border-b z-50 shrink-0 ${isDarkMode ? 'bg-slate-950/90 border-slate-800' : 'bg-white/90 border-slate-200'}`}>
+            <div className="flex items-center gap-4 overflow-hidden">
+                <button onClick={onClose} className={`p-2 rounded-full transition-colors ${isDarkMode ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}>
+                    <X size={20} />
                 </button>
-                {showFontMenu && (
-                    <motion.div 
-                        initial={{ opacity: 0, x: 10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className={`absolute top-0 right-full mr-2 p-2 rounded-2xl shadow-xl border w-40 overflow-hidden ${isDarkMode ? 'bg-slate-900 border-white/10' : 'bg-white border-slate-200'}`}
-                    >
-                        <button 
-                            onClick={() => { setActiveFont('serif'); setShowFontMenu(false); }}
-                            className={`w-full text-left px-4 py-3 rounded-xl font-serif text-lg hover:bg-black/5 dark:hover:bg-white/5 ${activeFont === 'serif' ? 'text-blue-500' : ''}`}
-                        >
-                            Serif
-                        </button>
-                        <button 
-                            onClick={() => { setActiveFont('sans'); setShowFontMenu(false); }}
-                            className={`w-full text-left px-4 py-3 rounded-xl font-sans text-lg hover:bg-black/5 dark:hover:bg-white/5 ${activeFont === 'sans' ? 'text-blue-500' : ''}`}
-                        >
-                            Sans
-                        </button>
-                        <button 
-                            onClick={() => { setActiveFont('modern'); setShowFontMenu(false); }}
-                            className={`w-full text-left px-4 py-3 rounded-xl font-modern text-lg hover:bg-black/5 dark:hover:bg-white/5 ${activeFont === 'modern' ? 'text-blue-500' : ''}`}
-                        >
-                            Modern
-                        </button>
-                    </motion.div>
-                )}
+                <div className="flex flex-col min-w-0">
+                    <span className="text-[9px] font-black uppercase tracking-widest opacity-50 truncate">{article.source}</span>
+                    <h2 className="text-xs font-bold truncate max-w-[200px] md:max-w-xs">{article.title}</h2>
+                </div>
             </div>
 
-            {/* 3. Notes Button */}
-            <button 
-                onClick={() => setShowNotes(!showNotes)} 
-                className={`${showNotes ? 'p-3 rounded-full bg-amber-500 text-white shadow-lg transition-all duration-300' : glassButtonStyle}`}
-                title="Notas"
-            >
-                <StickyNote size={24} />
-            </button>
+            <div className="flex items-center gap-2">
+                {/* Desktop Tabs */}
+                <div className={`hidden md:flex p-1 rounded-xl border ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-slate-100 border-slate-200'}`}>
+                    {[
+                        { id: 'text', label: 'Texto', icon: FileText },
+                        { id: 'pdf', label: 'PDF', icon: PdfIcon, disabled: !article.localPdfData },
+                        { id: 'chat', label: 'Chat', icon: MessageSquare },
+                        { id: 'analysis', label: 'Análisis', icon: BarChart2 }
+                    ].map(tab => (
+                        <button 
+                            key={tab.id} 
+                            onClick={() => setActiveTab(tab.id as Tab)} 
+                            disabled={tab.disabled}
+                            className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all disabled:opacity-30 disabled:cursor-not-allowed ${
+                                activeTab === tab.id 
+                                    ? (isDarkMode ? 'bg-slate-800 text-white shadow-sm' : 'bg-white text-blue-600 shadow-sm') 
+                                    : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                            }`}
+                        >
+                            <tab.icon size={14} />
+                            {tab.label}
+                            {tab.id === 'pdf' && article.fullTextContent && <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 ml-1" />}
+                        </button>
+                    ))}
+                </div>
+                
+                {activeTab === 'text' && (
+                    <div className="relative">
+                        <button onClick={() => setShowFontMenu(!showFontMenu)} className={`p-2 rounded-xl transition-all ${isDarkMode ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-600'}`}>
+                            <Type size={18} />
+                        </button>
+                        {showFontMenu && (
+                            <div className={`absolute top-full right-0 mt-2 w-32 p-1 rounded-xl border shadow-xl ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+                                {['sans', 'serif', 'modern'].map((f) => (
+                                    <button key={f} onClick={() => { setActiveFont(f as FontStyle); setShowFontMenu(false); }} className={`w-full text-left px-3 py-2 text-xs font-bold uppercase rounded-lg hover:bg-black/5 dark:hover:bg-white/5 ${activeFont === f ? 'text-blue-500' : ''}`}>{f}</button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+                <button onClick={() => setShowNotes(!showNotes)} className={`p-2 rounded-xl transition-all ${showNotes ? 'bg-amber-500 text-white' : (isDarkMode ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-600')}`}>
+                    <StickyNote size={18} />
+                </button>
+            </div>
         </div>
 
-        <div className="flex h-full w-full max-w-6xl gap-6">
-            <div 
-                ref={containerRef}
-                onTouchStart={handleTouchStart}
-                onTouchEnd={handleTouchEnd}
-                onScroll={handleScroll}
-                className={`flex-1 h-full sm:rounded-[2.5rem] shadow-2xl overflow-y-auto no-scrollbar relative flex flex-col ${isDarkMode ? 'bg-slate-950 text-slate-200 border border-slate-800' : 'bg-white text-slate-900 border border-white/60'}`}
-            >
-                {/* Reading Progress Bar */}
-                <div className="sticky top-0 left-0 right-0 h-1 z-50 bg-transparent">
-                    <motion.div 
-                        className="h-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
-                        style={{ width: `${scrollProgress}%` }}
-                        layoutId="readingProgress"
-                    />
-                </div>
+        {/* Mobile Floating Bottom Bar - Glassmorphism */}
+        <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[110] flex items-center gap-2 p-1.5 rounded-full border shadow-2xl backdrop-blur-2xl saturate-[1.5] transition-colors" style={{ backgroundColor: isDarkMode ? 'rgba(2, 6, 23, 0.85)' : 'rgba(255, 255, 255, 0.85)', borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.5)' }}>
+             {[
+                { id: 'text', icon: FileText, label: 'Text' },
+                { id: 'pdf', icon: PdfIcon, disabled: !article.localPdfData, label: 'PDF' },
+                { id: 'chat', icon: MessageSquare, label: 'Chat' },
+                { id: 'analysis', icon: BarChart2, label: 'Analysis' }
+            ].map(tab => (
+                <button 
+                    key={tab.id} 
+                    onClick={() => setActiveTab(tab.id as Tab)} 
+                    disabled={tab.disabled}
+                    className={`relative p-3.5 rounded-full transition-all duration-300 disabled:opacity-20 disabled:grayscale ${
+                        activeTab === tab.id 
+                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30 scale-110' 
+                            : (isDarkMode ? 'text-slate-400 hover:bg-white/5' : 'text-slate-500 hover:bg-slate-100')
+                    }`}
+                >
+                    <tab.icon size={20} strokeWidth={activeTab === tab.id ? 2.5 : 2} />
+                    {tab.id === 'pdf' && article.localPdfData && (
+                        <span className="absolute top-2 right-2 w-2 h-2 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900"></span>
+                    )}
+                </button>
+            ))}
+        </div>
 
-                {/* Header / Masthead */}
-                <div className={`relative shrink-0 overflow-hidden min-h-[20rem] md:min-h-[24rem] flex flex-col justify-end p-8 md:p-12 ${isDarkMode ? 'bg-slate-900' : 'bg-slate-50'}`}>
-                    <div className={`absolute inset-0 opacity-[0.07] bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] ${isDarkMode ? 'invert' : ''}`}></div>
-                    <div className={`absolute inset-0 bg-gradient-to-t ${isDarkMode ? 'from-slate-950 via-slate-900/90 to-slate-900/20' : 'from-white via-white/90 to-blue-50/20'}`}></div>
-                    
-                    <div className="relative z-10 space-y-4">
-                        <div className="flex flex-wrap items-center gap-3 mb-2">
-                            <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] rounded-full border ${isDarkMode ? 'bg-blue-500/10 border-blue-500/30 text-blue-300' : 'bg-blue-600 text-white border-blue-600'}`}>
-                                {article.category}
-                            </span>
-                            <div className={`flex items-center gap-2 px-3 py-1 rounded-full border ${isDarkMode ? 'bg-slate-800/50 border-slate-700 text-slate-300' : 'bg-white/60 border-slate-200 text-slate-600'}`}>
-                                <CitationHeat score={article.relevanceScore} isDarkMode={isDarkMode} />
-                                <span className="text-[10px] font-bold">{article.relevanceScore}% Impact</span>
-                            </div>
-                        </div>
-
-                        <h1 className={`text-3xl md:text-5xl ${fontClass} font-black tracking-tight leading-[1.1] opacity-95 ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>
-                            {article.title}
-                        </h1>
+        {/* Content Area - Split Logic for PDF vs Text */}
+        <div className="flex flex-1 overflow-hidden relative">
+            
+            {/* 1. TEXT VIEW (Scrollable) */}
+            {activeTab === 'text' && (
+                <div ref={containerRef} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} onScroll={handleScroll} className={`flex-1 overflow-y-auto no-scrollbar relative pb-24 md:pb-0 ${isDarkMode ? 'bg-slate-950' : 'bg-white'}`}>
+                    <div className="max-w-3xl mx-auto min-h-full">
+                        <div className="sticky top-0 left-0 right-0 h-1 z-30 bg-transparent"><motion.div className="h-full bg-blue-500" style={{ width: `${scrollProgress}%` }} /></div>
                         
-                        <div className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-                            <Calendar size={14} />
-                            <span>{article.date}</span>
+                        <div className={`p-8 pb-0 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                            <div className="flex flex-wrap items-center gap-3 mb-4">
+                                <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded border ${isDarkMode ? 'bg-blue-900/30 border-blue-800 text-blue-300' : 'bg-blue-50 border-blue-200 text-blue-700'}`}>{article.category}</span>
+                                <div className="flex items-center gap-1"><CitationHeat score={article.relevanceScore} isDarkMode={isDarkMode} /><span className="text-[10px] font-bold opacity-60">{article.relevanceScore}% Impact</span></div>
+                            </div>
+                            <h1 className={`text-2xl md:text-4xl ${fontClass} font-black leading-tight mb-4`}>{article.title}</h1>
+                            <div className="flex items-center gap-4 text-xs font-bold opacity-50 uppercase tracking-wider">
+                                <span className="flex items-center gap-1"><Calendar size={12}/> {article.date}</span>
+                                <span className="flex items-center gap-1"><Users size={12}/> {article.authors || 'Unknown'}</span>
+                            </div>
+                        </div>
+
+                        <div className={`p-8 space-y-10 ${isDarkMode ? 'text-slate-300' : 'text-slate-800'}`}>
+                            {article.clinicalTldr && (
+                                <div className={`p-6 rounded-3xl border-2 ${isDarkMode ? 'bg-slate-900/50 border-slate-800' : 'bg-blue-50/50 border-blue-100'}`}>
+                                    <div className="flex items-center gap-2 mb-4 text-blue-500"><Zap size={18} fill="currentColor" /><span className="text-xs font-black uppercase tracking-widest">Impact Capsule</span></div>
+                                    <div className="grid md:grid-cols-2 gap-6">
+                                        <div><span className="text-[10px] font-black uppercase opacity-50 block mb-1">Cambio Práctico</span><p className="font-bold leading-snug">{article.clinicalTldr.change}</p></div>
+                                        <div><span className="text-[10px] font-black uppercase opacity-50 block mb-1">Población</span><p className="font-bold leading-snug">{article.clinicalTldr.population}</p></div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {article.imageUrl && !imageError && (
+                                <div className="rounded-2xl overflow-hidden border dark:border-slate-800"><img src={article.imageUrl} onError={() => setImageError(true)} className="w-full h-auto object-cover max-h-96" alt="Figure" /></div>
+                            )}
+
+                            {article.visualAbstract && (
+                                <div className={`rounded-3xl border overflow-hidden ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100 shadow-sm'}`}>
+                                    <div className="px-4 py-2 border-b dark:border-slate-800 text-[10px] font-black uppercase tracking-widest opacity-50 flex justify-between"><span>AI Visual Abstract</span><span>Mermaid.js</span></div>
+                                    <MermaidDiagram chart={article.visualAbstract} isDarkMode={isDarkMode} />
+                                </div>
+                            )}
+
+                            <div className={`text-lg leading-loose ${fontClass} text-justify selection:bg-blue-500/30`}>
+                                {abstractWithHighlights}
+                            </div>
+
+                            <div className="pt-20 pb-32 flex flex-col items-center opacity-30">
+                                <ChevronUp size={24} className={swipeCount > 0 ? "animate-bounce" : ""} />
+                                <span className="text-[10px] font-black uppercase tracking-[0.3em] mt-2">{swipeCount > 0 ? "Release to Close" : "End of Article"}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
+            )}
 
-                {/* Body Content */}
-                <div className={`px-6 py-10 md:px-16 md:py-12 max-w-3xl mx-auto w-full flex-1 ${isDarkMode ? 'text-slate-300' : 'text-slate-800'}`}>
-                    
-                    {/* IMPACT CAPSULE IN IMMERSIVE */}
-                    {article.clinicalTldr && (
-                        <motion.div 
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          className={`mb-12 p-8 rounded-[2.5rem] border-2 transition-all duration-300 ${isDarkMode ? 'bg-blue-900/10 border-blue-500/30' : 'bg-blue-50/50 border-blue-200 shadow-xl'}`}
-                        >
-                            <div className="flex items-center gap-3 mb-6">
-                                <div className="p-2 rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-600/20">
-                                    <Activity size={20} />
-                                </div>
-                                <h2 className="text-sm font-black uppercase tracking-[0.2em] opacity-80">Cápsula de Impacto Clínico</h2>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="space-y-2">
-                                    <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">¿Qué cambió?</span>
-                                    <p className="text-base font-bold leading-snug">{article.clinicalTldr.change}</p>
-                                </div>
-                                <div className="space-y-2">
-                                    <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">¿A quién aplica?</span>
-                                    <p className="text-base font-bold leading-snug">{article.clinicalTldr.population}</p>
-                                </div>
-                            </div>
-                        </motion.div>
-                    )}
+            {/* 2. PDF VIEW (Fixed Height) */}
+            {activeTab === 'pdf' && article.localPdfData && (
+                <div className="flex-1 flex flex-col h-full w-full overflow-hidden relative">
+                    <PdfViewer pdfData={article.localPdfData} isDarkMode={isDarkMode} />
+                </div>
+            )}
 
-                    {/* ASSOCIATED PUBLICATIONS SECTION IN IMMERSIVE */}
-                    {article.associatedPublications && article.associatedPublications.length > 0 && (
-                        <div className={`mb-12 p-6 rounded-[2rem] border ${isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-slate-50 border-slate-200'}`}>
-                            <div className="flex items-center gap-2 mb-4">
-                                <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-100 text-indigo-600'}`}>
-                                    <LinkIcon size={16} />
-                                </div>
-                                <h4 className="text-xs font-black uppercase tracking-widest opacity-70">
-                                    Publicaciones Derivadas / Resultados
-                                </h4>
-                            </div>
-                            <ul className="space-y-3">
-                                {article.associatedPublications.map((pub, idx) => (
-                                    <li key={idx} className="flex gap-3 text-sm leading-relaxed opacity-90">
-                                        <span className="text-blue-500 mt-1.5">•</span>
-                                        <span dangerouslySetInnerHTML={{ __html: pub.replace(/(PMID:\s*\d+)/, '<span class="font-mono text-[10px] bg-blue-100 dark:bg-blue-900 px-1.5 rounded-md mx-1">$1</span>') }}></span>
-                                    </li>
-                                ))}
-                            </ul>
+            {/* 3. CHAT VIEW */}
+            {activeTab === 'chat' && (
+                <div className="flex-1 flex flex-col h-full w-full overflow-hidden pb-24 md:pb-0">
+                    <ArticleChat article={article} apiKey={geminiApiKey} isDarkMode={isDarkMode} />
+                </div>
+            )}
+
+            {/* 4. DEEP ANALYSIS VIEW */}
+            {activeTab === 'analysis' && (
+                <div className={`flex-1 overflow-y-auto no-scrollbar pb-24 md:pb-0 p-6 md:p-12 ${isDarkMode ? 'text-slate-200 bg-slate-950' : 'text-slate-800 bg-white'}`}>
+                    <div className="max-w-4xl mx-auto">
+                        <div className="mb-8">
+                            <h2 className="text-2xl font-black uppercase tracking-tight flex items-center gap-3">
+                                <BarChart2 size={28} className="text-blue-500" /> Deep Analysis
+                            </h2>
+                            <p className="text-xs font-bold opacity-50 uppercase tracking-widest mt-2">Powered by Gemini 2.5 Pro • Methodological Assessment</p>
                         </div>
-                    )}
 
-                    {/* Art Image in Reader */}
-                    {article.imageUrl && !imageError && (
-                        <motion.div 
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="mb-12 rounded-[2rem] overflow-hidden border shadow-xl bg-slate-100 dark:bg-slate-800"
-                        >
-                            <img 
-                                src={article.imageUrl} 
-                                alt="Figura principal" 
-                                onError={() => setImageError(true)}
-                                className="w-full h-auto max-h-[500px] object-contain"
-                            />
-                            <div className={`px-6 py-3 border-t flex items-center justify-between opacity-50 ${isDarkMode ? 'border-slate-700' : 'border-slate-200'}`}>
-                                <div className="flex items-center gap-2">
-                                    <ImageIcon size={14} />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Evidencia Visual</span>
+                        {!analysisData ? (
+                            <div className="flex flex-col items-center justify-center py-20 space-y-6">
+                                <div className={`p-8 rounded-full ${isDarkMode ? 'bg-slate-900' : 'bg-slate-100'}`}>
+                                    <Activity size={48} className={`opacity-20 ${isAnalyzing ? 'animate-pulse' : ''}`} />
                                 </div>
-                                <span className="text-[9px] font-medium">{article.source}</span>
+                                <button 
+                                    onClick={runDeepAnalysis} 
+                                    disabled={isAnalyzing}
+                                    className={`px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl transition-all active:scale-95 ${isDarkMode ? 'bg-blue-600 text-white' : 'bg-blue-600 text-white'} disabled:opacity-50`}
+                                >
+                                    {isAnalyzing ? 'Analyzing Evidence...' : 'Generate Deep Report'}
+                                </button>
                             </div>
-                        </motion.div>
-                    )}
+                        ) : (
+                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className={`p-6 rounded-3xl border flex items-start gap-4 ${
+                                    analysisData.biasRisk === 'Low' ? (isDarkMode ? 'bg-emerald-900/10 border-emerald-800' : 'bg-emerald-50 border-emerald-200') :
+                                    analysisData.biasRisk === 'Moderate' ? (isDarkMode ? 'bg-amber-900/10 border-amber-800' : 'bg-amber-50 border-amber-200') :
+                                    (isDarkMode ? 'bg-rose-900/10 border-rose-800' : 'bg-rose-50 border-rose-200')
+                                }`}>
+                                    <div className={`p-3 rounded-xl shrink-0 ${
+                                        analysisData.biasRisk === 'Low' ? 'bg-emerald-500 text-white' :
+                                        analysisData.biasRisk === 'Moderate' ? 'bg-amber-500 text-white' : 'bg-rose-500 text-white'
+                                    }`}>
+                                        {analysisData.biasRisk === 'Low' ? <ShieldCheck size={24} /> : <AlertTriangle size={24} />}
+                                    </div>
+                                    <div>
+                                        <h3 className="text-sm font-black uppercase tracking-widest opacity-60 mb-1">Risk of Bias</h3>
+                                        <div className="text-xl font-black mb-2">{analysisData.biasRisk} Risk</div>
+                                        <p className="text-sm font-medium leading-relaxed opacity-90">{analysisData.biasReason}</p>
+                                    </div>
+                                </div>
 
-                    <div className="flex items-center gap-3 mb-8">
-                        <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-600'}`}>
-                            <BookOpen size={20} />
-                        </div>
-                        <h2 className={`text-xl md:text-2xl font-sans font-bold leading-tight ${isDarkMode ? 'text-blue-300' : 'text-blue-800'}`}>
-                            {article.source}
-                        </h2>
-                    </div>
+                                <div>
+                                    <h3 className="text-xs font-black uppercase tracking-widest opacity-50 mb-4 ml-1">Quantitative Results</h3>
+                                    <div className={`rounded-2xl border overflow-hidden ${isDarkMode ? 'border-slate-800 bg-slate-900' : 'border-slate-200 bg-white'}`}>
+                                        <table className="w-full text-sm text-left">
+                                            <thead className={`text-xs uppercase font-black ${isDarkMode ? 'bg-slate-950 text-slate-400' : 'bg-slate-50 text-slate-500'}`}>
+                                                <tr>
+                                                    <th className="px-6 py-4">Group / Comparison</th>
+                                                    <th className="px-6 py-4">Primary Outcome</th>
+                                                    <th className="px-6 py-4">Significance</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y dark:divide-slate-800">
+                                                {analysisData.keyResults.map((res, i) => (
+                                                    <tr key={i} className={`font-medium ${isDarkMode ? 'hover:bg-slate-800/50' : 'hover:bg-slate-50'}`}>
+                                                        <td className="px-6 py-4">{res.group}</td>
+                                                        <td className="px-6 py-4">{res.outcome}</td>
+                                                        <td className={`px-6 py-4 font-mono font-bold ${res.pValue.includes('<') || res.pValue.startsWith('0.00') ? 'text-emerald-500' : 'opacity-50'}`}>{res.pValue}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
 
-                    <div className={`flex items-center gap-2 text-sm mb-10 pb-8 border-b border-dashed ${isDarkMode ? 'text-slate-500 border-slate-800' : 'text-slate-500 border-slate-200'}`}>
-                        <Users size={16} />
-                        <span className="font-medium italic">{article.authors || 'Unknown Authors'}</span>
-                    </div>
-
-                    {article.visualAbstract && (
-                        <div className={`mb-12 rounded-3xl border overflow-hidden shadow-sm ${isDarkMode ? 'bg-slate-900/50 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
-                            <div className={`px-6 py-3 border-b text-[10px] font-black uppercase tracking-widest opacity-60 flex items-center justify-between ${isDarkMode ? 'border-slate-800 bg-slate-900' : 'border-slate-200 bg-white'}`}>
-                                <span>AI Visual Abstract</span>
-                                <span className="text-blue-500">Mermaid.js</span>
+                                <div>
+                                    <h3 className="text-xs font-black uppercase tracking-widest opacity-50 mb-4 ml-1">Methodological Limitations</h3>
+                                    <div className="grid gap-3">
+                                        {analysisData.limitations.map((lim, i) => (
+                                            <div key={i} className={`flex gap-3 p-4 rounded-xl border ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+                                                <AlertCircle size={16} className="text-slate-400 shrink-0 mt-0.5" />
+                                                <p className="text-sm font-medium">{lim}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
-                            <MermaidDiagram chart={article.visualAbstract} isDarkMode={isDarkMode} />
-                        </div>
-                    )}
-
-                    <div className={`text-lg md:text-xl leading-loose ${fontClass} text-justify selection:bg-blue-500/30 dark:selection:bg-blue-500/50 ${isDarkMode ? 'text-slate-200' : 'text-slate-800'}`}>
-                        {abstractWithHighlights}
-                    </div>
-
-                    {/* Footer Exit Indicator */}
-                    <div className="mt-32 pb-16 flex flex-col items-center justify-center space-y-4">
-                        <div className={`${glassButtonStyle} ${swipeCount > 0 ? (isDarkMode ? 'bg-blue-600/80 border-blue-400' : 'bg-blue-500/80 text-white border-blue-400 shadow-xl') : ''}`}>
-                             <ChevronUp size={28} className={swipeCount > 0 ? "animate-bounce" : ""} />
-                        </div>
-                        <span className={`text-[10px] font-black uppercase tracking-[0.3em] transition-opacity duration-300 ${swipeCount > 0 ? 'opacity-100' : 'opacity-40'}`}>
-                            {swipeCount > 0 ? "Desliza de nuevo para cerrar" : "Fin del Artículo"}
-                        </span>
+                        )}
                     </div>
                 </div>
-            </div>
+            )}
 
-            {/* Sidebar Notes & Highlights */}
+            {/* Sidebar Notes Drawer */}
             <AnimatePresence>
                 {showNotes && (
                     <motion.div 
-                        initial={{ x: 50, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        exit={{ x: 50, opacity: 0 }}
-                        className={`hidden lg:flex flex-col w-80 h-full p-6 rounded-[2.5rem] border shadow-2xl backdrop-blur-xl ${isDarkMode ? 'bg-slate-900/80 border-slate-800' : 'bg-white/80 border-slate-200'}`}
+                        initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25 }}
+                        className={`absolute top-0 right-0 w-80 h-full border-l shadow-2xl z-40 flex flex-col backdrop-blur-3xl ${isDarkMode ? 'bg-slate-900/95 border-slate-800' : 'bg-white/95 border-slate-200'}`}
                     >
-                        <div className="flex items-center justify-between mb-6">
-                            <h3 className="font-black text-xs uppercase tracking-widest opacity-50">Notas & Hallazgos</h3>
-                            <button onClick={() => setShowNotes(false)} className={glassButtonStyle}><X size={16}/></button>
+                        <div className="p-4 border-b flex justify-between items-center dark:border-slate-800">
+                            <span className="text-xs font-black uppercase tracking-widest opacity-50">Personal Notes</span>
+                            <button onClick={() => setShowNotes(false)}><X size={16}/></button>
                         </div>
-
-                        <div className="flex-1 overflow-y-auto space-y-6 no-scrollbar">
-                            <section>
-                                <div className="flex items-center gap-2 mb-3 text-amber-500">
-                                    <StickyNote size={14} />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Anotaciones</span>
-                                </div>
-                                <textarea 
-                                    value={article.note || ''}
-                                    onChange={(e) => onUpdateNote && onUpdateNote(article.id, e.target.value)}
-                                    placeholder="Escribe tus observaciones clínicas..."
-                                    className={`w-full h-40 bg-transparent outline-none resize-none text-sm leading-relaxed ${isDarkMode ? 'text-amber-200' : 'text-slate-800'}`}
-                                />
-                            </section>
-
-                            <section>
-                                <div className="flex items-center gap-2 mb-3 text-blue-500">
-                                    <Highlighter size={14} />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Resaltados ({article.highlights?.length || 0})</span>
-                                </div>
-                                <div className="space-y-3">
-                                    {article.highlights?.map((h, i) => {
-                                        const [text] = h.includes(':::') ? h.split(':::') : [h];
-                                        return (
-                                            <div key={i} className={`p-3 rounded-xl text-xs relative group ${isDarkMode ? 'bg-slate-800/50' : 'bg-slate-50'}`}>
-                                                <p className="italic line-clamp-3">"{text}"</p>
-                                                <button 
-                                                    onClick={() => onRemoveHighlight && onRemoveHighlight(article.id, i)}
-                                                    className="absolute top-1 right-1 p-1 opacity-0 group-hover:opacity-100 transition-opacity text-red-500"
-                                                >
-                                                    <Trash2 size={12} />
-                                                </button>
-                                            </div>
-                                        );
-                                    })}
-                                    {(!article.highlights || article.highlights.length === 0) && (
-                                        <p className="text-[10px] opacity-40 italic">Selecciona texto para resaltar</p>
-                                    )}
-                                </div>
-                            </section>
+                        <textarea 
+                            value={article.note || ''} 
+                            onChange={(e) => onUpdateNote && onUpdateNote(article.id, e.target.value)}
+                            placeholder="Add your clinical observations..."
+                            className="flex-1 w-full p-6 bg-transparent resize-none outline-none text-sm leading-relaxed" 
+                        />
+                        <div className="p-4 bg-slate-50 dark:bg-slate-950 border-t dark:border-slate-800">
+                            <span className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-2 block">Highlights</span>
+                            <div className="space-y-2 max-h-40 overflow-y-auto no-scrollbar">
+                                {article.highlights?.map((h, i) => (
+                                    <div key={i} className="flex gap-2 text-[10px] p-2 rounded bg-white dark:bg-slate-900 border dark:border-slate-800">
+                                        <div className={`w-1 shrink-0 rounded-full ${h.includes('red') ? 'bg-rose-400' : h.includes('green') ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                                        <p className="line-clamp-2 italic opacity-80">{h.split(':::')[0]}</p>
+                                        <button onClick={() => onRemoveHighlight && onRemoveHighlight(article.id, i)} className="ml-auto opacity-30 hover:opacity-100"><Trash2 size={10}/></button>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </motion.div>
                 )}
             </AnimatePresence>
         </div>
-
-        {/* Mobile Notes Sheet */}
-        <AnimatePresence>
-            {showNotes && (
-                <motion.div 
-                    initial={{ y: '100%' }}
-                    animate={{ y: 0 }}
-                    exit={{ y: '100%' }}
-                    className={`fixed inset-x-0 bottom-0 z-[120] p-6 lg:hidden rounded-t-[3rem] shadow-2xl border-t backdrop-blur-xl ${isDarkMode ? 'bg-slate-900/90 border-slate-800' : 'bg-white/90 border-slate-200'}`}
-                >
-                    <div className="w-12 h-1.5 bg-slate-400/20 rounded-full mx-auto mb-6" />
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-black text-xs uppercase tracking-widest opacity-50">Notas Clínicas</h3>
-                        <button onClick={() => setShowNotes(false)} className={glassButtonStyle}><X size={20}/></button>
-                    </div>
-                    <textarea 
-                        autoFocus
-                        value={article.note || ''}
-                        onChange={(e) => onUpdateNote && onUpdateNote(article.id, e.target.value)}
-                        placeholder="Observaciones..."
-                        className={`w-full h-32 bg-transparent outline-none resize-none text-base leading-relaxed ${isDarkMode ? 'text-amber-200' : 'text-slate-800'}`}
-                    />
-                </motion.div>
-            )}
-        </AnimatePresence>
     </motion.div>
   );
 };

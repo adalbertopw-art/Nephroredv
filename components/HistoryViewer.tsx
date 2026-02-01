@@ -17,7 +17,8 @@ interface HistoryViewerProps {
   groqApiKey: string;
   offlineStatus: Record<string, boolean>;
   onReadOffline: (id: string) => void;
-  onReadFullText: (article: Article) => void; // New Prop
+  onReadFullText: (article: Article) => void;
+  onUpdateArticle?: (articleId: string, updates: any) => void;
 }
 
 const HistoryViewer: React.FC<HistoryViewerProps> = ({
@@ -33,7 +34,8 @@ const HistoryViewer: React.FC<HistoryViewerProps> = ({
   groqApiKey,
   offlineStatus,
   onReadOffline,
-  onReadFullText
+  onReadFullText,
+  onUpdateArticle
 }) => {
   const isSession = snapshot.sessionQueries && snapshot.sessionQueries.length > 1;
 
@@ -126,6 +128,7 @@ const HistoryViewer: React.FC<HistoryViewerProps> = ({
                             offlineStatus={offlineStatus[article.id] ? 'full' : undefined}
                             onReadOffline={onReadOffline}
                             onReadFullText={onReadFullText}
+                            onUpdateArticle={onUpdateArticle}
                         />
                     ))}
                 </div>

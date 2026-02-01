@@ -765,6 +765,25 @@ export default function App() {
     });
   }, []);
 
+  const handleUpdateArticle = useCallback((articleId: string, updates: Partial<Article>) => {
+      setArticles(prev => prev.map(a => a.id === articleId ? { ...a, ...updates } : a));
+      setSavedArticles(prev => {
+          const idx = prev.findIndex(a => a.id === articleId);
+          if (idx !== -1) {
+              const next = [...prev];
+              next[idx] = { ...next[idx], ...updates };
+              return next;
+          }
+          return prev;
+      });
+      setActiveImmersiveArticle(prev => (prev && prev.id === articleId) ? { ...prev, ...updates } : prev);
+      setViewingHistorySnapshot(prev => {
+          if (!prev) return null;
+          const updatedArticles = prev.articles.map(a => a.id === articleId ? { ...a, ...updates } : a);
+          return { ...prev, articles: updatedArticles };
+      });
+  }, []);
+
   const toggleSave = useCallback((article: Article) => {
     setSavedArticles(prev => {
         const isAlreadySaved = prev.some(a => a.id === article.id);
@@ -1161,6 +1180,7 @@ export default function App() {
                                 defaultXrayMode={autoXray}
                                 onAddHighlight={handleAddHighlight}
                                 fontStyle={fontStyle}
+                                onUpdateArticle={handleUpdateArticle}
                              />
                           ))}
                        </div>
@@ -1274,7 +1294,7 @@ export default function App() {
 
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4">
                         {filteredSavedArticles.map(article => (
-                            <ArticleCard key={article.id} article={article} isSaved={true} onToggleSave={toggleSave} isDarkMode={isDarkMode} onOpenImmersive={setActiveImmersiveArticle} onUpdateNote={handleUpdateNote} onReadFullText={handleFetchFullText} isCompact={true} isDownloaded={!!offlineStatus[article.id]} textSize={textSize} groqApiKey={groqApiKey} geminiApiKey={geminiApiKey} language={contentLanguage} defaultXrayMode={autoXray} onAddHighlight={handleAddHighlight} fontStyle={fontStyle} />
+                            <ArticleCard key={article.id} article={article} isSaved={true} onToggleSave={toggleSave} isDarkMode={isDarkMode} onOpenImmersive={setActiveImmersiveArticle} onUpdateNote={handleUpdateNote} onReadFullText={handleFetchFullText} isCompact={true} isDownloaded={!!offlineStatus[article.id]} textSize={textSize} groqApiKey={groqApiKey} geminiApiKey={geminiApiKey} language={contentLanguage} defaultXrayMode={autoXray} onAddHighlight={handleAddHighlight} fontStyle={fontStyle} onUpdateArticle={handleUpdateArticle} />
                         ))}
                     </div>
                  </motion.div>
@@ -1991,8 +2011,9 @@ export default function App() {
       </AnimatePresence>
 
        <VoiceModal isOpen={voiceModalOpen} onClose={() => setVoiceModalOpen(false)} contextText={summary} isDarkMode={isDarkMode} language={uiLanguage === 'es' ? 'es' : 'original'} apiKey={geminiApiKey} />
-       <AnimatePresence>{activeImmersiveArticle && <ImmersiveReader article={activeImmersiveArticle} onClose={() => setActiveImmersiveArticle(null)} isDarkMode={isDarkMode} onUpdateNote={handleUpdateNote} onAddHighlight={handleAddHighlight} onRemoveHighlight={handleRemoveHighlight} onUpdateReadingStatus={handleUpdateReadingStatus} fontStyle={fontStyle} />}</AnimatePresence>
+       <AnimatePresence>{activeImmersiveArticle && <ImmersiveReader article={activeImmersiveArticle} onClose={() => setActiveImmersiveArticle(null)} isDarkMode={isDarkMode} onUpdateNote={handleUpdateNote} onAddHighlight={handleAddHighlight} onRemoveHighlight={handleRemoveHighlight} onUpdateReadingStatus={handleUpdateReadingStatus} fontStyle={fontStyle} geminiApiKey={geminiApiKey} />}</AnimatePresence>
        <OfflineReader isOpen={isReaderOpen} onClose={() => setIsReaderOpen(false)} article={readerArticle} htmlContent={readerHtml} isDarkMode={isDarkMode} isLoading={isReaderLoading} onSaveOffline={handleSaveOffline} isAlreadyDownloaded={readerArticle ? !!offlineStatus[readerArticle.id] : false} onUpdateReadingStatus={handleUpdateReadingStatus} />
+       {viewingHistorySnapshot && <HistoryViewer snapshot={viewingHistorySnapshot} onClose={() => setViewingHistorySnapshot(null)} isDarkMode={isDarkMode} onToggleSave={toggleSave} savedArticles={savedArticles} language={uiLanguage === 'es' ? 'es' : 'original'} textSize={textSize} fontStyle={fontStyle} apiKey={geminiApiKey} groqApiKey={groqApiKey} offlineStatus={offlineStatus} onReadOffline={() => {}} onReadFullText={handleFetchFullText} onUpdateArticle={handleUpdateArticle} />}
     </div>
   );
 }

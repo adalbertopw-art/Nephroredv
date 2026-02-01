@@ -45,6 +45,10 @@ export interface Article {
   readingStatus?: 'unread' | 'in_progress' | 'completed';
   highlights?: string[]; // Array of selected text snippets
   lastReadAt?: number; // Timestamp for Spaced Repetition
+  
+  // PDF Ecosystem Features
+  localPdfData?: string; // Base64 encoded PDF string
+  fullTextContent?: string; // Semantic text extracted from PDF for AI
 }
 
 export interface ResearchUpdate {
@@ -63,6 +67,19 @@ export interface HistorySnapshot {
   sessionQueries?: string[]; // New: List of queries grouped in this session
   summary: string;
   articles: Article[];
+}
+
+export interface ChatMessage {
+  role: 'user' | 'model';
+  content: string;
+  timestamp: number;
+}
+
+export interface DeepAnalysisResult {
+  keyResults: { group: string; outcome: string; pValue: string }[];
+  biasRisk: 'Low' | 'Moderate' | 'High';
+  biasReason: string;
+  limitations: string[];
 }
 
 export type RetentionPeriod = '7' | '30' | '90' | 'forever';

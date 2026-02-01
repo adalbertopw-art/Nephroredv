@@ -3,14 +3,16 @@ import { Article } from "../types";
 
 const DB_NAME = 'NephroUpdateDB';
 const STORE_NAME = 'offline_articles';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Incremented version to support schema changes if needed (though IndexedDB is schema-less for objects)
 
 export interface OfflineRecord {
     id: string;
     article: Article;
     htmlContent: string;
     timestamp: number;
-    hasFullText?: boolean; // New flag
+    hasFullText?: boolean;
+    localPdfData?: string; // Base64 PDF
+    fullTextContent?: string; // Extracted text
 }
 
 const openDB = (): Promise<IDBDatabase> => {
@@ -40,18 +42,28 @@ export const saveArticleOffline = async (article: Article, htmlContent: string, 
         const transaction = db.transaction(STORE_NAME, 'readwrite');
         const store = transaction.objectStore(STORE_NAME);
         
-        const record: OfflineRecord = {
-            id: article.id,
-            article: article,
-            htmlContent: htmlContent,
-            timestamp: Date.now(),
-            hasFullText: isFullText
+        // Preserve existing PDF data if not provided in this update, or update if provided
+        const requestGet = store.get(article.id);
+        
+        requestGet.onsuccess = () => {
+            const existing = requestGet.result as OfflineRecord | undefined;
+            
+            const record: OfflineRecord = {
+                id: article.id,
+                article: article,
+                htmlContent: htmlContent,
+                timestamp: Date.now(),
+                hasFullText: isFullText,
+                localPdfData: article.localPdfData || existing?.localPdfData,
+                fullTextContent: article.fullTextContent || existing?.fullTextContent
+            };
+
+            const requestPut = store.put(record);
+            requestPut.onsuccess = () => resolve();
+            requestPut.onerror = () => reject(requestPut.error);
         };
-
-        const request = store.put(record);
-
-        request.onsuccess = () => resolve();
-        request.onerror = () => reject(request.error);
+        
+        requestGet.onerror = () => reject(requestGet.error);
     });
 };
 
@@ -94,7 +106,8 @@ export const getOfflineStatusMap = async (): Promise<Record<string, boolean>> =>
             const records = request.result as OfflineRecord[];
             const statusMap: Record<string, boolean> = {};
             records.forEach(rec => {
-                statusMap[rec.id] = !!rec.hasFullText;
+                // Considered downloaded if it has HTML full text OR a PDF attached
+                statusMap[rec.id] = !!rec.hasFullText || !!rec.localPdfData;
             });
             resolve(statusMap);
         };

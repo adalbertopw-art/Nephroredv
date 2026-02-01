@@ -1,8 +1,10 @@
+
 import React, { useState, useEffect, useRef } from 'react';
-import { X, ExternalLink, WifiOff, FileText, Globe, Loader2, Zap, Palette, Check, ArrowLeft, Download, CheckCircle2 } from 'lucide-react';
+import { X, ExternalLink, WifiOff, FileText, Globe, Loader2, Zap, Palette, Check, ArrowLeft, Download, CheckCircle2, Columns, StickyNote } from 'lucide-react';
 import { Article } from '../types';
 import { openExternalUrl } from '../services/browserService';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import PdfViewer from './PdfViewer';
 
 interface OfflineReaderProps {
   isOpen: boolean;
@@ -19,11 +21,13 @@ interface OfflineReaderProps {
 type ReaderTheme = 'light' | 'dark' | 'cream' | 'sepia';
 
 const OfflineReader: React.FC<OfflineReaderProps> = ({ isOpen, onClose, article, htmlContent, isDarkMode, isLoading = false, onUpdateReadingStatus, onSaveOffline, isAlreadyDownloaded = false }) => {
-  const [viewMode, setViewMode] = useState<'web' | 'reader'>('reader');
+  const [viewMode, setViewMode] = useState<'web' | 'reader' | 'pdf'>('reader');
+  const [isSplitView, setIsSplitView] = useState(false);
   const [readerTheme, setReaderTheme] = useState<ReaderTheme>(isDarkMode ? 'dark' : 'light');
   const [showThemeMenu, setShowThemeMenu] = useState(false);
   const themeMenuRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [note, setNote] = useState('');
 
   // Auto-Read Logic Refs
   const minTimePassed = useRef(false);
@@ -32,6 +36,10 @@ const OfflineReader: React.FC<OfflineReaderProps> = ({ isOpen, onClose, article,
   useEffect(() => {
       setReaderTheme(isDarkMode ? 'dark' : 'light');
   }, [isDarkMode, isOpen]);
+
+  useEffect(() => {
+      if (article?.note) setNote(article.note);
+  }, [article]);
 
   useEffect(() => {
       if (isOpen && article) {
@@ -45,10 +53,14 @@ const OfflineReader: React.FC<OfflineReaderProps> = ({ isOpen, onClose, article,
   }, [isOpen, article]);
 
   useEffect(() => {
-      if (!isLoading && isOpen && (!htmlContent || htmlContent.length < 500) && article?.url) {
-          setViewMode('web');
-      } else {
-          setViewMode('reader');
+      if (!isLoading && isOpen && article) {
+          if (article.localPdfData) {
+              setViewMode('pdf');
+          } else if ((!htmlContent || htmlContent.length < 500) && article.url) {
+              setViewMode('web');
+          } else {
+              setViewMode('reader');
+          }
       }
   }, [isLoading, htmlContent, article, isOpen]);
 
@@ -103,6 +115,39 @@ const OfflineReader: React.FC<OfflineReaderProps> = ({ isOpen, onClose, article,
   };
 
   const isFullContent = htmlContent && htmlContent.length > 1000;
+  const hasPdf = !!article.localPdfData;
+
+  const renderContent = () => {
+      if (viewMode === 'pdf' && article.localPdfData) {
+          return <PdfViewer pdfData={article.localPdfData} isDarkMode={isDarkMode} />;
+      }
+      
+      if (viewMode === 'web') {
+          return (
+             <div className="w-full h-full relative flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900">
+                 <iframe src={article.url} title="Web View" className="w-full h-full border-0 bg-white" sandbox="allow-forms allow-scripts allow-same-origin allow-popups" />
+                 <div className="absolute bottom-6 left-1/2 -translate-x-1/2 p-4 bg-black/80 backdrop-blur-xl text-white rounded-2xl flex items-center gap-4 shadow-2xl border border-white/10 max-w-xs text-center">
+                     <div className="flex-1">
+                         <p className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-1">Dificultad de carga?</p>
+                         <button onClick={() => openExternalUrl(externalLinkUrl, isDarkMode)} className="bg-blue-600 px-4 py-1.5 rounded-full text-[10px] font-black uppercase">Abrir en Navegador Externo</button>
+                     </div>
+                 </div>
+             </div>
+          );
+      }
+
+      return (
+         <div className={`w-full h-full overflow-y-auto p-6 md:p-12 transition-colors duration-300 ${getThemeStyles(readerTheme)}`} onScroll={handleScroll}>
+             <div className={`max-w-3xl mx-auto prose prose-sm md:prose-lg transition-colors duration-300 ${getProseClass(readerTheme)}`}>
+                 <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
+                 <div className="mt-20 pt-10 border-t opacity-40 text-center pb-20">
+                     <p className="text-xs uppercase font-black tracking-widest">Fin del Artículo • NephroUpdate IA</p>
+                     <button onClick={() => openExternalUrl(externalLinkUrl, isDarkMode)} className="mt-4 text-blue-500 font-bold text-xs uppercase underline">Ver Fuente Original</button>
+                 </div>
+             </div>
+         </div>
+      );
+  };
 
   return (
     <div className={`fixed inset-0 z-[100] flex flex-col transition-colors duration-500 animate-in slide-in-from-bottom-5 ${isDarkMode ? 'bg-slate-950' : 'bg-white'}`}>
@@ -128,24 +173,31 @@ const OfflineReader: React.FC<OfflineReaderProps> = ({ isOpen, onClose, article,
             {!isLoading && (
                 <>
                     {/* Botón Guardar Offline */}
-                    {isFullContent && onSaveOffline && (
+                    {isFullContent && onSaveOffline && !hasPdf && (
                         <button 
                             onClick={() => onSaveOffline(article, htmlContent)}
                             disabled={isAlreadyDownloaded}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${isAlreadyDownloaded ? 'text-emerald-500 bg-emerald-500/10' : (isDarkMode ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-slate-900 text-white hover:bg-black')}`}
+                            className={`hidden md:flex items-center gap-2 px-3 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${isAlreadyDownloaded ? 'text-emerald-500 bg-emerald-500/10' : (isDarkMode ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-slate-900 text-white hover:bg-black')}`}
                         >
-                            {isAlreadyDownloaded ? <><CheckCircle2 size={14} /> Saved</> : <><Download size={14} /> Download Offline</>}
+                            {isAlreadyDownloaded ? <><CheckCircle2 size={14} /> Saved</> : <><Download size={14} /> Download</>}
                         </button>
                     )}
 
+                    {/* Split View Toggle */}
                     <button 
-                        onClick={() => openExternalUrl(externalLinkUrl, isDarkMode)}
-                        className={`hidden md:flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase transition-all shadow-lg ${isDarkMode ? 'bg-blue-600 text-white shadow-blue-900/20' : 'bg-blue-600 text-white shadow-blue-200/40'}`}
+                        onClick={() => setIsSplitView(!isSplitView)}
+                        className={`hidden md:flex p-2 rounded-xl transition-all ${isSplitView ? 'bg-blue-600 text-white' : (isDarkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-600')}`}
+                        title="Split View (Notes)"
                     >
-                        <Globe size={14} /> Open Original
+                        <Columns size={18} />
                     </button>
                     
                     <div className={`flex rounded-xl p-1 ${isDarkMode ? 'bg-slate-800' : 'bg-slate-100'}`}>
+                        {hasPdf && (
+                            <button onClick={() => setViewMode('pdf')} className={`p-1.5 rounded-lg transition-all ${viewMode === 'pdf' ? (isDarkMode ? 'bg-slate-600 text-white' : 'bg-white text-blue-600 shadow-sm') : 'text-slate-400'}`}>
+                                <FileText size={18} />
+                            </button>
+                        )}
                         <button onClick={() => setViewMode('reader')} className={`p-1.5 rounded-lg transition-all ${viewMode === 'reader' ? (isDarkMode ? 'bg-slate-600 text-white' : 'bg-white text-blue-600 shadow-sm') : 'text-slate-400'}`}>
                             <FileText size={18} />
                         </button>
@@ -185,41 +237,45 @@ const OfflineReader: React.FC<OfflineReaderProps> = ({ isOpen, onClose, article,
       </div>
 
       {/* Main Container */}
-      <div className="flex-grow w-full h-full relative overflow-hidden" onScroll={viewMode === 'reader' ? handleScroll : undefined}>
-         {isLoading ? (
-             <div className={`w-full h-full flex flex-col items-center justify-center space-y-6 ${isDarkMode ? 'bg-slate-950' : 'bg-white'}`}>
-                 <div className="relative">
-                     <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
-                     <Loader2 size={48} className="animate-spin text-blue-600 relative z-10" />
-                 </div>
-                 <div className="text-center">
-                     <p className="font-black text-xl tracking-tight uppercase">Analizando Acceso Directo</p>
-                     <p className="text-[10px] font-bold opacity-40 uppercase tracking-widest mt-1">Intentando motor JINA AI / Unpaywall...</p>
-                 </div>
-             </div>
-         ) : (
-             viewMode === 'web' ? (
-                 <div className="w-full h-full relative flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900">
-                     <iframe src={article.url} title="Web View" className="w-full h-full border-0 bg-white" sandbox="allow-forms allow-scripts allow-same-origin allow-popups" />
-                     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 p-4 bg-black/80 backdrop-blur-xl text-white rounded-2xl flex items-center gap-4 shadow-2xl border border-white/10 max-w-xs text-center">
-                         <div className="flex-1">
-                             <p className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-1">Dificultad de carga?</p>
-                             <button onClick={() => openExternalUrl(externalLinkUrl, isDarkMode)} className="bg-blue-600 px-4 py-1.5 rounded-full text-[10px] font-black uppercase">Abrir en Navegador Externo</button>
-                         </div>
+      <div className="flex flex-1 h-full overflow-hidden relative">
+         {/* Main Content Area */}
+         <div className={`flex-1 h-full relative overflow-hidden transition-all duration-300 ${isSplitView ? 'w-1/2' : 'w-full'}`}>
+             {isLoading ? (
+                 <div className={`w-full h-full flex flex-col items-center justify-center space-y-6 ${isDarkMode ? 'bg-slate-950' : 'bg-white'}`}>
+                     <div className="relative">
+                         <div className="absolute inset-0 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+                         <Loader2 size={48} className="animate-spin text-blue-600 relative z-10" />
+                     </div>
+                     <div className="text-center">
+                         <p className="font-black text-xl tracking-tight uppercase">Analizando Acceso Directo</p>
+                         <p className="text-[10px] font-bold opacity-40 uppercase tracking-widest mt-1">Intentando motor JINA AI / Unpaywall...</p>
                      </div>
                  </div>
-             ) : (
-                 <div className={`w-full h-full overflow-y-auto p-6 md:p-12 transition-colors duration-300 ${getThemeStyles(readerTheme)}`} onScroll={handleScroll}>
-                     <div className={`max-w-3xl mx-auto prose prose-sm md:prose-lg transition-colors duration-300 ${getProseClass(readerTheme)}`}>
-                         <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
-                         <div className="mt-20 pt-10 border-t opacity-40 text-center pb-20">
-                             <p className="text-xs uppercase font-black tracking-widest">Fin del Artículo • NephroUpdate IA</p>
-                             <button onClick={() => openExternalUrl(externalLinkUrl, isDarkMode)} className="mt-4 text-blue-500 font-bold text-xs uppercase underline">Ver Fuente Original</button>
-                         </div>
+             ) : renderContent()}
+         </div>
+
+         {/* Split View Notes Panel */}
+         <AnimatePresence>
+             {isSplitView && (
+                 <motion.div 
+                    initial={{ x: '100%', opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: '100%', opacity: 0 }}
+                    className={`w-1/3 min-w-[300px] border-l h-full flex flex-col ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-slate-50 border-slate-200'}`}
+                 >
+                     <div className={`p-4 border-b flex items-center gap-2 ${isDarkMode ? 'border-slate-800 text-slate-400' : 'border-slate-200 text-slate-600'}`}>
+                         <StickyNote size={16} className="text-amber-500" />
+                         <span className="text-xs font-black uppercase tracking-widest">Notas de Estudio</span>
                      </div>
-                 </div>
-             )
-         )}
+                     <textarea 
+                        className={`flex-1 w-full p-4 resize-none outline-none bg-transparent leading-relaxed ${isDarkMode ? 'text-slate-300 placeholder-slate-600' : 'text-slate-800 placeholder-slate-400'}`}
+                        placeholder="Escribe tus hallazgos..."
+                        value={note}
+                        onChange={(e) => setNote(e.target.value)}
+                     />
+                 </motion.div>
+             )}
+         </AnimatePresence>
       </div>
     </div>
   );

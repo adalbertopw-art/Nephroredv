@@ -1,12 +1,14 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Article, Language, TextSize, ArticleCategory, FontStyle } from '../types';
-import { Share2, Bookmark, BookmarkCheck, Sparkles, Loader2, Zap, ChevronDown, ChevronUp, Unlock, Lock, BookOpen, FileText, StickyNote, X, Quote, Workflow, CheckCircle2, Circle, Clock, Flame, Image as ImageIcon, ExternalLink, Trash2, WifiOff, Activity, Users, FlaskConical, BarChart3, Microscope, AlertTriangle, Scale, FileSearch, Newspaper, Layers, Info, Link as LinkIcon, AlertCircle } from 'lucide-react';
+import { Share2, Bookmark, BookmarkCheck, Sparkles, Loader2, Zap, ChevronDown, ChevronUp, Unlock, Lock, BookOpen, FileText, StickyNote, X, Quote, Workflow, CheckCircle2, Circle, Clock, Flame, Image as ImageIcon, ExternalLink, Trash2, WifiOff, Activity, Users, FlaskConical, BarChart3, Microscope, AlertTriangle, Scale, FileSearch, Newspaper, Layers, Info, Link as LinkIcon, AlertCircle, Copy, Check, Paperclip, FileText as FileIcon } from 'lucide-react';
 import { fetchRelatedArticles, generateVisualAbstract as generateGeminiVisual } from '../services/geminiService';
 import { enhanceArticleSummary } from '../services/groqService';
 import { highlightMedicalText } from '../utils/semanticHighlighter';
 import { openExternalUrl } from '../services/browserService';
 import { getArticleImpactTier } from '../constants/searchConstants';
+import { processPdfUpload } from '../services/pdfService';
+import { saveArticleOffline } from '../services/storageService';
 import MermaidDiagram from './MermaidDiagram';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -68,7 +70,16 @@ const translations = {
     statsN: 'Muestra (N)',
     statsP: 'Valor P',
     statsDesign: 'Diseño',
-    assocPubs: 'Publicaciones Asociadas'
+    assocPubs: 'Publicaciones Asociadas',
+    shareMenuTitle: 'Compartir & Citar',
+    copyLink: 'Copiar Enlace',
+    shareNative: 'Compartir...',
+    citeAPA: 'APA 7',
+    citeVancouver: 'Vancouver',
+    citeAMA: 'AMA',
+    attachPdf: 'Adjuntar PDF',
+    pdfProcessing: 'Procesando PDF...',
+    pdfAttached: 'PDF ATTACHED'
   },
   en: {
     iaRelated: 'AI Related',
@@ -98,7 +109,16 @@ const translations = {
     statsN: 'Sample (N)',
     statsP: 'P-Value',
     statsDesign: 'Design',
-    assocPubs: 'Associated Publications'
+    assocPubs: 'Associated Publications',
+    shareMenuTitle: 'Share & Cite',
+    copyLink: 'Copy Link',
+    shareNative: 'Share...',
+    citeAPA: 'APA 7',
+    citeVancouver: 'Vancouver',
+    citeAMA: 'AMA',
+    attachPdf: 'Attach PDF',
+    pdfProcessing: 'Processing PDF...',
+    pdfAttached: 'PDF ATTACHED'
   }
 };
 
@@ -265,6 +285,7 @@ const getBadgeConfig = (category: ArticleCategory | string, isDarkMode: boolean)
 
 const ArticleCard: React.FC<ArticleCardProps> = ({ article, isSaved, onToggleSave, language = 'es', textSize = 'base', fontStyle = 'sans', isDarkMode = false, groqApiKey, geminiApiKey, onReadFullText, onExpandStateChange, onUpdateNote, onUpdateVisualAbstract, defaultXrayMode, isSelectionMode, isSelected, onSelect, isDownloaded, onReadOffline, onOpenImmersive, isCompact = false, onUpdateArticle }) => {
   const [showRelated, setShowRelated] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false); // Combined Share/Cite Menu
   const [loadingRelated, setLoadingRelated] = useState(false);
   const [relatedArticles, setRelatedArticles] = useState<Article[]>([]);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -276,9 +297,13 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, isSaved, onToggleSav
   const [isXrayMode, setIsXrayMode] = useState(defaultXrayMode || false);
   const [showNoteEditor, setShowNoteEditor] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+  const [isPdfProcessing, setIsPdfProcessing] = useState(false);
   
   const cardRef = useRef<HTMLDivElement>(null);
   const textContainerRef = useRef<HTMLDivElement>(null);
+  const shareMenuRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { setIsXrayMode(defaultXrayMode || false); }, [defaultXrayMode]);
 
@@ -288,6 +313,19 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, isSaved, onToggleSav
         return () => clearTimeout(timer);
     }
   }, [visualError]);
+
+  useEffect(() => {
+      // Click outside listener for share menu
+      const handleClickOutside = (event: MouseEvent) => {
+          if (shareMenuRef.current && !shareMenuRef.current.contains(event.target as Node)) {
+              setShowShareMenu(false);
+          }
+      };
+      if (showShareMenu) {
+          document.addEventListener('mousedown', handleClickOutside);
+      }
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showShareMenu]);
 
   const uiLang = language === 'es' ? 'es' : 'en';
   const t = translations[uiLang];
@@ -371,16 +409,49 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, isSaved, onToggleSav
       try { await navigator.share({ title: article.title, text: article.summary, url: article.url }); } catch (e) {}
     } else {
       navigator.clipboard.writeText(article.url);
-      alert(t.shareCopied);
+      setCopyFeedback('url');
+      setTimeout(() => setCopyFeedback(null), 1500);
     }
+    setShowShareMenu(false);
   };
 
-  const handleCite = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleCopyLink = () => {
+      navigator.clipboard.writeText(article.url);
+      setCopyFeedback('url');
+      setTimeout(() => setCopyFeedback(null), 1500);
+      setShowShareMenu(false);
+  }
+
+  const handleCopyCitation = (format: 'APA' | 'Vancouver' | 'AMA') => {
     const authors = article.authors || 'Unknown Authors';
-    const citation = `${authors}. (${article.date}). ${article.title}. ${article.source}. Retrieved from ${article.url}`;
+    const year = article.date.match(/\d{4}/)?.[0] || 'n.d.';
+    const title = article.title.replace(/\.$/, ''); // Remove trailing dot if exists
+    const source = article.source || 'NephroUpdate';
+    const url = article.url;
+    const today = new Date().toLocaleDateString();
+
+    let citation = '';
+
+    switch(format) {
+        case 'APA':
+            // Smith, J. (2025). Title. Source. Retrieved from URL
+            citation = `${authors}. (${year}). ${title}. ${source}. ${url}`;
+            break;
+        case 'Vancouver':
+            // Author AA. Title. Source. Date;Vol(Issue):Pages. Available from: URL
+            citation = `${authors}. ${title}. ${source}. ${year}. Available from: ${url}`;
+            break;
+        case 'AMA':
+            // Author AA. Title. Source. Year;Vol(Issue):Pages. doi:xxx
+            citation = `${authors}. ${title}. ${source}. ${year}. Accessed ${today}. ${url}`;
+            break;
+    }
+
     navigator.clipboard.writeText(citation);
-    alert(t.citationCopied);
+    setCopyFeedback('cite');
+    if (navigator.vibrate) navigator.vibrate(50);
+    setTimeout(() => setCopyFeedback(null), 1500);
+    setShowShareMenu(false);
   };
 
   const handleEvidenceFlow = (e: React.MouseEvent) => {
@@ -415,6 +486,52 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, isSaved, onToggleSav
       } catch (err) {} finally { setLoadingRelated(false); }
   };
 
+  // PDF UPLOAD LOGIC
+  const handlePdfUploadClick = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      setIsPdfProcessing(true);
+      try {
+          // Process PDF: Extract text + Convert to Base64
+          const { base64, text } = await processPdfUpload(file);
+          
+          // Persist using offline storage mechanism
+          // This saves fullTextContent and localPdfData to IndexedDB
+          const updatedArticle = { 
+              ...article, 
+              localPdfData: base64, 
+              fullTextContent: text 
+          };
+          
+          // Save to IndexedDB (Note: we pass current html/summary content as placeholder if needed, 
+          // but saveArticleOffline handles updates gracefully)
+          await saveArticleOffline(updatedArticle, updatedArticle.summary, true);
+          
+          // Update React State if callback provided
+          if (onUpdateArticle) {
+              onUpdateArticle(article.id, { 
+                  localPdfData: base64, 
+                  fullTextContent: text 
+              });
+          }
+          
+          if (navigator.vibrate) navigator.vibrate([30, 50, 30]);
+      } catch (err) {
+          console.error("PDF Upload Failed", err);
+          alert("Error processing PDF. Please try another file.");
+      } finally {
+          setIsPdfProcessing(false);
+          // Clear input to allow re-uploading same file if needed
+          if (fileInputRef.current) fileInputRef.current.value = '';
+      }
+  };
+
   const fontSizeClass = { 
     sm: 'text-[11px]', 
     base: 'text-[13px]', 
@@ -441,6 +558,8 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, isSaved, onToggleSav
 
   const abstractWithHighlights = applyUserHighlights(rawAbstractContent, highlights, isDarkMode || false);
 
+  const hasPdf = !!article.localPdfData;
+
   if (isCompact) {
       return (
           <motion.div 
@@ -454,6 +573,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, isSaved, onToggleSav
                                {article.source.split(' ')[0]}
                            </span>
                            {isDownloaded && <WifiOff size={10} className="text-emerald-500" />}
+                           {hasPdf && <FileIcon size={10} className="text-blue-500" />}
                        </div>
                        <div className="flex items-center gap-2">
                            <CitationHeat score={article.relevanceScore} isDarkMode={isDarkMode} />
@@ -481,7 +601,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, isSaved, onToggleSav
                               <BookOpen size={12} className="text-blue-500" />
                           </button>
                           <button onClick={handleEvidenceFlow} className={`p-1.5 rounded-full ${isDarkMode ? 'bg-white/5' : 'bg-slate-100'}`}>
-                              {isDownloaded ? <CheckCircle2 size={12} className="text-emerald-500" /> : <ExternalLink size={12} className="text-slate-50" />}
+                              {hasPdf ? <FileIcon size={12} className="text-blue-500" /> : (isDownloaded ? <CheckCircle2 size={12} className="text-emerald-500" /> : <ExternalLink size={12} className="text-slate-50" />)}
                           </button>
                       </div>
                   </div>
@@ -493,6 +613,15 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, isSaved, onToggleSav
   return (
     <div ref={cardRef} className={`flex flex-col rounded-[2.2rem] border transition-all duration-500 group relative overflow-hidden backdrop-blur-3xl shadow-xl ${isDarkMode ? 'bg-[#020617]/80 border-white/5 text-slate-100 hover:bg-[#020617]' : 'bg-white/90 border-slate-200 text-slate-900 hover:bg-white'} ${isSelected ? 'ring-4 ring-blue-500 border-transparent' : ''}`}>
       
+      {/* Hidden File Input for PDF Upload */}
+      <input 
+          type="file" 
+          accept="application/pdf" 
+          ref={fileInputRef} 
+          onChange={handleFileChange} 
+          className="hidden" 
+      />
+
       {article.imageUrl && !imageError && (
         <div className="relative w-full h-32 overflow-hidden group-hover:h-36 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)]">
            <img src={article.imageUrl} alt={article.title} onError={() => setImageError(true)} className="w-full h-full object-cover saturate-[1.1] brightness-[0.9] dark:brightness-[0.7]" />
@@ -549,14 +678,21 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, isSaved, onToggleSav
                  )}
                  
                  {isDownloaded && <WifiOff size={9} className="text-emerald-500 ml-0.5" />}
+                 
+                 {/* PDF Indicator */}
+                 {hasPdf && (
+                     <span className={`flex items-center gap-1 text-[7px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-blue-500/30 ${isDarkMode ? 'bg-blue-900/30 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+                         <FileIcon size={8} /> {t.pdfAttached}
+                     </span>
+                 )}
              </div>
              
              <div className="flex items-center gap-2">
                  {/* Simplified Citation Heat - Only Flame */}
                  <CitationHeat score={article.relevanceScore} isDarkMode={isDarkMode} />
                  
-                 <button onClick={(e) => { e.stopPropagation(); handleEvidenceFlow(e); }} className={`p-1 rounded-full transition-all hover:scale-110 active:scale-95 ${isDownloaded ? 'text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : (article.isFree ? 'text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : 'text-amber-500 bg-amber-50 dark:bg-amber-900/20')}`} title={t.fullTextTip}>
-                     {isDownloaded ? <CheckCircle2 size={13} strokeWidth={2.5} /> : (article.isFree ? <Unlock size={13} strokeWidth={2.5} /> : <Lock size={13} strokeWidth={2.5} />)}
+                 <button onClick={(e) => { e.stopPropagation(); handleEvidenceFlow(e); }} className={`p-1 rounded-full transition-all hover:scale-110 active:scale-95 ${hasPdf ? 'text-blue-500 bg-blue-50 dark:bg-blue-900/20' : (isDownloaded ? 'text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : (article.isFree ? 'text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : 'text-amber-500 bg-amber-50 dark:bg-amber-900/20'))}`} title={t.fullTextTip}>
+                     {hasPdf ? <FileIcon size={13} strokeWidth={2.5} /> : (isDownloaded ? <CheckCircle2 size={13} strokeWidth={2.5} /> : (article.isFree ? <Unlock size={13} strokeWidth={2.5} /> : <Lock size={13} strokeWidth={2.5} />))}
                  </button>
              </div>
         </div>
@@ -658,8 +794,8 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, isSaved, onToggleSav
       </div>
 
       {/* Action Bar - Optimized Liquid Glass effect */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[94%] max-w-sm z-30 pointer-events-none">
-          <div className={`flex items-center justify-around p-1.5 rounded-full border shadow-2xl backdrop-blur-[32px] saturate-[1.8] pointer-events-auto transition-all hover:scale-[1.02] ${isDarkMode ? 'bg-[#020617]/70 border-white/10 shadow-black/60' : 'bg-white/60 border-white/60 shadow-blue-200/40'}`}>
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[98%] max-w-sm z-30 pointer-events-none">
+          <div className={`relative flex items-center justify-around p-1.5 rounded-full border shadow-2xl backdrop-blur-[32px] saturate-[1.8] pointer-events-auto transition-all hover:scale-[1.02] ${isDarkMode ? 'bg-[#020617]/70 border-white/10 shadow-black/60' : 'bg-white/60 border-white/60 shadow-blue-200/40'}`}>
               
               {/* Button 1: Bookmark */}
               <button onClick={(e) => { e.stopPropagation(); onToggleSave(article); }} className={`p-2.5 rounded-full transition-all active:scale-90 ${isSaved ? 'text-blue-500 bg-blue-500/20' : 'text-slate-500 hover:bg-black/5 dark:hover:bg-white/10'}`} title={t.library}>
@@ -671,17 +807,71 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, isSaved, onToggleSav
                   <StickyNote size={16} />
               </button>
 
-              {/* Button 3: Cite */}
-              <button onClick={handleCite} className="p-2.5 rounded-full text-slate-500 hover:bg-black/5 dark:hover:bg-white/10 transition-colors" title={t.cite}>
-                  <Quote size={16} />
-              </button>
+              {/* Button 3: Share / Cite (COMBINED) */}
+              <div className="relative" ref={shareMenuRef}>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); setShowShareMenu(!showShareMenu); }} 
+                    className={`p-2.5 rounded-full transition-all ${showShareMenu ? 'text-blue-500 bg-blue-500/20' : 'text-slate-500 hover:bg-black/5 dark:hover:bg-white/10'}`} 
+                    title={t.shareMenuTitle}
+                  >
+                      {copyFeedback ? <Check size={16} className="text-emerald-500" /> : <Share2 size={16} />}
+                  </button>
 
-              {/* Button 4: Share */}
-              <button onClick={(e) => { e.stopPropagation(); handleShare(); }} className="p-2.5 rounded-full text-slate-500 hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
-                  <Share2 size={16} />
-              </button>
+                  <AnimatePresence>
+                      {showShareMenu && (
+                          <motion.div 
+                            initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                            className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-4 w-44 rounded-2xl border shadow-2xl overflow-hidden backdrop-blur-3xl z-50 ${isDarkMode ? 'bg-[#020617]/90 border-white/10' : 'bg-white/95 border-white/50'}`}
+                          >
+                              <div className="p-1 space-y-1">
+                                  {/* Section 1: Standard Share */}
+                                  <button onClick={handleShare} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wide transition-colors ${isDarkMode ? 'hover:bg-white/10 text-slate-300' : 'hover:bg-slate-100 text-slate-700'}`}>
+                                      <span>{t.shareNative}</span>
+                                      <Share2 size={12} />
+                                  </button>
+                                  <button onClick={handleCopyLink} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wide transition-colors ${isDarkMode ? 'hover:bg-white/10 text-slate-300' : 'hover:bg-slate-100 text-slate-700'}`}>
+                                      <span>{t.copyLink}</span>
+                                      <Copy size={12} />
+                                  </button>
+
+                                  <div className={`h-px mx-2 ${isDarkMode ? 'bg-white/10' : 'bg-slate-200'}`}></div>
+                                  
+                                  {/* Section 2: Citation Formats */}
+                                  <div className="px-3 py-1.5 text-[9px] font-black uppercase tracking-widest opacity-40">Citar Como:</div>
+                                  
+                                  <button onClick={() => handleCopyCitation('APA')} className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-[10px] font-medium transition-colors ${isDarkMode ? 'hover:bg-blue-600/20 text-slate-300' : 'hover:bg-blue-50 text-slate-700'}`}>
+                                      <span>{t.citeAPA}</span>
+                                      <span className="opacity-30 text-[8px]">Psych/Edu</span>
+                                  </button>
+                                  
+                                  <button onClick={() => handleCopyCitation('Vancouver')} className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-[10px] font-medium transition-colors ${isDarkMode ? 'hover:bg-blue-600/20 text-slate-300' : 'hover:bg-blue-50 text-slate-700'}`}>
+                                      <span>{t.citeVancouver}</span>
+                                      <span className="opacity-30 text-[8px]">Medical</span>
+                                  </button>
+
+                                  <button onClick={() => handleCopyCitation('AMA')} className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-[10px] font-medium transition-colors ${isDarkMode ? 'hover:bg-blue-600/20 text-slate-300' : 'hover:bg-blue-50 text-slate-700'}`}>
+                                      <span>{t.citeAMA}</span>
+                                      <span className="opacity-30 text-[8px]">Journals</span>
+                                  </button>
+                              </div>
+                          </motion.div>
+                      )}
+                  </AnimatePresence>
+              </div>
 
               <div className="h-4 w-px bg-slate-400/20 mx-0.5"></div>
+
+              {/* Button 4: PDF Upload (NEW) */}
+              <button 
+                onClick={handlePdfUploadClick} 
+                disabled={isPdfProcessing}
+                className={`p-2.5 rounded-full transition-all active:scale-90 ${hasPdf ? 'text-blue-500 bg-blue-500/20' : 'text-slate-500 hover:bg-black/5 dark:hover:bg-white/10'}`} 
+                title={isPdfProcessing ? t.pdfProcessing : t.attachPdf}
+              >
+                  {isPdfProcessing ? <Loader2 size={16} className="animate-spin" /> : <Paperclip size={16} />}
+              </button>
 
               {/* Button 5: AI Enhance (Groq/Llama 3) */}
               <button onClick={handleEnhance} disabled={isEnhancing} className={`p-2.5 rounded-full transition-all active:scale-90 ${viewMode === 'enhanced' ? 'text-amber-500 bg-amber-500/20' : 'text-slate-500 hover:bg-black/5 dark:hover:bg-white/10'}`} title={t.enhanceGroq}>
@@ -698,9 +888,9 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, isSaved, onToggleSav
                   <Sparkles size={16} />
               </button>
 
-              {/* Button 8: Evidence Flow (Download Cascade) */}
-              <button onClick={handleEvidenceFlow} className={`p-2.5 rounded-full transition-all active:scale-90 text-indigo-500 hover:bg-black/5 dark:hover:bg-white/10`} title={t.fullTextTip}>
-                  <Workflow size={16} />
+              {/* Button 8: Evidence Flow (Download Cascade / PDF Viewer) */}
+              <button onClick={handleEvidenceFlow} className={`p-2.5 rounded-full transition-all active:scale-90 ${hasPdf ? 'text-blue-500 hover:bg-blue-500/10' : 'text-indigo-500 hover:bg-black/5 dark:hover:bg-white/10'}`} title={t.fullTextTip}>
+                  {hasPdf ? <FileIcon size={16} /> : <Workflow size={16} />}
               </button>
 
           </div>
