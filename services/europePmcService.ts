@@ -53,7 +53,8 @@ export const fetchEuropePmcArticles = async (
   topic: Topic | string,
   language: 'es' | 'original' = 'original',
   customQuery?: string,
-  years?: number
+  years?: number,
+  onlyFullText: boolean = false
 ): Promise<ResearchUpdate> => {
   try {
     const mainTerm = customQuery || getEPMCTopicQuery(topic);
@@ -64,14 +65,15 @@ export const fetchEuropePmcArticles = async (
         const currentYear = new Date().getFullYear();
         const startYear = currentYear - years;
         dateFilter = ` AND (PUB_YEAR:[${startYear} TO ${currentYear + 1}])`;
-    } else {
-        // Default minimal filter if no year specified (though App.tsx usually sends one)
-        // If undefined, maybe default to last 3 years internally or leave open if user wants ALL
-        // Leaving open allows historical searches
+    }
+
+    let fullTextFilter = '';
+    if (onlyFullText) {
+        fullTextFilter = ' AND (HAS_FT:y)';
     }
 
     // Use encoded quotes to ensure stability across proxies
-    const query = customQuery ? `${mainTerm}${dateFilter}` : `(${mainTerm}) AND (HAS_ABSTRACT:y)${dateFilter}`;
+    const query = customQuery ? `(TITLE:(${mainTerm}) OR ABSTRACT:(${mainTerm}))${dateFilter}${fullTextFilter}` : `(${mainTerm}) AND (HAS_ABSTRACT:y)${dateFilter}${fullTextFilter}`;
 
     const params = new URLSearchParams({
         query: query,

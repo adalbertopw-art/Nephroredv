@@ -31,14 +31,21 @@ export const fetchDoajArticles = async (
         
     const url = `${DOAJ_API_BASE}/${encodeURIComponent(query)}?pageSize=60`;
 
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-        if (response.status === 400) {
-            console.debug(`DOAJ API 400 Error. Query: ${query}`);
-            return { summary: "DOAJ search parameters adjusted.", articles: [] };
+    let response: Response;
+    try {
+        response = await fetch(url);
+        if (!response.ok) throw new Error(`Direct HTTP ${response.status}`);
+    } catch (err) {
+        // Proxy fallback
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+        response = await fetch(proxyUrl);
+        if (!response.ok) {
+            if (response.status === 400) {
+                console.debug(`DOAJ API 400 Error. Query: ${query}`);
+                return { summary: "DOAJ search parameters adjusted.", articles: [] };
+            }
+            throw new Error(`DOAJ API Error: ${response.status}`);
         }
-        throw new Error(`DOAJ API Error: ${response.status}`);
     }
     
     const data = await response.json();

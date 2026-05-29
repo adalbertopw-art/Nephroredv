@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
-import { ResearchUpdate, Article, Topic, Language, DeepAnalysisResult, ChatMessage } from "../types";
+import { ResearchUpdate, Article, Topic, Language, DeepAnalysisResult, ChatMessage, Comment } from "../types";
 
 const sanitizeUrl = (url: string): string => {
   if (!url || typeof url !== 'string') return '';
@@ -172,13 +172,18 @@ export const searchMedicalGoogle = async (
 export const translateSimpleQuery = async (query: string, apiKey?: string): Promise<string> => {
     if (!query) return query;
     const ai = getAIClient(apiKey);
-    const prompt = `Act as a medical research librarian. Translate the following search query from Spanish to highly specific ENGLISH clinical keywords combined with standard Boolean operators (AND, OR).
+    const prompt = `Act as an expert Nephrology research librarian. Refine the following manual search query:
+    1. Translate the query from Spanish (or any language) to English.
+    2. Map the concepts to highly specific, relevant MeSH (Medical Subject Headings) terms focused on Nephrology and related conditions.
+    3. Combine them using standard Boolean operators (AND, OR).
+    
     Target: High-impact medical databases (PubMed, OpenAlex, Semantic Scholar).
     Format: Return ONLY the boolean query string.
     Rules:
-    1. Use standard English medical terminology aligned with MeSH terms where possible (e.g. "Heart Failure" instead of "Insuficiencia Cardiaca").
-    2. Do NOT use database-specific tags like [MeSH] or [Title/Abstract] to ensure compatibility across different APIs.
-    3. No extra text or explanation.
+    - Prioritize Nephrology-specific MeSH terms (e.g., "Kidney Failure, Chronic" instead of just "Kidney Disease").
+    - Balance specificity with recall: Use "OR" for synonyms and "AND" only for truly essential distinct concepts.
+    - Do NOT use database-specific tags like [MeSH] or [Title/Abstract] to ensure compatibility across different APIs, but use parentheses to group terms logically.
+    - No extra text, quotes, or explanation.
     
     Query: "${query}"`;
     
@@ -227,6 +232,33 @@ export const generateVisualAbstract = async (
         return response.text || null;
     } catch (e) {
         return null;
+    }
+};
+
+export const fetchClinicalSuggestions = async (
+    query: string,
+    apiKey?: string
+): Promise<string[]> => {
+    if (!query || query.length < 2) return [];
+    
+    const ai = getAIClient(apiKey);
+    const prompt = `Act as a medical autocomplete system. The user is typing a search query related to Nephrology or general medicine: "${query}".
+    Suggest 5 highly relevant, specific medical terms, drug names, diseases, or clinical concepts that complete or relate to this query.
+    Return ONLY a JSON array of strings. No markdown, no explanations.
+    Example: ["diabetic nephropathy", "dialysis", "diuretics"]`;
+
+    try {
+        const response = await fetchWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
+            model: "gemini-3-flash-preview",
+            contents: prompt,
+            config: { responseMimeType: "application/json" }
+        }));
+        const text = cleanJson(response.text || '[]');
+        const suggestions = JSON.parse(text);
+        return Array.isArray(suggestions) ? suggestions : [];
+    } catch (e) {
+        console.error("Autocomplete Failed", e);
+        return [];
     }
 };
 
@@ -291,6 +323,7 @@ export const generateDeepAnalysis = async (
     2. biasRisk: "Low", "Moderate", or "High".
     3. biasReason: Short explanation of bias assessment (e.g. "Open-label design", "Loss to follow-up").
     4. limitations: Array of strings listing methodological limitations.
+    5. pico: Object { patient: "...", intervention: "...", outcome: "..." }. Extract PICO components.
 
     Study Title: ${title}
     Study Content: ${content.substring(0, 15000)} (Truncated if too long)`;
@@ -324,23 +357,11 @@ export const chatWithArticle = async (
     2. Be precise with data (doses, p-values, N).
     3. Keep answers concise and clinical.`;
 
-    const chat = ai.chats.create({
-        model: "gemini-3-flash-preview",
-        config: { systemInstruction: systemPrompt }
-    });
-
-    // Replay history (simplified for single-turn API or mapped correctly if stateful)
-    // Gemini SDK chats are stateful, but here we just send the message sequence manually if re-initializing,
-    // or just use history prop to build a prompt. For simplicity with the new SDK patterns, let's treat it as a fresh generation or maintain session in UI.
-    // Here we will just send the full prompt chain if we want stateless, or use the object.
-    
-    // Construct history for the model
     const historyParts = history.map(h => ({
         role: h.role,
         parts: [{ text: h.content }]
     }));
 
-    // Actually, create with history
     const chatSession = ai.chats.create({
         model: "gemini-3-flash-preview",
         config: { systemInstruction: systemPrompt },
@@ -353,5 +374,62 @@ export const chatWithArticle = async (
     } catch (e) {
         console.error("Chat Failed", e);
         return "Error connecting to AI assistant.";
+    }
+};
+
+export const generateModeratorComment = async (
+    comments: Comment[],
+    articleTitle: string,
+    articleSummary: string,
+    apiKey?: string,
+    isGeneralForum?: boolean
+): Promise<string> => {
+    const ai = getAIClient(apiKey);
+    const threadContext = comments.map(c => `${c.user_name} said: ${c.content}`).join("\n");
+    
+    let prompt = '';
+    
+    if (isGeneralForum) {
+        prompt = `Act as an Expert Clinical Consultant in a Medical Community Forum.
+        Your goal is to provide evidence-based insights, differential diagnoses, or point out clinical guidelines relevant to the ongoing discussion.
+        
+        Current Discussion:
+        ${threadContext}
+        
+        Instructions:
+        1. Identify the core clinical question or case being discussed.
+        2. Provide a concise, evidence-based perspective or suggest a differential diagnosis/management step.
+        3. Ask a follow-up question to the community to stimulate further clinical reasoning.
+        4. Be concise (max 3 sentences).
+        5. Maintain a professional, collegial tone.
+        
+        Generate the consultant comment in Spanish.`;
+    } else {
+        prompt = `Act as a "Devil's Advocate" Scientific Moderator in a Journal Club.
+        Your goal is to break confirmation bias and challenge weak arguments in the discussion thread politely but rigorously.
+        
+        Article: ${articleTitle}
+        Summary: ${articleSummary}
+        
+        Current Discussion:
+        ${threadContext}
+        
+        Instructions:
+        1. Identify logical fallacies or overlooked limitations in the study that the users are ignoring.
+        2. Ask a provocative scientific question to stimulate critical thinking.
+        3. Be concise (max 2 sentences).
+        4. Do NOT be rude. Be purely academic.
+        
+        Generate the moderator comment in Spanish.`;
+    }
+
+    try {
+        const response = await fetchWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
+            model: "gemini-3-flash-preview",
+            contents: prompt
+        }));
+        return response.text || "Interesting points. However, have we considered the limitations of the sample size in this cohort?";
+    } catch (e) {
+        return "Critical analysis required. Please consider potential confounders.";
     }
 };

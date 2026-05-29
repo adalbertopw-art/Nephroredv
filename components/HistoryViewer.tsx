@@ -19,6 +19,7 @@ interface HistoryViewerProps {
   onReadOffline: (id: string) => void;
   onReadFullText: (article: Article) => void;
   onUpdateArticle?: (articleId: string, updates: any) => void;
+  onOpenImmersive?: (article: Article) => void;
 }
 
 const HistoryViewer: React.FC<HistoryViewerProps> = ({
@@ -35,8 +36,10 @@ const HistoryViewer: React.FC<HistoryViewerProps> = ({
   offlineStatus,
   onReadOffline,
   onReadFullText,
-  onUpdateArticle
+  onUpdateArticle,
+  onOpenImmersive
 }) => {
+  const [expandedArticleId, setExpandedArticleId] = React.useState<string | null>(null);
   const isSession = snapshot.sessionQueries && snapshot.sessionQueries.length > 1;
 
   return (
@@ -112,7 +115,7 @@ const HistoryViewer: React.FC<HistoryViewerProps> = ({
                 <h3 className={`font-black text-sm uppercase tracking-widest mb-4 ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
                     {language === 'es' ? `Evidencia Recopilada (${snapshot.articles.length})` : `Evidence Collected (${snapshot.articles.length})`}
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-12">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-12 items-start">
                     {snapshot.articles.map((article) => (
                         <ArticleCard 
                             key={article.id} 
@@ -129,6 +132,9 @@ const HistoryViewer: React.FC<HistoryViewerProps> = ({
                             onReadOffline={onReadOffline}
                             onReadFullText={onReadFullText}
                             onUpdateArticle={onUpdateArticle}
+                            onOpenImmersive={onOpenImmersive}
+                            isExpanded={expandedArticleId === article.id}
+                            onToggleExpand={() => setExpandedArticleId(expandedArticleId === article.id ? null : article.id)}
                         />
                     ))}
                 </div>

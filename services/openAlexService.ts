@@ -63,7 +63,15 @@ export const fetchOpenAlexArticles = async (
         filter = `&filter=from_publication_date:${startYear}-01-01`;
     }
 
-    const url = `${OPENALEX_API_BASE}?search=${encodedTerm}${filter}&sort=publication_date:desc&per-page=200&page=${page}&select=id,title,type,open_access,cited_by_count,primary_location,publication_date,doi,abstract_inverted_index,authorships,publication_year`;
+    let searchParam = `search=${encodedTerm}`;
+    if (customQuery) {
+        // Restrict to title and abstract for custom queries to improve relevance
+        searchParam = '';
+        const titleAbstractFilter = `title_and_abstract.search:${encodedTerm}`;
+        filter = filter ? `${filter},${titleAbstractFilter}` : `filter=${titleAbstractFilter}`;
+    }
+
+    const url = `${OPENALEX_API_BASE}?${searchParam}${searchParam && filter ? '&' : ''}${filter.replace(/^&/, '')}&sort=publication_date:desc&per-page=200&page=${page}&select=id,title,type,open_access,cited_by_count,primary_location,publication_date,doi,abstract_inverted_index,authorships,publication_year,concepts`;
     
     const data = await fetchWithProxyFallback(url);
     const results = data.results || [];
@@ -88,6 +96,8 @@ export const fetchOpenAlexArticles = async (
           authorsStr = names.join(", ");
       }
 
+      const keywords = (item.concepts || []).map((c: any) => c.display_name);
+
       return {
         id: `oa-${item.id}`,
         title: title,
@@ -99,7 +109,8 @@ export const fetchOpenAlexArticles = async (
         category: category,
         relevanceScore: relevance,
         topic: typeof topic === 'string' ? topic : 'General',
-        isFree: !!item.openAccess?.is_oa
+        isFree: !!item.openAccess?.is_oa,
+        keywords: keywords.length > 0 ? keywords : undefined
       };
     });
     

@@ -30,13 +30,20 @@ export const fetchClinicalTrials = async (
 
     const url = `${CT_API_BASE}?query.term=${encodeURIComponent(condition)}&pageSize=60&fields=${fields}`;
 
-    const response = await fetch(url);
-    
-    if (!response.ok) {
-        if (response.status === 400) {
-            return { summary: "ClinicalTrials query format adjusted.", articles: [] };
+    let response: Response;
+    try {
+        response = await fetch(url);
+        if (!response.ok) throw new Error(`Direct HTTP ${response.status}`);
+    } catch (err) {
+        // Proxy fallback
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+        response = await fetch(proxyUrl);
+        if (!response.ok) {
+            if (response.status === 400) {
+                return { summary: "ClinicalTrials query format adjusted.", articles: [] };
+            }
+            throw new Error(`ClinicalTrials API Error: ${response.status}`);
         }
-        throw new Error(`ClinicalTrials API Error: ${response.status}`);
     }
     
     const data = await response.json();

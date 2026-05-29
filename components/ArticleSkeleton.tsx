@@ -11,7 +11,7 @@ const ArticleSkeleton: React.FC<ArticleSkeletonProps> = ({ isDarkMode }) => {
   const containerClass = isDarkMode ? 'bg-slate-900' : 'bg-white';
 
   return (
-    <div className={`flex flex-col h-full rounded-2xl border p-6 animate-pulse ${containerClass} ${borderClass}`}>
+    <div className={`flex flex-col rounded-2xl border p-6 animate-pulse ${containerClass} ${borderClass}`}>
       {/* Meta Row */}
       <div className="flex justify-between items-start mb-4">
         <div className="flex gap-2">

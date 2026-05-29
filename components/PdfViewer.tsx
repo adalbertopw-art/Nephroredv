@@ -38,7 +38,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ pdfData, isDarkMode }) => {
   useEffect(() => {
     // Configure worker
     if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://esm.sh/pdfjs-dist@4.0.379/build/pdf.worker.min.mjs';
+       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://esm.sh/pdfjs-dist@5.4.624/build/pdf.worker.min.mjs';
     }
 
     const loadPdf = async () => {
@@ -106,7 +106,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ pdfData, isDarkMode }) => {
           viewport: viewport,
         };
 
-        const renderTask = page.render(renderContext);
+        const renderTask = page.render(renderContext as any);
         renderTaskRef.current = renderTask;
         await renderTask.promise;
       } catch (err: any) {

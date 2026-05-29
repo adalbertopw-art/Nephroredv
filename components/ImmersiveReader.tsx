@@ -1,12 +1,14 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { X, ChevronUp, Calendar, Users, BookOpen, Highlighter, StickyNote, Plus, Trash2, Check, Copy, Image as ImageIcon, Activity, Type, Link as LinkIcon, FileText, MessageSquare, BarChart2, Zap, Flame, AlertTriangle, ShieldCheck, AlertCircle, FileText as PdfIcon, Download } from 'lucide-react';
+import { X, ChevronUp, Calendar, Users, BookOpen, Highlighter, StickyNote, Plus, Trash2, Check, Copy, Image as ImageIcon, Activity, Type, Link as LinkIcon, FileText, MessageSquare, BarChart2, Zap, Flame, AlertTriangle, ShieldCheck, AlertCircle, FileText as PdfIcon, Download, ExternalLink, MessageCircle, Paperclip } from 'lucide-react';
 import { Article, FontStyle, DeepAnalysisResult } from '../types';
+import { getJournalLogo } from '../constants/journalLogos';
 import { highlightMedicalText } from '../utils/semanticHighlighter';
 import { applyUserHighlights, CitationHeat } from './ArticleCard';
 import MermaidDiagram from './MermaidDiagram';
 import PdfViewer from './PdfViewer';
 import ArticleChat from './ArticleChat';
+import SocialJournalClub from './SocialJournalClub';
 import { generateDeepAnalysis } from '../services/geminiService';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -18,11 +20,15 @@ interface ImmersiveReaderProps {
   onAddHighlight?: (articleId: string, text: string) => void;
   onRemoveHighlight?: (articleId: string, index: number) => void;
   onUpdateReadingStatus?: (articleId: string, status: 'completed') => void;
+  onProposeDebate?: (article: Article) => void;
+  onUpdateArticle?: (article: Article) => void;
   fontStyle?: FontStyle;
+  language?: 'es' | 'en';
   geminiApiKey?: string;
+  onOpenAuth?: () => void;
 }
 
-type Tab = 'text' | 'pdf' | 'chat' | 'analysis';
+type Tab = 'text' | 'pdf' | 'chat' | 'analysis' | 'club';
 
 const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({ 
   article, 
@@ -32,10 +38,15 @@ const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
   onAddHighlight, 
   onRemoveHighlight, 
   onUpdateReadingStatus,
+  onProposeDebate,
+  onUpdateArticle,
   fontStyle,
-  geminiApiKey
+  language = 'es',
+  geminiApiKey,
+  onOpenAuth
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<Tab>('text');
   const [activeFont, setActiveFont] = useState<FontStyle>(fontStyle || 'serif');
   const [showFontMenu, setShowFontMenu] = useState(false);
@@ -46,9 +57,28 @@ const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
   const [showNotes, setShowNotes] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [imageError, setImageError] = useState(false);
+  const [isScrollingDown, setIsScrollingDown] = useState(false);
+  const lastScrollY = useRef(0);
   
   const [analysisData, setAnalysisData] = useState<DeepAnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const journalLogo = getJournalLogo(article?.source || '');
+  
+  const displayImageUrl = (article && (!article.imageUrl || imageError))
+    ? `https://picsum.photos/seed/${article.id}/1200/600?blur=2`
+    : article?.imageUrl;
+
+  const handlePdfUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (file && onUpdateArticle && article) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+              const base64 = e.target?.result as string;
+              onUpdateArticle({ ...article, localPdfData: base64 });
+          };
+          reader.readAsDataURL(file);
+      }
+  };
 
   useEffect(() => {
       if (article) {
@@ -115,6 +145,17 @@ const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
       const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
       const totalScroll = scrollHeight - clientHeight;
       setScrollProgress(totalScroll > 0 ? (scrollTop / totalScroll) * 100 : 0);
+
+      // Smart Scroll Logic
+      if (scrollTop > lastScrollY.current + 10) {
+          setIsScrollingDown(true);
+      } else if (scrollTop < lastScrollY.current - 10) {
+          setIsScrollingDown(false);
+      }
+      if (scrollTop <= 50) {
+          setIsScrollingDown(false);
+      }
+      lastScrollY.current = scrollTop;
   };
 
   const runDeepAnalysis = async () => {
@@ -132,15 +173,28 @@ const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
   const abstractWithHighlights = applyUserHighlights(rawAbstractContent, article.highlights || [], isDarkMode);
   const fontClass = { sans: 'font-sans', serif: 'font-serif', modern: 'font-modern' }[activeFont];
 
+  // Resolve external URL (prefer DOI if available)
+  const doiMatch = article.url?.match(/10\.\d{4,9}\/[-._;()/:A-Z0-9a-zA-Z]+/i);
+  const targetUrl = doiMatch ? `https://doi.org/${doiMatch[0]}` : article.url;
+
   return (
     <motion.div 
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className={`fixed inset-0 z-[100] flex flex-col backdrop-blur-3xl ${isDarkMode ? 'bg-slate-950/80' : 'bg-slate-50/80'}`}
+        className={`fixed inset-0 z-[110] flex flex-col backdrop-blur-3xl ${isDarkMode ? 'bg-slate-950/80' : 'bg-slate-50/80'}`}
         onMouseUp={handleMouseUp}
     >
+        {/* Immersive Background Layer */}
+        <div className="absolute inset-0 z-[-1] overflow-hidden opacity-10 saturate-[1.5] pointer-events-none">
+            <img 
+                src={displayImageUrl} 
+                className="w-full h-full object-cover blur-3xl scale-110" 
+                alt="" 
+                referrerPolicy="no-referrer"
+            />
+        </div>
         {/* Selection Toolbar */}
         <AnimatePresence>
             {selection && activeTab === 'text' && (
@@ -169,9 +223,27 @@ const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                 <button onClick={onClose} className={`p-2 rounded-full transition-colors ${isDarkMode ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}>
                     <X size={20} />
                 </button>
-                <div className="flex flex-col min-w-0">
-                    <span className="text-[9px] font-black uppercase tracking-widest opacity-50 truncate">{article.source}</span>
-                    <h2 className="text-xs font-bold truncate max-w-[200px] md:max-w-xs">{article.title}</h2>
+                <div className="flex flex-col min-w-0 relative p-2 px-4 rounded-xl overflow-hidden group/header-meta">
+                    {/* Cover Image Background */}
+                    <div className="absolute inset-0 z-0">
+                        <img 
+                            src={displayImageUrl} 
+                            alt="" 
+                            className="w-full h-full object-cover opacity-10 dark:opacity-20 saturate-[1.2]" 
+                            referrerPolicy="no-referrer"
+                        />
+                        <div className={`absolute inset-0 bg-gradient-to-r ${isDarkMode ? 'from-slate-950 via-slate-950/80' : 'from-white via-white/80'} to-transparent`}></div>
+                    </div>
+
+                    <div className="flex items-center gap-2 relative z-10">
+                        {journalLogo && (
+                            <div className="absolute -left-2 -top-1 -bottom-1 w-12 opacity-10 pointer-events-none overflow-hidden flex items-center justify-center">
+                                <img src={journalLogo} alt="" className="max-w-full max-h-full object-contain grayscale" referrerPolicy="no-referrer" />
+                            </div>
+                        )}
+                        <span className="text-[9px] font-black uppercase tracking-widest opacity-50 truncate relative z-10">{article.source}</span>
+                    </div>
+                    <h2 className="text-xs font-bold truncate max-w-[200px] md:max-w-xs relative z-10">{article.title}</h2>
                 </div>
             </div>
 
@@ -182,7 +254,8 @@ const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                         { id: 'text', label: 'Texto', icon: FileText },
                         { id: 'pdf', label: 'PDF', icon: PdfIcon, disabled: !article.localPdfData },
                         { id: 'chat', label: 'Chat', icon: MessageSquare },
-                        { id: 'analysis', label: 'Análisis', icon: BarChart2 }
+                        { id: 'analysis', label: 'Análisis', icon: BarChart2 },
+                        { id: 'club', label: 'Club', icon: MessageCircle }
                     ].map(tab => (
                         <button 
                             key={tab.id} 
@@ -201,6 +274,24 @@ const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                     ))}
                 </div>
                 
+                {/* External Link Button (System Browser) */}
+                <button 
+                    onClick={() => targetUrl && window.open(targetUrl, '_system', 'noopener,noreferrer')}
+                    className={`p-2 rounded-xl transition-all ${isDarkMode ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-600'}`}
+                    title="Abrir en Navegador"
+                >
+                    <ExternalLink size={18} />
+                </button>
+
+                <input type="file" accept="application/pdf" className="hidden" ref={fileInputRef} onChange={handlePdfUpload} />
+                <button 
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`p-2 rounded-xl transition-all ${isDarkMode ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-600'}`}
+                    title="Adjuntar PDF"
+                >
+                    <Paperclip size={18} />
+                </button>
+
                 {activeTab === 'text' && (
                     <div className="relative">
                         <button onClick={() => setShowFontMenu(!showFontMenu)} className={`p-2 rounded-xl transition-all ${isDarkMode ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-600'}`}>
@@ -218,16 +309,27 @@ const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                 <button onClick={() => setShowNotes(!showNotes)} className={`p-2 rounded-xl transition-all ${showNotes ? 'bg-amber-500 text-white' : (isDarkMode ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-600')}`}>
                     <StickyNote size={18} />
                 </button>
+                
+                {onProposeDebate && (
+                    <button 
+                        onClick={() => onProposeDebate(article)}
+                        className={`p-2 rounded-xl transition-all ${isDarkMode ? 'hover:bg-blue-900/30 text-blue-400' : 'hover:bg-blue-50 text-blue-600'}`}
+                        title={language === 'es' ? 'Proponer para Debate' : 'Propose for Debate'}
+                    >
+                        <MessageCircle size={18} />
+                    </button>
+                )}
             </div>
         </div>
 
         {/* Mobile Floating Bottom Bar - Glassmorphism */}
-        <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[110] flex items-center gap-2 p-1.5 rounded-full border shadow-2xl backdrop-blur-2xl saturate-[1.5] transition-colors" style={{ backgroundColor: isDarkMode ? 'rgba(2, 6, 23, 0.85)' : 'rgba(255, 255, 255, 0.85)', borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.5)' }}>
+        <div className={`md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[110] flex items-center gap-2 p-1.5 rounded-full border shadow-2xl backdrop-blur-[40px] saturate-[2] transition-all duration-500 ${isScrollingDown ? 'opacity-0 pointer-events-none translate-y-20' : 'opacity-100 translate-y-0'}`} style={{ backgroundColor: isDarkMode ? 'rgba(2, 6, 23, 0.5)' : 'rgba(255, 255, 255, 0.5)', borderColor: isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.4)' }}>
              {[
                 { id: 'text', icon: FileText, label: 'Text' },
                 { id: 'pdf', icon: PdfIcon, disabled: !article.localPdfData, label: 'PDF' },
                 { id: 'chat', icon: MessageSquare, label: 'Chat' },
-                { id: 'analysis', icon: BarChart2, label: 'Analysis' }
+                { id: 'analysis', icon: BarChart2, label: 'Analysis' },
+                { id: 'club', icon: MessageCircle, label: 'Club' }
             ].map(tab => (
                 <button 
                     key={tab.id} 
@@ -280,7 +382,15 @@ const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                             )}
 
                             {article.imageUrl && !imageError && (
-                                <div className="rounded-2xl overflow-hidden border dark:border-slate-800"><img src={article.imageUrl} onError={() => setImageError(true)} className="w-full h-auto object-cover max-h-96" alt="Figure" /></div>
+                                <div className="rounded-2xl overflow-hidden border dark:border-slate-800 shadow-2xl">
+                                    <img 
+                                        src={displayImageUrl} 
+                                        onError={() => setImageError(true)} 
+                                        className="w-full h-auto object-cover max-h-[500px]" 
+                                        alt="Figure" 
+                                        referrerPolicy="no-referrer"
+                                    />
+                                </div>
                             )}
 
                             {article.visualAbstract && (
@@ -399,6 +509,18 @@ const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                             </div>
                         )}
                     </div>
+                </div>
+            )}
+
+            {/* 5. SOCIAL JOURNAL CLUB */}
+            {activeTab === 'club' && (
+                <div className="flex-1 flex flex-col h-full w-full overflow-hidden pb-24 md:pb-0">
+                    <SocialJournalClub 
+                        article={article} 
+                        isDarkMode={isDarkMode} 
+                        geminiApiKey={geminiApiKey} 
+                        onOpenAuth={onOpenAuth}
+                    />
                 </div>
             )}
 

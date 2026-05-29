@@ -6,17 +6,40 @@ import { detectArticleCategory } from "../utils/categoryDetection";
 
 const PUBMED_API_BASE = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils';
 
-const fetchWithRetry = async (url: string, options: RequestInit, retries = 1): Promise<Response> => {
+const fetchWithRetry = async (url: string, options: RequestInit, retries = 2): Promise<Response> => {
     try {
         const response = await fetch(url, options);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        if (!response.ok) throw new Error(`Direct HTTP ${response.status}`);
         return response;
     } catch (err) {
-        if (retries > 0) {
-            await new Promise(r => setTimeout(r, 500));
-            return fetchWithRetry(url, options, retries - 1);
+        // Try proxy fallback on failure
+        try {
+            // Priority 1 proxy: allorigins
+            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+            const proxyOptions = { ...options, mode: 'cors' as RequestMode };
+            if (options.method === 'POST') {
+                // allorigins does not properly support proxied POST bodies for free via /raw?, 
+                // but we primarily use GET for pubmed. If POST is needed, use corsproxy.
+            }
+            
+            const response = await fetch(proxyUrl, options.method === 'POST' ? undefined : proxyOptions);
+            if (!response.ok) throw new Error(`Proxy 1 HTTP ${response.status}`);
+            return response;
+        } catch (proxyErr) {
+            try {
+                // Priority 2 proxy: corsproxy.io
+                const corsUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+                const response = await fetch(corsUrl, { ...options, mode: 'cors' });
+                if (!response.ok) throw new Error(`Proxy 2 HTTP ${response.status}`);
+                return response;
+            } catch (err3) {
+                 if (retries > 0) {
+                    await new Promise(r => setTimeout(r, 1000));
+                    return fetchWithRetry(url, options, retries - 1);
+                }
+                throw err;
+            }
         }
-        throw err;
     }
 };
 
@@ -24,7 +47,7 @@ const fetchEutils = async (endpoint: string, params: Record<string, string>, met
     const url = new URL(`${PUBMED_API_BASE}/${endpoint}`);
     const allParams = { ...params, tool: 'nephroupdate', email: 'demo@nephroupdate.com' };
 
-    const requestOptions: RequestInit = { method: method, mode: 'cors' };
+    const requestOptions: RequestInit = { method: method, mode: 'cors', referrerPolicy: 'no-referrer' };
 
     if (method === 'GET') {
         Object.keys(allParams).forEach(key => url.searchParams.append(key, allParams[key]));
@@ -35,10 +58,15 @@ const fetchEutils = async (endpoint: string, params: Record<string, string>, met
         requestOptions.headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
     }
 
-    return await fetchWithRetry(url.toString(), requestOptions); 
+    try {
+        return await fetchWithRetry(url.toString(), requestOptions); 
+    } catch (error) {
+        console.error(`PubMed Fetch Error for ${endpoint}:`, error);
+        throw error;
+    } 
 };
 
-const searchPubMed = async (term: string, years?: number, offset: number = 0): Promise<string[]> => {
+const searchPubMed = async (term: string, years?: number, offset: number = 0, onlyFullText: boolean = false): Promise<string[]> => {
     // Construct date filter if years provided
     let dateFilter = '';
     if (years) {
@@ -48,9 +76,14 @@ const searchPubMed = async (term: string, years?: number, offset: number = 0): P
         dateFilter = ` AND ("${startYear}"[Date - Publication] : "3000"[Date - Publication])`;
     }
 
+    let fullTextFilter = '';
+    if (onlyFullText) {
+        fullTextFilter = ' AND "pubmed pmc"[Filter]';
+    }
+
     const response = await fetchEutils('esearch.fcgi', {
         db: 'pubmed',
-        term: term + dateFilter,
+        term: term + dateFilter + fullTextFilter,
         retmode: 'json',
         retmax: '200', 
         retstart: offset.toString(), // Server-side pagination
@@ -66,7 +99,7 @@ const fetchDetails = async (ids: string[], topic: string): Promise<Article[]> =>
         db: 'pubmed',
         id: ids.join(','),
         retmode: 'xml'
-    }, 'GET');
+    }, 'POST');
     
     const text = await response.text();
     const parser = new DOMParser();
@@ -141,6 +174,18 @@ const fetchDetails = async (ids: string[], topic: string): Promise<Article[]> =>
         }
         
         const id = medline.getElementsByTagName("PMID")[0]?.textContent || "0";
+        
+        // Extract Keywords
+        const keywordList = medline.getElementsByTagName("KeywordList")[0];
+        const keywords: string[] = [];
+        if (keywordList) {
+            const kwTags = keywordList.getElementsByTagName("Keyword");
+            for (let k = 0; k < kwTags.length; k++) {
+                const kw = kwTags[k].textContent;
+                if (kw) keywords.push(kw);
+            }
+        }
+        
         const relevance = calculateBaseClinicalScore(title, abstractText, source, topic, 0, yearNum);
         const category = detectArticleCategory(title, abstractText, source);
 
@@ -156,6 +201,7 @@ const fetchDetails = async (ids: string[], topic: string): Promise<Article[]> =>
             relevanceScore: relevance,
             topic: topic || 'General',
             isFree: isFree,
+            keywords: keywords.length > 0 ? keywords : undefined,
             imageUrl: pmcid ? `https://www.ncbi.nlm.nih.gov/pmc/articles/${pmcid}/bin/fig1.jpg` : undefined
         });
     }
@@ -167,18 +213,20 @@ export const fetchPubMedArticles = async (
   language: 'es' | 'original' = 'original',
   customQuery?: string,
   years?: number,
-  offset: number = 0
+  offset: number = 0,
+  onlyFullText: boolean = false
 ): Promise<ResearchUpdate> => {
   try {
     const mainTerm = customQuery || getPubMedTopicQuery(topic);
     
     // Auto-append Humans filter to custom queries to ensure clinical relevance (unless user already specified filters)
+    // Use a broader term "Humans" instead of strict [MeSH] to avoid filtering out unindexed recent articles
     let query = customQuery 
-        ? (customQuery.includes('Humans') ? `(${mainTerm})` : `(${mainTerm}) AND "Humans"[MeSH]`)
+        ? (customQuery.toLowerCase().includes('humans') ? `(${mainTerm})[Title/Abstract]` : `(${mainTerm})[Title/Abstract] AND Humans`)
         : `(${mainTerm})`;
     
-    // Pass offset to search
-    const ids = await searchPubMed(query, years, offset);
+    // Pass offset and onlyFullText to search
+    const ids = await searchPubMed(query, years, offset, onlyFullText);
     if (!ids || ids.length === 0) return { summary: "No results found in PubMed.", articles: [] };
 
     const articles = await fetchDetails(ids, typeof topic === 'string' ? topic : 'General');

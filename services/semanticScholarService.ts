@@ -17,13 +17,22 @@ const fetchWithRetry = async (url: string, headers: HeadersInit = {}, retries = 
                 return fetchWithRetry(url, headers, retries - 1, initialDelay * 2);
             }
         }
+        if (!response.ok && response.status !== 429) throw new Error(`Direct HTTP ${response.status}`);
         return response;
     } catch (error) {
-        if (retries > 0) {
-            await new Promise(resolve => setTimeout(resolve, initialDelay));
-            return fetchWithRetry(url, headers, retries - 1, initialDelay * 2);
+        // Proxy fallback
+        try {
+            const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+            const response = await fetch(proxyUrl, { headers });
+            if (response.ok) return response;
+            throw new Error(`Proxy HTTP ${response.status}`);
+        } catch (proxyErr) {
+            if (retries > 0) {
+                await new Promise(resolve => setTimeout(resolve, initialDelay));
+                return fetchWithRetry(url, headers, retries - 1, initialDelay * 2);
+            }
+            throw error;
         }
-        throw error;
     }
 };
 
@@ -35,6 +44,13 @@ export const fetchSemanticScholarArticles = async (
 ): Promise<ResearchUpdate> => {
   try {
     let searchTerm = customQuery || getS2TopicQuery(topic);
+    
+    // Semantic Scholar's basic search doesn't handle complex boolean logic well.
+    // Strip out OR, AND, NOT and parentheses to create a clean bag-of-words query.
+    if (customQuery) {
+        searchTerm = searchTerm.replace(/\b(OR|AND|NOT)\b/g, '').replace(/[()"]/g, '').replace(/\s+/g, ' ').trim();
+    }
+    
     const queryContext = customQuery ? searchTerm : `(nephrology OR kidney OR renal) AND (${searchTerm})`;
     const currentYear = 2026;
     const yearRange = `${currentYear - 1}-${currentYear}`;

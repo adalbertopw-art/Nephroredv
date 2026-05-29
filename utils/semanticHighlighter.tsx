@@ -106,7 +106,7 @@ export const highlightMedicalText = (text: string, isDarkMode: boolean): React.R
   const structuralRegex = /(?:^|\.\s+)(Introduction|Methods|Results|Conclusions|Objective|Background|Conclusion|Aim|Findings|Discusión|Métodos|Resultados|Conclusiones)[:\.]/gi;
 
   // Split matches logic
-  const splitText = (input: string, patterns: Pattern[]): React.ReactNode[] => {
+  const splitText = (input: string, patterns: Pattern[], keyPrefix: string = 'root'): React.ReactNode[] => {
     if (patterns.length === 0) return [input];
 
     const [currentPattern, ...rest] = patterns;
@@ -121,7 +121,7 @@ export const highlightMedicalText = (text: string, isDarkMode: boolean): React.R
          if (match && match[0] === part) {
              return [
                <span 
-                 key={`${currentPattern.type}-${i}`} 
+                 key={`${keyPrefix}-${currentPattern.type}-${i}`} 
                  className={`inline-block px-1 rounded-md mx-0.5 transition-colors duration-200 ${currentPattern.className}`}
                >
                  {part}
@@ -129,7 +129,7 @@ export const highlightMedicalText = (text: string, isDarkMode: boolean): React.R
              ];
          }
       }
-      return splitText(part, rest);
+      return splitText(part, rest, `${keyPrefix}-${i}`);
     });
   };
 
@@ -151,7 +151,7 @@ export const highlightMedicalText = (text: string, isDarkMode: boolean): React.R
         // Content
         return (
             <span key={`content-${i}`}>
-                {splitText(part, patterns)}
+                {splitText(part, patterns, `chunk-${i}`)}
             </span>
         );
       })}
