@@ -2,6 +2,7 @@
 import { ResearchUpdate, Article, Topic } from "../types";
 import { getGeneralTopicQuery } from "../utils/searchContexts";
 import { calculateBaseClinicalScore } from "../constants/searchConstants";
+import { Capacitor } from '@capacitor/core';
 
 const ELSEVIER_API_BASE = 'https://api.elsevier.com/content/search/sciencedirect';
 const CROSSREF_API_BASE = 'https://api.crossref.org/works';
@@ -32,7 +33,11 @@ export const fetchElsevierArticles = async (
   // Si tenemos API Key, intentamos con Elsevier
   if (apiKey) {
       try {
-        const response = await fetch(ELSEVIER_API_BASE, {
+        let url = ELSEVIER_API_BASE;
+        if (!Capacitor.isNativePlatform()) {
+            url = `/api/proxy?url=${encodeURIComponent(url)}`;
+        }
+        const response = await fetch(url, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -94,7 +99,12 @@ export const fetchElsevierArticles = async (
 
   // Fallback: Shadow Search on Crossref for Elsevier (member:78)
   try {
-      const crossrefUrl = `${CROSSREF_API_BASE}?query=${encodeURIComponent(qsTerm)}&filter=type:journal-article,has-abstract:true,member:78&select=DOI,title,created,author,abstract,container-title,URL,is-referenced-by-count,published-print,published-online&rows=100&sort=published&order=desc`;
+      let crossrefUrl = `${CROSSREF_API_BASE}?query=${encodeURIComponent(qsTerm)}&filter=type:journal-article,has-abstract:true,member:78&select=DOI,title,created,author,abstract,container-title,URL,is-referenced-by-count,published-print,published-online&rows=100&sort=published&order=desc`;
+      
+      if (!Capacitor.isNativePlatform()) {
+          crossrefUrl = `/api/proxy?url=${encodeURIComponent(crossrefUrl)}`;
+      }
+
       const crossrefResponse = await fetch(crossrefUrl);
 
       if (!crossrefResponse.ok) {

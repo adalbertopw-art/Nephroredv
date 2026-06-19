@@ -2,6 +2,7 @@ import { ResearchUpdate, Article, Topic } from "../types";
 import { getS2TopicQuery } from "../utils/searchContexts";
 import { calculateBaseClinicalScore } from "../constants/searchConstants";
 import { detectArticleCategory } from "../utils/categoryDetection";
+import { Capacitor } from '@capacitor/core';
 
 const CROSSREF_API_BASE = 'https://api.crossref.org/works';
 
@@ -40,7 +41,11 @@ export const fetchCrossrefArticles = async (
     // Using a mailto is polite for Crossref and places us in the "Polite Pool"
     params.append('mailto', 'ai.studio.agent@example.com');
 
-    const url = `${CROSSREF_API_BASE}?${params.toString()}`;
+    let url = `${CROSSREF_API_BASE}?${params.toString()}`;
+
+    if (!Capacitor.isNativePlatform()) {
+        url = `/api/proxy?url=${encodeURIComponent(url)}`;
+    }
 
     const response = await fetch(url);
     if (!response.ok) return { summary: `Crossref API Status: ${response.status}`, articles: [] };

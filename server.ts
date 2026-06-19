@@ -35,6 +35,12 @@ async function startServer() {
       const reqAuth = req.headers["authorization"];
       if (reqAuth) headers["authorization"] = reqAuth as string;
 
+      const reqApiKey = req.headers["x-api-key"] || req.headers["X-API-Key"];
+      if (reqApiKey) headers["x-api-key"] = reqApiKey as string;
+
+      const reqElsKey = req.headers["x-els-apikey"] || req.headers["X-ELS-APIKey"];
+      if (reqElsKey) headers["X-ELS-APIKey"] = reqElsKey as string;
+
       // Prepare request body if applicable
       let body: any = undefined;
       if (["POST", "PUT", "PATCH"].includes(req.method)) {
