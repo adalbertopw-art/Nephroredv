@@ -7,12 +7,10 @@ import { detectArticleCategory } from "../utils/categoryDetection";
 const EPMC_API_BASE = 'https://www.ebi.ac.uk/europepmc/webservices/rest/search';
 
 const fetchWithProxyFallback = async (url: string): Promise<any> => {
-    // Strategy: Try direct, then various public proxies in order of reliability
+    // Strategy: Try our local server-side proxy first, then direct fetch
     const proxies = [
-        (u: string) => u, // Direct fetch (works if CORS is configured or in native context)
-        (u: string) => `https://corsproxy.io/?${encodeURIComponent(u)}`,
-        (u: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-        (u: string) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`
+        (u: string) => `/api/proxy?url=${encodeURIComponent(u)}`,
+        (u: string) => u
     ];
 
     let lastError: any;
@@ -73,14 +71,21 @@ export const fetchEuropePmcArticles = async (
     }
 
     // Use encoded quotes to ensure stability across proxies
-    const query = customQuery ? `(TITLE:(${mainTerm}) OR ABSTRACT:(${mainTerm}))${dateFilter}${fullTextFilter}` : `(${mainTerm}) AND (HAS_ABSTRACT:y)${dateFilter}${fullTextFilter}`;
+    const kidneyContext = '(nephrology OR kidney OR renal OR "kidney diseases")';
+    let query = `(${mainTerm} AND ${kidneyContext}) AND (HAS_ABSTRACT:y)${dateFilter}${fullTextFilter}`;
+    const isAuthorSearch = customQuery && customQuery.startsWith("AUTHOR:");
+    if (isAuthorSearch) {
+        const authorName = customQuery.replace("AUTHOR:", "").replace(/"/g, "").trim();
+        query = `(AUTH:"${authorName}")${dateFilter}${fullTextFilter}`;
+    } else if (customQuery) {
+        query = `((TITLE:(${mainTerm}) OR ABSTRACT:(${mainTerm})) AND ${kidneyContext})${dateFilter}${fullTextFilter}`;
+    }
 
     const params = new URLSearchParams({
         query: query,
         format: 'json',
         pageSize: '200', // Significantly increased to 200
-        resultType: 'core',
-        sort: 'DATE_DESC'
+        resultType: 'core'
     });
 
     const url = `${EPMC_API_BASE}?${params.toString()}`;
@@ -101,16 +106,19 @@ export const fetchEuropePmcArticles = async (
       const category = detectArticleCategory(title, cleanAbstract, source);
 
       let authorsStr = "";
+      let fullAuthorsStr = "";
       if (item.authorList && item.authorList.author) {
           const authors = item.authorList.author;
-          const names = authors.slice(0, 3).map((a: any) => a.lastName || a.fullName);
+          const names = authors.slice(0, 3).map((a: any) => a.lastName || a.fullName || '');
           if (authors.length > 3) names.push("et al");
           authorsStr = names.join(", ");
+          fullAuthorsStr = authors.map((a: any) => a.lastName || a.fullName || '').filter(Boolean).join(", ");
       }
 
       const isFree = item.isOpenAccess === 'Y' || item.epmcAuthMan === 'Y';
       // Prioritize full text links
       const link = item.fullTextUrlList?.fullTextUrl?.find((u: any) => u.documentStyle === 'html' || u.documentStyle === 'pdf')?.url || `https://europepmc.org/article/MED/${item.pmid}`;
+      const pdfUrl = item.fullTextUrlList?.fullTextUrl?.find((u: any) => u.documentStyle === 'pdf')?.url;
 
       return {
         id: `epmc-${item.id}`,
@@ -118,12 +126,14 @@ export const fetchEuropePmcArticles = async (
         summary: cleanAbstract || "Abstract not available.",
         source: source,
         authors: authorsStr,
+        fullAuthors: fullAuthorsStr || authorsStr,
         url: link,
         date: date,
         category: category,
         relevanceScore: relevance,
         topic: typeof topic === 'string' ? topic : 'General',
-        isFree: isFree
+        isFree: isFree,
+        pdfUrl: pdfUrl
       };
     });
     

@@ -25,26 +25,30 @@ export const fetchDoajArticles = async (
     }
 
     // DOAJ path-based search
-    const query = customQuery
-        ? `${term}`
+    const isAuthorSearch = customQuery && customQuery.startsWith("AUTHOR:");
+    let query = customQuery
+        ? `${term} nephrology kidney renal`
         : `${term} nephrology kidney`;
+        
+    if (isAuthorSearch) {
+        const authorName = customQuery.replace("AUTHOR:", "").replace(/"/g, "").trim();
+        query = `author:${authorName}`;
+    }
         
     const url = `${DOAJ_API_BASE}/${encodeURIComponent(query)}?pageSize=60`;
 
     let response: Response;
     try {
-        response = await fetch(url);
-        if (!response.ok) throw new Error(`Direct HTTP ${response.status}`);
-    } catch (err) {
-        // Proxy fallback
-        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+        const proxyUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
         response = await fetch(proxyUrl);
-        if (!response.ok) {
-            if (response.status === 400) {
-                console.debug(`DOAJ API 400 Error. Query: ${query}`);
-                return { summary: "DOAJ search parameters adjusted.", articles: [] };
-            }
-            throw new Error(`DOAJ API Error: ${response.status}`);
+        if (!response.ok) throw new Error(`Proxy HTTP ${response.status}`);
+    } catch (err) {
+        try {
+            response = await fetch(url);
+            if (!response.ok) throw new Error(`Direct HTTP ${response.status}`);
+        } catch (directErr: any) {
+            console.warn("DOAJ retrieve failed", directErr);
+            return { summary: "DOAJ unreachable.", articles: [] };
         }
     }
     
@@ -57,7 +61,7 @@ export const fetchDoajArticles = async (
     // Filter results locally by date
     const filteredResults = results.filter((item: any) => {
         const year = item.bibjson?.year ? parseInt(item.bibjson.year, 10) : 0;
-        return year >= minYear;
+        return isAuthorSearch || year >= minYear;
     });
 
     const articles: Article[] = filteredResults.map((item: any) => {
@@ -71,8 +75,11 @@ export const fetchDoajArticles = async (
       const relevance = calculateBaseClinicalScore(title, abstract, source, typeof topic === 'string' ? topic : '', 0, year);
 
       let authorsStr = "";
+      let fullAuthorsStr = "";
       if (bib.author && bib.author.length > 0) {
-          authorsStr = bib.author.map((a: any) => a.name).slice(0,3).join(', ');
+          const names = bib.author.map((a: any) => a.name || '').filter(Boolean);
+          authorsStr = names.slice(0,3).join(', ') + (names.length > 3 ? ', et al' : '');
+          fullAuthorsStr = names.join(", ");
       }
       
       const link = bib.link?.find((l: any) => l.type === 'fulltext')?.url || bib.link?.[0]?.url;
@@ -83,6 +90,7 @@ export const fetchDoajArticles = async (
         summary: abstract,
         source: source,
         authors: authorsStr,
+        fullAuthors: fullAuthorsStr || authorsStr,
         url: link,
         date: date,
         category: 'Research',

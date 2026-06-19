@@ -52,6 +52,8 @@ import {
   Radar,
   ArrowLeft,
   BrainCircuit,
+  Wifi,
+  CloudDownload,
   WifiOff,
   Eye,
   Plus,
@@ -99,12 +101,12 @@ import {
   verifyGeminiKey,
   generateGeminiSummary,
   refinePicoTerms,
-  translateSimpleQuery,
   searchMedicalGoogle,
   fetchClinicalSuggestions,
 } from "./services/geminiService";
 import { fetchPubMedArticles } from "./services/pubmedService";
 import { fetchOpenAlexArticles } from "./services/openAlexService";
+import { translateManualQueryWithoutAI } from "./services/translationService";
 import { fetchEuropePmcArticles } from "./services/europePmcService";
 import { fetchSemanticScholarArticles } from "./services/semanticScholarService";
 import { fetchClinicalTrials } from "./services/clinicalTrialsService";
@@ -120,6 +122,7 @@ import {
   saveArticleOffline,
 } from "./services/storageService";
 import { fetchArticleContent } from "./services/downloadService";
+import { backgroundSyncService, SyncState } from "./services/backgroundSyncService";
 
 // Constants
 import { getArticleImpactTier } from "./constants/searchConstants";
@@ -240,6 +243,99 @@ const translations = {
     translatedFrom: "Traducido de:",
     undo: "Deshacer (Original)",
     proposeDebate: "Proponer Debate",
+    latestNews: "Últimas Noticias",
+    settings: {
+      title: "Configuración",
+      profStatus: "ESTADO PROFESIONAL",
+      verified: "Verificado",
+      pending: "Pendiente",
+      guest: "Invitado (Guest)",
+      guestDesc: "Acceso limitado a lectura.",
+      createAccountTxt: "Crear Cuenta y Verificar",
+      verifyDesc: "Para participar en encuestas de impacto y foros clínicos, requerimos validación de licencia profesional durante el registro.",
+      pendingDesc: "Hemos recibido tus credenciales. La validación manual puede tomar hasta 24 horas.",
+      filters: "FILTROS DE BÚSQUEDA",
+      fullTextOnly: "Solo Texto Completo (PMC)",
+      fullTextDesc: "Muestra solo artículos disponibles en PubMed Central.",
+      bentoLayout: "Diseño Bento Grid",
+      bentoDesc: "Vista dinámica con tarjetas de tamaño variable.",
+      searchMode: "MODO DE BÚSQUEDA",
+      standardSearch: "Estándar",
+      standardDesc: "Barrida técnica en 9 bases de datos (incl. LILACS).",
+      aiSearch: "IA",
+      aiSearchDesc: "Analiza resultados y genera síntesis ejecutiva.",
+      connectivity: "CONECTIVIDAD Y SEGURIDAD",
+      apiKeyRequired: "Necesaria para búsqueda IA, Voice Mode y Resúmenes.",
+      verifyBtn: "Verificar",
+      getGoogleAI: "Obtener en Google AI Studio",
+      getGroq: "Obtener en console.groq.com",
+      interfaceAndReading: "INTERFAZ Y LECTURA",
+      darkMode: "Modo Oscuro",
+      darkModeDesc: "Esquema de colores invertido.",
+      language: "Idioma de la Interfaz",
+      langDesc: "Afecta los menús y botones principales.",
+      contentLang: "Idioma de Análisis (IA)",
+      contentLangDesc: "El idioma en el que Gemini y Groq generarán síntesis.",
+      aiProviderTitle: "Proveedor de IA",
+      aiProviderDesc: "Motor utilizado para Análisis Crítico y Voice Mode.",
+      fontStyleTitle: "Estilo de Fuente (Titles & Abstracts)",
+      fontStyleStandard: "Standard (Inter)",
+      fontStyleEditorial: "Editorial (Merriweather)",
+      fontStyleModern: "Modern (Outfit)",
+      newsTicker: "News Ticker (Noticias)",
+      flashcardMode: "Modo Flashcards (Medical Shorts)",
+      textSize: "TAMAÑO DE TEXTO",
+      languages: "IDIOMAS",
+      langEs: "Español",
+      langEn: "English",
+      langOriginal: "Original",
+      syncWifi: "SINCRONIZACIÓN EN WI-FI",
+      syncDesc: "Descargar automáticamente el texto completo de tus artículos guardados en segundo plano cuando estás en Wi-Fi.",
+      syncStatus: "Estado de Sincronización:",
+      syncing: "Sincronizando...",
+      syncReady: "Listo / Inactivo",
+      syncProcessing: "Procesando...",
+      syncLast: "Última sinc:",
+      syncNever: "No sincronizado aún.",
+      syncNow: "Sincronizar Ya",
+      autoXrayTitle: "AUTO RESALTADO",
+      dataMaintenance: "DATOS Y MANTENIMIENTO",
+      confirmDelete: "CONFIRMAR BORRADO",
+      cancel: "Cancelar",
+      clearSearchHistory: "Limpiar Historial de Bucle",
+      deleteAllArticles: "Eliminar Todos los Artículos",
+      factoryReset: "Reset Total (Fábrica)",
+      areYouSure: "¿ESTÁS SEGURO? SE PERDERÁ TODO",
+      yesReset: "SÍ, RESET TOTAL",
+      noReset: "NO",
+      resetVerify: "Resetear Verificación (Debug)",
+      infoHelp: "INFORMACIÓN & AYUDA",
+      currentVersion: "Versión Actual",
+      viewFullInfo: "VER INFORMACIÓN COMPLETA"
+    },
+    libraryEmptyTitle: "Tu Biblioteca Personal",
+    libraryEmptyDesc: "Inicia sesión para guardar artículos, sincronizar tu biblioteca entre dispositivos y acceder a tus notas personales.",
+    loginToContinue: "Iniciar Sesión para Continuar",
+    historyEmptyTitle: "Tu Línea de Tiempo",
+    historyEmptyDesc: "Tus búsquedas previas y descubrimientos aparecerán aquí automáticamente una vez que inicies sesión.",
+    noArticlesFound: "No se encontraron artículos",
+    noArticlesDesc: "Intenta ajustar los filtros o la búsqueda para encontrar lo que necesitas en tu biblioteca.",
+    resetFilters: "Restablecer Filtros",
+    legalNotice: "Aviso Legal",
+    legalDesc: "Esta aplicación es una herramienta de soporte para la investigación y educación médica. Los resúmenes generados por IA pueden contener imprecisiones. Siempre verifique la fuente original antes de tomar decisiones clínicas.",
+    selectColleague: "Seleccionar Colega",
+    noColleagues: "No se encontraron colegas activos",
+    sendingArticles: "Se enviarán {counts} artículos como mensaje directo",
+    generatingReport: "Generar Reporte",
+    analyzingReport: "Analizando...",
+    scientificDevelopments: "¿Cuáles son los desarrollos científicos?",
+    synthesizingEvidence: "Sintetizando Evidencia...",
+    back: "Atrás",
+    suggestions: "Sugerencias",
+    author: "Autor",
+    searchAuthor: "Buscar artículos del autor:",
+    time: "Tiempo",
+    evidenceType: "Tipo de Evidencia"
   },
   en: {
     discover: "Discover",
@@ -276,6 +372,99 @@ const translations = {
     translatedFrom: "Translated from:",
     undo: "Undo (Use original)",
     proposeDebate: "Propose Debate",
+    latestNews: "Latest News",
+    settings: {
+      title: "Settings",
+      profStatus: "PROFESSIONAL STATUS",
+      verified: "Verified",
+      pending: "Pending",
+      guest: "Guest",
+      guestDesc: "Limited read-only access.",
+      createAccountTxt: "Create Account & Verify",
+      verifyDesc: "To participate in impact surveys and clinical forums, we require professional license validation during registration.",
+      pendingDesc: "We have received your credentials. Manual validation can take up to 24 hours.",
+      filters: "SEARCH FILTERS",
+      fullTextOnly: "Full Text Only (PMC)",
+      fullTextDesc: "Show only articles available in PubMed Central.",
+      bentoLayout: "Bento Grid Layout",
+      bentoDesc: "Dynamic view with variable size cards.",
+      searchMode: "SEARCH MODE",
+      standardSearch: "Standard",
+      standardDesc: "Technical sweep in 9 databases.",
+      aiSearch: "AI",
+      aiSearchDesc: "Analyzes results and generates executive synthesis.",
+      connectivity: "CONNECTIVITY & SECURITY",
+      apiKeyRequired: "Required for AI search, Voice Mode and Summaries.",
+      verifyBtn: "Verify",
+      getGoogleAI: "Get from Google AI Studio",
+      getGroq: "Get from console.groq.com",
+      interfaceAndReading: "INTERFACE & READING",
+      darkMode: "Dark Mode",
+      darkModeDesc: "Inverted color scheme.",
+      language: "Interface Language",
+      langDesc: "Affects main menus and buttons.",
+      contentLang: "Analysis Language (AI)",
+      contentLangDesc: "Language Gemini and Groq use for synthesis.",
+      aiProviderTitle: "AI Provider",
+      aiProviderDesc: "Engine used for Critical Analysis and Voice Mode.",
+      fontStyleTitle: "Font Style (Titles & Abstracts)",
+      fontStyleStandard: "Standard (Inter)",
+      fontStyleEditorial: "Editorial (Merriweather)",
+      fontStyleModern: "Modern (Outfit)",
+      newsTicker: "News Ticker",
+      flashcardMode: "Flashcards Mode (Medical Shorts)",
+      textSize: "TEXT SIZE",
+      languages: "LANGUAGES",
+      langEs: "Spanish",
+      langEn: "English",
+      langOriginal: "Original",
+      syncWifi: "BACKGROUND WI-FI SYNC",
+      syncDesc: "Automatically download full text of saved articles in the background when connected to Wi-Fi.",
+      syncStatus: "Sync Status:",
+      syncing: "Syncing...",
+      syncReady: "Ready / Idle",
+      syncProcessing: "Processing...",
+      syncLast: "Last sync:",
+      syncNever: "Not synced yet.",
+      syncNow: "Sync Now",
+      autoXrayTitle: "AUTO HIGHLIGHT",
+      dataMaintenance: "DATA & MAINTENANCE",
+      confirmDelete: "CONFIRM DELETION",
+      cancel: "Cancel",
+      clearSearchHistory: "Clear Search History",
+      deleteAllArticles: "Delete All Saved Articles",
+      factoryReset: "Factory Reset",
+      areYouSure: "ARE YOU SURE? ALL DATA WILL BE LOST",
+      yesReset: "YES, RESET",
+      noReset: "NO",
+      resetVerify: "Reset Verification (Debug)",
+      infoHelp: "INFORMATION & HELP",
+      currentVersion: "Current Version",
+      viewFullInfo: "VIEW FULL INFO"
+    },
+    libraryEmptyTitle: "Your Personal Library",
+    libraryEmptyDesc: "Sign in to save articles, sync your library across devices and access your personal notes.",
+    loginToContinue: "Sign In to Continue",
+    historyEmptyTitle: "Your Search Timeline",
+    historyEmptyDesc: "Your previous searches and discoveries will automatically appear here once you sign in.",
+    noArticlesFound: "No articles found",
+    noArticlesDesc: "Try adjusting the filters or search to find what you need in your library.",
+    resetFilters: "Reset Filters",
+    legalNotice: "Legal Notice",
+    legalDesc: "This application is a support tool for medical research and education. AI generated summaries may contain inaccuracies. Always verify the original source before making clinical decisions.",
+    selectColleague: "Select Colleague",
+    noColleagues: "No active colleagues found",
+    sendingArticles: "Sending {counts} articles as direct message",
+    generatingReport: "Generate Report",
+    analyzingReport: "Analyzing...",
+    scientificDevelopments: "What are the scientific developments?",
+    synthesizingEvidence: "Synthesizing Evidence...",
+    back: "Back",
+    suggestions: "Suggestions",
+    author: "Author",
+    searchAuthor: "Search articles by author:",
+    time: "Time",
+    evidenceType: "Evidence Type"
   },
 };
 
@@ -449,21 +638,32 @@ const hybridSort = (
       const kwScoreA = getKeywordScore(a);
       const kwScoreB = getKeywordScore(b);
 
-      // If one article has 0 keywords (completely irrelevant), push it down
-      if (kwScoreA > 0 && kwScoreB === 0) return -1;
-      if (kwScoreB > 0 && kwScoreA === 0) return 1;
-
       // Prioritize relevance over tier if there's a clear winner in keyword matching
       if (kwScoreA !== kwScoreB) {
         // If the difference is significant, or if one has all keywords and the other doesn't
         if (
-          Math.abs(kwScoreA - kwScoreB) >= 3 ||
+          Math.abs(kwScoreA - kwScoreB) >= 5 ||
           (kwScoreA > 10 && kwScoreB <= 10) ||
           (kwScoreB > 10 && kwScoreA <= 10)
         ) {
+          // Check if one is significantly a better journal before pushing down
+          const tierA = getArticleImpactTier(a);
+          const tierB = getArticleImpactTier(b);
+          // Don't strongly penalize a Tier 1 or Tier 2 journal just because of missing exact keywords
+          if (tierB <= 2 && tierA > 2 && kwScoreB === 0 && kwScoreA < 5) return 1;
+          if (tierA <= 2 && tierB > 2 && kwScoreA === 0 && kwScoreB < 5) return -1;
+          
           return kwScoreB - kwScoreA;
         }
       }
+    }
+
+    const relA = a.relevanceScore || 0;
+    const relB = b.relevanceScore || 0;
+    
+    // Sort primarily by calculated clinical relevance (significant difference)
+    if (Math.abs(relA - relB) >= 5) {
+      return relB - relA;
     }
 
     const tierA = getArticleImpactTier(a);
@@ -521,6 +721,22 @@ function MainApp() {
   const [offlineStatus, setOfflineStatus] = useState<Record<string, boolean>>(
     {},
   );
+  const [syncState, setSyncState] = useState<SyncState>(backgroundSyncService.getState());
+
+  useEffect(() => {
+    const unsubscribe = backgroundSyncService.subscribe((state) => {
+      setSyncState(state);
+      updateOfflineStatusMap();
+    });
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    if (savedArticles.length > 0 && syncState.isEnabled) {
+      backgroundSyncService.assessAndTriggerSync();
+    }
+  }, [savedArticles, syncState.isEnabled]);
+
   const prevUserRef = useRef(user);
 
   // Clear library and history on logout
@@ -619,6 +835,8 @@ function MainApp() {
   const [isReaderLoading, setIsReaderLoading] = useState(false);
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [showApiKeyWarning, setShowApiKeyWarning] = useState(false);
+  const [missingProvider, setMissingProvider] = useState<"gemini" | "groq" | null>(null);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [aiProvider, setAiProvider] = useState<AIProvider>("gemini");
   const [autoXray, setAutoXray] = useState(true);
@@ -1030,6 +1248,7 @@ function MainApp() {
   const handleManualSearch = async (term: string) => {
     if (!term.trim()) return;
     setIsManualSearchOpen(false);
+    setActiveTab("discover");
     setSearchQuery(term);
     setSuggestions([]);
     setTranslationNotice(null);
@@ -1053,10 +1272,11 @@ function MainApp() {
     setSummary("");
 
     try {
-      const translatedQuery = await translateSimpleQuery(
-        newTopic,
-        geminiApiKey,
-      );
+      let finalQuery = newTopic;
+      if (!newTopic.toUpperCase().startsWith("AUTHOR:")) {
+          finalQuery = await translateManualQueryWithoutAI(newTopic);
+      }
+      const translatedQuery = finalQuery;
       if (translatedQuery.toLowerCase() !== newTopic.toLowerCase()) {
         setTranslationNotice({
           original: newTopic,
@@ -1199,54 +1419,6 @@ function MainApp() {
   const filteredArticles = useMemo(() => {
     let result = articles;
 
-    // Stricter manual search filtering: terms must be in Title or Summary
-    const activeSearchTerm = translationNotice?.translated || searchQuery;
-    const isBooleanQuery =
-      activeSearchTerm &&
-      (activeSearchTerm.includes("AND") ||
-        activeSearchTerm.includes("OR") ||
-        activeSearchTerm.includes("("));
-
-    if (
-      activeSearchTerm &&
-      activeSearchTerm.trim() &&
-      !DEFAULT_TOPICS.includes(selectedTopic) &&
-      !isBooleanQuery
-    ) {
-      // Clean the query from boolean operators and technical tags to get core terms
-      const cleanQuery = activeSearchTerm
-        .replace(/\[[^\]]+\]/g, " ") // Remove [MeSH], [Title], etc.
-        .replace(/\(+/g, " ")
-        .replace(/\)+/g, " ")
-        .replace(/\bAND\b/gi, " ")
-        .replace(/\bOR\b/gi, " ")
-        .replace(/\bNOT\b/gi, " ")
-        .replace(/"/g, " ");
-
-      const terms = cleanQuery
-        .toLowerCase()
-        .split(/\s+/)
-        .filter((t) => t.length > 2);
-      if (terms.length > 0) {
-        result = result.filter((a) => {
-          const title = a.title.toLowerCase();
-          const summary = a.summary.toLowerCase();
-          const keywords = (a.keywords || []).join(" ").toLowerCase();
-          const combinedText = `${title} ${summary} ${keywords}`;
-
-          // Relaxed matching for simple queries:
-          // Require at least 50% match of terms or any title match
-          const matchCount = terms.filter((term) =>
-            combinedText.includes(term),
-          ).length;
-          const matchRatio = matchCount / terms.length;
-          const hasTitleMatch = terms.some((term) => title.includes(term));
-
-          return matchRatio >= 0.5 || hasTitleMatch;
-        });
-      }
-    }
-
     if (filterDesign.length > 0) {
       result = result.filter((a) =>
         filterDesign.includes(detectStudyDesign(a)),
@@ -1263,9 +1435,6 @@ function MainApp() {
     articles,
     filterDesign,
     filterTier,
-    searchQuery,
-    selectedTopic,
-    translationNotice,
   ]);
 
   const debouncedLibraryFilter = useDebounce(libraryFilter, 300);
@@ -1439,9 +1608,12 @@ function MainApp() {
     try {
       const baseSearchTerm = queryToUse || topicToUse;
       let effectiveQuery = queryToUse;
+      const isAuthorSearch = baseSearchTerm?.startsWith("AUTHOR:");
+      const finalYearsToFetch = isAuthorSearch ? undefined : yearsToFetch;
 
       const needsTranslation =
         baseSearchTerm &&
+        !isAuthorSearch &&
         !baseSearchTerm.includes("(") &&
         !baseSearchTerm.includes("AND") &&
         !baseSearchTerm.includes("[MeSH]") &&
@@ -1450,10 +1622,7 @@ function MainApp() {
 
       if (needsTranslation && (isManualSearch || modeToUse === "ai")) {
         setSummary(t.translating);
-        effectiveQuery = await translateSimpleQuery(
-          baseSearchTerm,
-          geminiApiKey,
-        );
+        effectiveQuery = await translateManualQueryWithoutAI(baseSearchTerm);
       }
 
       if (filterDesign.length > 0) {
@@ -1490,7 +1659,7 @@ function MainApp() {
               topicToUse,
               langToUse,
               effectiveQuery,
-              yearsToFetch,
+              finalYearsToFetch,
               offset,
               onlyFullText,
             ),
@@ -1501,7 +1670,7 @@ function MainApp() {
               topicToUse,
               langToUse,
               effectiveQuery,
-              yearsToFetch,
+              finalYearsToFetch,
               offset,
             ),
           );
@@ -1511,7 +1680,7 @@ function MainApp() {
               topicToUse,
               langToUse,
               effectiveQuery,
-              yearsToFetch,
+              finalYearsToFetch,
               onlyFullText,
             ),
           );
@@ -1522,7 +1691,8 @@ function MainApp() {
               langToUse,
               effectiveQuery,
               s2ApiKey,
-            ),
+              finalYearsToFetch
+            )
           );
         if (activeSources.clinicaltrials)
           sourcePromises.push(
@@ -1571,7 +1741,7 @@ function MainApp() {
               topicToUse,
               langToUse,
               effectiveQuery,
-              yearsToFetch,
+              finalYearsToFetch,
               offset,
               onlyFullText,
             ),
@@ -1582,7 +1752,7 @@ function MainApp() {
               topicToUse,
               langToUse,
               effectiveQuery,
-              yearsToFetch,
+              finalYearsToFetch,
               offset,
             ),
           );
@@ -1597,6 +1767,7 @@ function MainApp() {
               setArticles((prev) => {
                 const combined = [...prev, ...update.articles];
                 const seenTitles = new Set();
+                const kidneyRequired = ["kidney", "renal", "nephrology", "dialysis", "glomerular", "transplant", "urine", "AKI", "CKD"];
                 const unique = combined.filter((a) => {
                   const normTitle = a.title
                     .toLowerCase()
@@ -1604,6 +1775,16 @@ function MainApp() {
                     .slice(0, 60);
                   if (seenTitles.has(normTitle)) return false;
                   seenTitles.add(normTitle);
+                  
+                  // Final aggressive safety net: If relevanceScore is extremely low and no nephrology keywords exist, drop it
+                  // Skip this for author searches where papers might not explicitly mention kidney in title/abstract
+                  // Also skip this for absolute manual searches to avoid hiding explicitly requested results
+                  if (!isManualSearch && (a.relevanceScore || 0) < 10 && !(effectiveQuery && effectiveQuery.startsWith("AUTHOR:"))) {
+                      const textToSearch = (a.title + " " + (a.summary || '')).toLowerCase();
+                      const hasKidneyTerm = kidneyRequired.some(k => textToSearch.includes(k.toLowerCase()));
+                      if (!hasKidneyTerm) return false;
+                  }
+                  
                   return true;
                 });
                 return hybridSort(
@@ -1691,13 +1872,14 @@ function MainApp() {
     } else {
       const nextPage = currentPage + 1;
       setCurrentPage(nextPage);
+      const isManualTopic = !DEFAULT_TOPICS.includes(selectedTopic);
       fetchNews(
         selectedTopic,
         searchQuery,
         undefined,
         undefined,
         false,
-        3,
+        isManualTopic ? 20 : 3,
         nextPage,
       );
     }
@@ -2324,6 +2506,18 @@ function MainApp() {
   ]);
 
   useEffect(() => {
+    const handleRequireApiKey = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      setMissingProvider(customEvent.detail?.provider || aiProvider);
+      setShowApiKeyWarning(true);
+    };
+    window.addEventListener('REQUIRE_API_KEY', handleRequireApiKey);
+    return () => {
+      window.removeEventListener('REQUIRE_API_KEY', handleRequireApiKey);
+    };
+  }, [aiProvider]);
+
+  useEffect(() => {
     const backButtonListener = CapacitorApp.addListener(
       "backButton",
       ({ canGoBack }) => {
@@ -2356,11 +2550,6 @@ function MainApp() {
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (touchStart === null) return;
 
-    if (activeImmersiveArticle || isSettingsOpen || isManualSearchOpen) {
-      setTouchStart(null);
-      return;
-    }
-
     const touchEnd = e.changedTouches[0].clientX;
     const touchEndY = e.changedTouches[0].clientY;
     const distance = touchStart - touchEnd;
@@ -2368,16 +2557,30 @@ function MainApp() {
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
 
-    const isEdgeSwipe = touchStart > screenWidth * 0.85;
+    const isRightEdgeSwipe = touchStart > screenWidth * 0.85;
+    const isLeftEdgeSwipe = touchStart < screenWidth * 0.15;
 
-    if (isEdgeSwipe && distance > 50 && distance > deltaY) {
+    if (isLeftEdgeSwipe && distance < -50 && Math.abs(distance) > deltaY) {
+      if (handleBack()) {
+        if (navigator.vibrate) navigator.vibrate(15);
+      }
+      setTouchStart(null);
+      return;
+    }
+
+    if (activeImmersiveArticle || isSettingsOpen || isManualSearchOpen || isReaderOpen) {
+      setTouchStart(null);
+      return;
+    }
+
+    if (isRightEdgeSwipe && distance > 50 && distance > deltaY) {
       setIsSettingsOpen(true);
       if (navigator.vibrate) navigator.vibrate(15);
       setTouchStart(null);
       return;
     }
 
-    if (!isEdgeSwipe && activeTab === "discover") {
+    if (!isRightEdgeSwipe && !isLeftEdgeSwipe && activeTab === "discover") {
       const startY = touchStartY.current;
       const isSafeZone = startY > 120 && startY < screenHeight - 100;
 
@@ -2660,8 +2863,14 @@ function MainApp() {
   ]);
 
   return (
-    <div
-      className={`min-h-screen transition-colors duration-500 ${isDarkMode ? "bg-[#020617] text-slate-100" : "bg-[#f8fafc] text-slate-900"} font-sans overflow-hidden flex flex-col noise-bg`}
+    <motion.div
+      initial={false}
+      animate={{
+        backgroundColor: isDarkMode ? "#020617" : "#f8fafc",
+        color: isDarkMode ? "#f1f5f9" : "#0f172a",
+      }}
+      transition={{ duration: 0.5 }}
+      className={`min-h-screen font-sans overflow-hidden flex flex-col noise-bg ${isDarkMode ? "bg-[#020617] text-slate-100" : "bg-[#f8fafc] text-slate-900"}`}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -2689,7 +2898,7 @@ function MainApp() {
             className="flex items-center gap-1.5 text-blue-600 font-bold transition-transform active:scale-95 h-full"
           >
             <ArrowLeft size={20} />
-            <span className="text-sm">Atrás</span>
+            <span className="text-sm">{t.back}</span>
           </button>
         ) : (
           <button
@@ -2712,7 +2921,8 @@ function MainApp() {
           <div className="mx-2 flex-1 overflow-hidden min-w-0 h-full flex items-center">
             <NewsTicker
               isDarkMode={isDarkMode}
-              className="bg-transparent border-0 px-0 py-0"
+              title={t.latestNews}
+              className="bg-transparent border-0 px-0 py-0 w-full"
             />
           </div>
         ) : (
@@ -2800,7 +3010,7 @@ function MainApp() {
                 value={searchQuery}
                 onFocus={() => setIsSearchFocused(true)}
                 onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={handleSearchInputChange}
                 onKeyDown={(e) =>
                   e.key === "Enter" && handleManualSearch(searchQuery)
                 }
@@ -2817,9 +3027,51 @@ function MainApp() {
                     className={`absolute top-full left-0 right-0 mt-2 p-3 rounded-2xl shadow-xl border z-[60] ${isDarkMode ? "bg-slate-900 border-slate-700" : "bg-white border-slate-200"}`}
                   >
                     <div className="space-y-3">
+                      {suggestions.length > 0 && (
+                        <div>
+                          <span className="text-[9px] font-black uppercase tracking-widest opacity-40 ml-1 block mb-1">
+                            {t.suggestions}
+                          </span>
+                          <div className="space-y-1">
+                            {suggestions.map((suggestion, idx) => (
+                              <button
+                                key={idx}
+                                onMouseDown={() => {
+                                  setSearchQuery(suggestion);
+                                  setSuggestions([]);
+                                  handleManualSearch(suggestion);
+                                }}
+                                className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors flex items-center gap-2 ${isDarkMode ? "hover:bg-slate-800 text-slate-200" : "hover:bg-slate-50 text-slate-700"}`}
+                              >
+                                <Search size={12} className="opacity-50" />
+                                {suggestion}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {searchQuery.trim().length >= 3 && !searchQuery.toUpperCase().startsWith("AUTHOR:") && (
+                        <div>
+                          <span className="text-[9px] font-black uppercase tracking-widest opacity-40 ml-1 block mb-1">
+                            {t.author}
+                          </span>
+                          <button
+                            onMouseDown={() => {
+                              const authorTerm = `AUTHOR:"${searchQuery.trim()}"`;
+                              setSearchQuery(authorTerm);
+                              setSuggestions([]);
+                              handleManualSearch(authorTerm);
+                            }}
+                            className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-colors flex items-center gap-2 text-blue-600 ${isDarkMode ? "hover:bg-slate-800 bg-slate-800/50" : "hover:bg-blue-50 bg-slate-50"} border ${isDarkMode ? "border-slate-700" : "border-slate-200"}`}
+                          >
+                            <User size={14} className="opacity-70" />
+                            {t.searchAuthor} "{searchQuery.trim()}"
+                          </button>
+                        </div>
+                      )}
                       <div>
                         <span className="text-[9px] font-black uppercase tracking-widest opacity-40 ml-1">
-                          Time
+                          {t.time}
                         </span>
                         <div className="flex gap-2 mt-1">
                           {["Last 6 months", "2025-2026", "Last 5 years"].map(
@@ -2837,7 +3089,7 @@ function MainApp() {
                       </div>
                       <div>
                         <span className="text-[9px] font-black uppercase tracking-widest opacity-40 ml-1">
-                          Evidence Type
+                          {t.evidenceType}
                         </span>
                         <div className="flex gap-2 mt-1">
                           {["RCT", "Guideline", "Meta-Analysis", "Review"].map(
@@ -2937,7 +3189,7 @@ function MainApp() {
                             onClick={() => handleTopicClick(topic)}
                             className={`px-4 py-1.5 text-[10px] font-semibold uppercase tracking-widest transition-all ${selectedTopic === topic ? "bg-blue-600 text-white rounded-full shadow-sm" : "text-slate-500"}`}
                           >
-                            {topic}
+                            {topic.startsWith("AUTHOR:") ? topic.replace("AUTHOR:", `${t.author.toUpperCase()}: `).replace(/"/g, '') : topic}
                           </button>
                           {!DEFAULT_TOPICS.includes(topic) &&
                             selectedTopic === topic && (
@@ -2961,7 +3213,9 @@ function MainApp() {
                       <h2
                         className={`text-xl font-black ${isDarkMode ? "text-slate-100" : "text-slate-900"}`}
                       >
-                        {searchQuery ? t.searchingFor : selectedTopic}
+                        {searchQuery 
+                            ? `${t.searchingFor} ${searchQuery.toUpperCase().startsWith("AUTHOR:") ? searchQuery.replace(/AUTHOR:/i, "").replace(/"/g, '') : searchQuery}` 
+                            : (selectedTopic.toUpperCase().startsWith("AUTHOR:") ? selectedTopic.replace(/AUTHOR:/i, `${t.author}: `).replace(/"/g, '') : selectedTopic)}
                       </h2>
                       {filteredArticles.length > 0 && (
                         <button
@@ -3036,13 +3290,13 @@ function MainApp() {
                             <div className="flex flex-col items-start">
                               <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
                                 {isSynthesizing
-                                  ? "Analizando..."
-                                  : "Generar Reporte"}
+                                  ? t.analyzingReport
+                                  : t.generatingReport}
                               </span>
                               <span className="text-sm font-bold">
                                 {isSynthesizing
-                                  ? "Sintetizando Evidencia..."
-                                  : "¿Cuáles son los desarrollos científicos?"}
+                                  ? t.synthesizingEvidence
+                                  : t.scientificDevelopments}
                               </span>
                             </div>
                           </button>
@@ -3178,18 +3432,16 @@ function MainApp() {
                         <Bookmark size={40} className="text-blue-500" />
                       </div>
                       <h2 className="text-2xl font-black mb-2">
-                        Tu Biblioteca Personal
+                        {t.libraryEmptyTitle}
                       </h2>
                       <p className="text-slate-500 dark:text-slate-400 max-w-md mb-8">
-                        Inicia sesión para guardar artículos, sincronizar tu
-                        biblioteca entre dispositivos y acceder a tus notas
-                        personales.
+                        {t.libraryEmptyDesc}
                       </p>
                       <button
                         onClick={() => setIsAuthModalOpen(true)}
                         className="px-8 py-4 rounded-2xl bg-blue-600 text-white font-black text-sm uppercase tracking-widest shadow-xl shadow-blue-600/20 active:scale-95 transition-all"
                       >
-                        Iniciar Sesión para Continuar
+                        {t.loginToContinue}
                       </button>
                     </div>
                   ) : (
@@ -3202,11 +3454,17 @@ function MainApp() {
                             <h2 className="text-3xl font-black">
                               {t.libraryTitle}
                             </h2>
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <p className="text-xs font-bold uppercase tracking-widest opacity-40">
                                 {filteredSavedArticles.length} Artículos
                                 guardados
                               </p>
+                              {syncState.isSyncing && (
+                                <span className="text-[10px] font-bold text-blue-500 bg-blue-500/10 dark:bg-blue-500/20 px-2.5 py-1 rounded-full flex items-center gap-1.5 animate-pulse">
+                                  <RefreshCw size={10} className="animate-spin text-blue-500" />
+                                  Sincronizando Wi-Fi ({syncState.completed}/{syncState.total})
+                                </span>
+                              )}
                               {(filterDesign.length > 0 ||
                                 filterTier < 4 ||
                                 libraryTopicFilter !== "All" ||
@@ -3481,11 +3739,10 @@ function MainApp() {
                             <Search size={40} className="text-slate-400" />
                           </div>
                           <h3 className="text-xl font-black mb-2">
-                            No se encontraron artículos
+                            {t.noArticlesFound}
                           </h3>
                           <p className="text-sm font-bold max-w-xs">
-                            Intenta ajustar los filtros o la búsqueda para
-                            encontrar lo que necesitas en tu biblioteca.
+                            {t.noArticlesDesc}
                           </p>
                           {(filterDesign.length > 0 ||
                             filterTier < 4 ||
@@ -3500,7 +3757,7 @@ function MainApp() {
                               }}
                               className="mt-6 px-6 py-2 rounded-xl bg-blue-600 text-white font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-95 transition-all"
                             >
-                              Restablecer Filtros
+                              {t.resetFilters}
                             </button>
                           )}
                         </div>
@@ -3523,18 +3780,16 @@ function MainApp() {
                         <History size={40} className="text-blue-500" />
                       </div>
                       <h2 className="text-2xl font-black mb-2">
-                        Historial de Búsqueda
+                        {t.historyEmptyTitle}
                       </h2>
                       <p className="text-slate-500 dark:text-slate-400 max-w-md mb-8">
-                        Inicia sesión para mantener un registro de tus
-                        investigaciones, analizar tus patrones de búsqueda y
-                        retomar donde lo dejaste.
+                        {t.historyEmptyDesc}
                       </p>
                       <button
                         onClick={() => setIsAuthModalOpen(true)}
                         className="px-8 py-4 rounded-2xl bg-blue-600 text-white font-black text-sm uppercase tracking-widest shadow-xl shadow-blue-600/20 active:scale-95 transition-all"
                       >
-                        Iniciar Sesión para Continuar
+                        {t.loginToContinue}
                       </button>
                     </div>
                   ) : (
@@ -4288,7 +4543,7 @@ function MainApp() {
                 </div>
 
                 <AnimatePresence>
-                  {suggestions.length > 0 && (
+                  {(suggestions.length > 0 || searchQuery.trim().length >= 3) && (
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -4309,6 +4564,21 @@ function MainApp() {
                           {suggestion}
                         </button>
                       ))}
+                      
+                      {searchQuery.trim().length >= 3 && !searchQuery.toUpperCase().startsWith("AUTHOR:") && (
+                          <button
+                            onClick={() => {
+                              const authorTerm = `AUTHOR:"${searchQuery.trim()}"`;
+                              setSearchQuery(authorTerm);
+                              setSuggestions([]);
+                              handleManualSearch(authorTerm);
+                            }}
+                            className={`w-full text-left px-4 py-3 text-sm font-bold transition-colors flex items-center gap-2 text-blue-600 ${isDarkMode ? "hover:bg-slate-700" : "hover:bg-blue-50"} border-t ${isDarkMode ? "border-white/5" : "border-slate-100"}`}
+                          >
+                            <User size={14} className="opacity-70" />
+                            {t.searchAuthor} "{searchQuery.trim()}"
+                          </button>
+                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -4376,6 +4646,47 @@ function MainApp() {
       </AnimatePresence>
 
       <AnimatePresence>
+        {showApiKeyWarning && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className={`w-full max-w-sm rounded-3xl p-6 shadow-2xl ${isDarkMode ? "bg-slate-900 border border-white/10" : "bg-white"}`}
+            >
+              <div className="flex flex-col items-center text-center space-y-4">
+                <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
+                  <ShieldAlert size={32} />
+                </div>
+                <h2 className={`text-xl font-black ${isDarkMode ? "text-white" : "text-slate-900"}`}>Configuración Necesaria</h2>
+                <p className={`text-sm ${isDarkMode ? "text-slate-400" : "text-slate-600"}`}>
+                  Esta función avanzada requiere de una API Key de <strong>{missingProvider === "groq" ? "Groq" : "Gemini"}</strong>. 
+                  Puedes obtenerla en <a href={missingProvider === "groq" ? "https://console.groq.com/keys" : "https://aistudio.google.com/app/apikey"} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline font-bold">{missingProvider === "groq" ? "console.groq.com" : "Google AI Studio"}</a> y luego configurarla en Ajustes.
+                </p>
+                <div className="flex items-center gap-3 w-full pt-4">
+                  <button
+                    onClick={() => setShowApiKeyWarning(false)}
+                    className={`flex-1 py-3 rounded-xl font-bold border transition-colors ${isDarkMode ? "border-slate-700 hover:bg-slate-800 text-slate-300" : "border-slate-200 hover:bg-slate-50 text-slate-700"}`}
+                  >
+                    Cerrar
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowApiKeyWarning(false);
+                      setIsSettingsOpen(true);
+                    }}
+                    className="flex-1 py-3 rounded-xl font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+                  >
+                    Configurar
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
         {isSettingsOpen && (
           <>
             <motion.div
@@ -4393,7 +4704,7 @@ function MainApp() {
               className={`fixed inset-y-0 right-0 z-[110] w-full max-w-sm flex flex-col shadow-2xl overflow-hidden ${isDarkMode ? "bg-slate-900 border-l border-white/5" : "bg-white"}`}
             >
               <div className="flex items-center justify-between p-6 bg-white dark:bg-slate-900 sticky top-0 z-10 border-b dark:border-white/5">
-                <h2 className="text-xl font-black">Configuración</h2>
+                <h2 className="text-xl font-black">{t.settings.title}</h2>
                 <button
                   onClick={() => setIsSettingsOpen(false)}
                   className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
@@ -4424,17 +4735,17 @@ function MainApp() {
                         <Stethoscope className="text-blue-500" size={18} />
                       )}
                       <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
-                        ESTADO PROFESIONAL
+                        {t.settings.profStatus}
                       </span>
                     </div>
                     {verificationStatus === "verified" && (
                       <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded-md">
-                        Verificado
+                        {t.settings.verified}
                       </span>
                     )}
                     {verificationStatus === "pending" && (
                       <span className="text-[9px] font-black uppercase tracking-widest text-amber-500 bg-amber-500/10 px-2 py-1 rounded-md">
-                        Pendiente
+                        {t.settings.pending}
                       </span>
                     )}
                   </div>
@@ -4455,10 +4766,10 @@ function MainApp() {
                           </div>
                           <div>
                             <div className="text-sm font-bold">
-                              Invitado (Guest)
+                              {t.settings.guest}
                             </div>
                             <div className="text-[10px] opacity-60">
-                              Acceso limitado a lectura.
+                              {t.settings.guestDesc}
                             </div>
                           </div>
                         </div>
@@ -4466,12 +4777,10 @@ function MainApp() {
                           onClick={() => setIsAuthModalOpen(true)}
                           className="w-full py-3 rounded-xl bg-blue-600 text-white font-black text-xs uppercase tracking-wider shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2"
                         >
-                          <BadgeCheck size={16} /> Crear Cuenta y Verificar
+                          <BadgeCheck size={16} /> {t.settings.createAccountTxt}
                         </button>
                         <p className="text-[9px] text-center opacity-40 leading-tight px-4">
-                          Para participar en encuestas de impacto y foros
-                          clínicos, requerimos validación de licencia
-                          profesional durante el registro.
+                          {t.settings.verifyDesc}
                         </p>
                       </div>
                     )}
@@ -4483,11 +4792,10 @@ function MainApp() {
                           <ShieldAlert size={32} />
                         </div>
                         <h4 className="font-black text-sm mb-1">
-                          Verificación Pendiente
+                          {t.settings.pending}
                         </h4>
                         <p className="text-[10px] opacity-60 leading-relaxed max-w-[200px] mx-auto">
-                          Hemos recibido tus credenciales. La validación manual
-                          puede tomar hasta 24 horas.
+                          {t.settings.pendingDesc}
                         </p>
                       </div>
                     )}
@@ -4523,17 +4831,17 @@ function MainApp() {
                   <div className="flex items-center gap-2 mb-4">
                     <Filter size={16} className="text-blue-500" />
                     <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
-                      FILTROS DE BÚSQUEDA
+                      {t.settings.filters}
                     </span>
                   </div>
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
                         <span className="text-[11px] font-black uppercase tracking-tight">
-                          Solo Texto Completo (PMC)
+                          {t.settings.fullTextOnly}
                         </span>
                         <p className="text-[9px] opacity-60 italic">
-                          Muestra solo artículos disponibles en PubMed Central.
+                          {t.settings.fullTextDesc}
                         </p>
                       </div>
                       <button
@@ -4552,10 +4860,10 @@ function MainApp() {
                     <div className="flex items-center justify-between pt-4 border-t dark:border-white/5">
                       <div>
                         <span className="text-[11px] font-black uppercase tracking-tight">
-                          Diseño Bento Grid
+                          {t.settings.bentoLayout}
                         </span>
                         <p className="text-[9px] opacity-60 italic">
-                          Vista dinámica con tarjetas de tamaño variable.
+                          {t.settings.bentoDesc}
                         </p>
                       </div>
                       <button
@@ -4585,14 +4893,14 @@ function MainApp() {
                     >
                       <div className="flex items-center justify-between mb-1">
                         <span className="font-black text-sm uppercase tracking-tight">
-                          Estándar
+                          {t.settings.standardSearch}
                         </span>
                         {searchMode === "standard" && <Check size={16} />}
                       </div>
                       <p
                         className={`text-[10px] leading-relaxed ${searchMode === "standard" ? "text-blue-100" : "opacity-60 italic"}`}
                       >
-                        Barrida técnica en 9 bases de datos (incl. LILACS).
+                        {t.settings.standardDesc}
                       </p>
                     </button>
                     <button
@@ -4601,14 +4909,14 @@ function MainApp() {
                     >
                       <div className="flex items-center justify-between mb-1">
                         <span className="font-black text-sm uppercase tracking-tight">
-                          IA (Gemini)
+                          {t.settings.aiSearch}
                         </span>
                         {searchMode === "ai" && <Check size={16} />}
                       </div>
                       <p
                         className={`text-[10px] leading-relaxed ${searchMode === "ai" ? "text-blue-100" : "opacity-60 italic"}`}
                       >
-                        Analiza resultados y genera síntesis ejecutiva.
+                        {t.settings.aiSearchDesc}
                       </p>
                     </button>
                   </div>
@@ -4620,7 +4928,7 @@ function MainApp() {
                   <div className="flex items-center gap-2 mb-4">
                     <Key size={16} className="text-blue-500" />
                     <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
-                      CONECTIVIDAD Y SEGURIDAD
+                      {t.settings.connectivity}
                     </span>
                   </div>
                   <div className="space-y-6">
@@ -4631,7 +4939,7 @@ function MainApp() {
                         </span>
                         {geminiStatus === "valid" && (
                           <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-500 text-[8px] font-black uppercase flex items-center gap-1">
-                            <Check size={10} /> Verificada
+                            <Check size={10} /> {t.settings.verified}
                           </span>
                         )}
                         {geminiStatus === "invalid" && (
@@ -4641,7 +4949,7 @@ function MainApp() {
                         )}
                       </div>
                       <p className="text-[9px] leading-relaxed opacity-60 italic">
-                        Necesaria para búsqueda IA, Voice Mode y Resúmenes.
+                        {t.settings.apiKeyRequired}
                       </p>
                       <div className="relative">
                         <input
@@ -4664,7 +4972,7 @@ function MainApp() {
                           {geminiStatus === "checking" ? (
                             <Loader2 size={10} className="animate-spin" />
                           ) : (
-                            "Verificar"
+                            t.settings.verifyBtn
                           )}
                         </button>
                       </div>
@@ -4675,7 +4983,7 @@ function MainApp() {
                         className="flex items-center justify-between p-3 rounded-xl bg-blue-500/5 border border-blue-500/10 text-blue-500 group hover:bg-blue-500/10 transition-colors"
                       >
                         <span className="text-[10px] font-black uppercase tracking-widest">
-                          Obtener en Google AI Studio
+                          {t.settings.getGoogleAI}
                         </span>
                         <ExternalLink
                           size={12}
@@ -4691,7 +4999,7 @@ function MainApp() {
                         </span>
                         {groqStatus === "valid" && (
                           <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-500 text-[8px] font-black uppercase flex items-center gap-1">
-                            <Check size={10} /> Verificada
+                            <Check size={10} /> {t.settings.verified}
                           </span>
                         )}
                         {groqStatus === "invalid" && (
@@ -4723,7 +5031,7 @@ function MainApp() {
                           {groqStatus === "checking" ? (
                             <Loader2 size={10} className="animate-spin" />
                           ) : (
-                            "Verificar"
+                            t.settings.verifyBtn
                           )}
                         </button>
                       </div>
@@ -4734,7 +5042,7 @@ function MainApp() {
                         className="flex items-center justify-between p-3 rounded-xl bg-slate-500/5 border border-slate-500/20 text-slate-500 group"
                       >
                         <span className="text-[10px] font-black uppercase tracking-widest">
-                          Obtener en Groq Console
+                          {t.settings.getGroq}
                         </span>
                         <ExternalLink
                           size={12}
@@ -4751,7 +5059,7 @@ function MainApp() {
                   <div className="flex items-center gap-2 mb-4">
                     <Sparkles size={16} className="text-blue-500" />
                     <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
-                      IA DE RESUMEN PREFERIDA
+                      {t.settings.aiProviderTitle}
                     </span>
                   </div>
                   <div className="flex p-1 rounded-xl bg-black/5 dark:bg-white/5">
@@ -4767,6 +5075,65 @@ function MainApp() {
                     >
                       Groq (Llama 3)
                     </button>
+                  </div>
+                </div>
+
+                <div
+                  className={`p-5 rounded-3xl border shadow-sm ${isDarkMode ? "bg-slate-800/50 border-white/5" : "bg-white border-slate-100"}`}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <Database size={16} className="text-blue-500" />
+                      <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
+                        BASES DE DATOS
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const allSelected = Object.values(activeSources).every(Boolean);
+                        const nextState = !allSelected;
+                        setActiveSources({
+                          pubmed: nextState,
+                          openalex: nextState,
+                          europepmc: nextState,
+                          semanticscholar: nextState,
+                          clinicaltrials: nextState,
+                          core: nextState,
+                          doaj: nextState,
+                          elsevier: nextState,
+                          lilacs: nextState,
+                        });
+                      }}
+                      className="text-[10px] font-bold text-blue-500 hover:text-blue-600 uppercase tracking-widest transition-colors"
+                    >
+                      {Object.values(activeSources).every(Boolean) ? (uiLanguage === "es" ? "Desmarcar Todas" : "Deselect All") : (uiLanguage === "es" ? "Seleccionar Todas" : "Select All")}
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                    {[
+                      { id: 'pubmed', label: 'PubMed' },
+                      { id: 'openalex', label: 'OpenAlex' },
+                      { id: 'europepmc', label: 'Europe PMC' },
+                      { id: 'semanticscholar', label: 'Semantic Scholar' },
+                      { id: 'clinicaltrials', label: 'ClinicalTrials.gov' },
+                      { id: 'core', label: 'CORE' },
+                      { id: 'doaj', label: 'DOAJ' },
+                      { id: 'elsevier', label: 'Elsevier' },
+                      { id: 'lilacs', label: 'LILACS' },
+                    ].map(db => (
+                      <label key={db.id} className={`flex items-center gap-2 p-3 rounded-xl border cursor-pointer transition-all ${activeSources[db.id as DataSource] ? (isDarkMode ? 'bg-blue-900/20 border-blue-500 shadow-sm' : 'bg-blue-50 border-blue-200 shadow-sm') : (isDarkMode ? 'bg-transparent border-white/5 opacity-60 hover:opacity-100 hover:border-white/20' : 'bg-transparent border-slate-200 opacity-60 hover:opacity-100 hover:border-slate-300')}`}>
+                         <input
+                           type="checkbox"
+                           className="hidden"
+                           checked={activeSources[db.id as DataSource]}
+                           onChange={(e) => setActiveSources(prev => ({...prev, [db.id]: e.target.checked}))}
+                         />
+                         <div className={`w-4 h-4 rounded-full flex items-center justify-center transition-colors ${activeSources[db.id as DataSource] ? 'bg-blue-500 text-white' : 'bg-slate-200 dark:bg-slate-700'}`}>
+                           {activeSources[db.id as DataSource] && <CheckCircle size={12} strokeWidth={3} />}
+                         </div>
+                         <span className="text-[11px] font-bold tracking-wide">{db.label}</span>
+                      </label>
+                    ))}
                   </div>
                 </div>
 
@@ -4935,12 +5302,12 @@ function MainApp() {
                   <div className="flex items-center gap-2 mb-4">
                     <Palette size={16} className="text-blue-500" />
                     <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
-                      APARIENCIA
+                      {t.settings.interfaceAndReading}
                     </span>
                   </div>
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-sm font-bold">
-                      {isDarkMode ? "Oscuro" : "Claro"}
+                      {t.settings.darkMode}
                     </span>
                     <div className="flex p-1 rounded-xl bg-black/5 dark:bg-white/5 w-32">
                       <button
@@ -4967,7 +5334,7 @@ function MainApp() {
                         }
                       />
                       <span className="text-xs font-bold">
-                        Estilo de Fuente (Titles & Abstracts)
+                        {t.settings.fontStyleTitle}
                       </span>
                     </div>
                     <div className="flex p-1 rounded-xl bg-black/5 dark:bg-white/5">
@@ -4975,19 +5342,19 @@ function MainApp() {
                         onClick={() => setFontStyle("sans")}
                         className={`flex-1 py-2 text-[10px] font-sans font-bold rounded-lg transition-all ${fontStyle === "sans" ? "bg-blue-600 text-white shadow-lg" : "opacity-40 hover:opacity-100"}`}
                       >
-                        Standard (Inter)
+                        {t.settings.fontStyleStandard}
                       </button>
                       <button
                         onClick={() => setFontStyle("serif")}
                         className={`flex-1 py-2 text-[10px] font-serif font-bold rounded-lg transition-all ${fontStyle === "serif" ? "bg-blue-600 text-white shadow-lg" : "opacity-40 hover:opacity-100"}`}
                       >
-                        Editorial (Merriweather)
+                        {t.settings.fontStyleEditorial}
                       </button>
                       <button
                         onClick={() => setFontStyle("modern")}
                         className={`flex-1 py-2 text-[10px] font-modern font-bold rounded-lg transition-all ${fontStyle === "modern" ? "bg-blue-600 text-white shadow-lg" : "opacity-40 hover:opacity-100"}`}
                       >
-                        Modern (Outfit)
+                        {t.settings.fontStyleModern}
                       </button>
                     </div>
                   </div>
@@ -5001,7 +5368,7 @@ function MainApp() {
                         }
                       />
                       <span className="text-xs font-bold">
-                        News Ticker (Noticias)
+                        {t.settings.newsTicker}
                       </span>
                     </div>
                     <button
@@ -5023,7 +5390,7 @@ function MainApp() {
                         }
                       />
                       <span className="text-xs font-bold">
-                        Modo Flashcards (Medical Shorts)
+                        {t.settings.flashcardMode}
                       </span>
                     </div>
                     <button
@@ -5043,7 +5410,7 @@ function MainApp() {
                   <div className="flex items-center gap-2 mb-4">
                     <Type size={16} className="text-blue-500" />
                     <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
-                      TAMAÑO DE TEXTO
+                      {t.settings.textSize}
                     </span>
                   </div>
                   <div className="flex p-1 rounded-xl bg-black/5 dark:bg-white/5">
@@ -5070,48 +5437,131 @@ function MainApp() {
                   <div className="flex items-center gap-2 mb-4">
                     <Languages size={16} className="text-blue-500" />
                     <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
-                      IDIOMAS
+                      {t.settings.languages}
                     </span>
                   </div>
                   <div className="space-y-4">
                     <div>
                       <label className="block text-[10px] font-bold uppercase opacity-40 mb-2">
-                        Aplicación (Interfaz)
+                        {t.settings.language}
                       </label>
                       <div className="flex p-1 rounded-xl bg-black/5 dark:bg-white/5">
                         <button
                           onClick={() => setUiLanguage("es")}
                           className={`flex-1 py-2 text-[10px] font-black rounded-lg transition-all ${uiLanguage === "es" ? "bg-blue-600 text-white shadow-lg" : "opacity-40 hover:opacity-100"}`}
                         >
-                          Español
+                          {t.settings.langEs}
                         </button>
                         <button
                           onClick={() => setUiLanguage("en")}
                           className={`flex-1 py-2 text-[10px] font-black rounded-lg transition-all ${uiLanguage === "en" ? "bg-blue-600 text-white shadow-lg" : "opacity-40 hover:opacity-100"}`}
                         >
-                          English
+                          {t.settings.langEn}
                         </button>
                       </div>
                     </div>
                     <div>
                       <label className="block text-[10px] font-bold uppercase opacity-40 mb-2">
-                        Contenido (IA)
+                        {t.settings.contentLang}
                       </label>
                       <div className="flex p-1 rounded-xl bg-black/5 dark:bg-white/5">
                         <button
                           onClick={() => setContentLanguage("es")}
                           className={`flex-1 py-2 text-[10px] font-black rounded-lg transition-all ${contentLanguage === "es" ? "bg-blue-600 text-white shadow-lg" : "opacity-40 hover:opacity-100"}`}
                         >
-                          Español
+                          {t.settings.langEs}
                         </button>
                         <button
                           onClick={() => setContentLanguage("original")}
                           className={`flex-1 py-2 text-[10px] font-black rounded-lg transition-all ${contentLanguage === "original" ? "bg-blue-600 text-white shadow-lg" : "opacity-40 hover:opacity-100"}`}
                         >
-                          Original
+                          {t.settings.langOriginal}
                         </button>
                       </div>
                     </div>
+                  </div>
+                </div>
+
+                <div
+                  className={`p-5 rounded-3xl border shadow-sm ${isDarkMode ? "bg-slate-800/50 border-white/5" : "bg-white border-slate-100"}`}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Wifi size={16} className="text-blue-500" />
+                      <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
+                        {t.settings.syncWifi}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => backgroundSyncService.setEnabled(!syncState.isEnabled)}
+                      className={`w-10 h-5 rounded-full transition-colors relative ${syncState.isEnabled ? "bg-blue-600" : "bg-slate-300 dark:bg-slate-700"}`}
+                    >
+                      <div
+                        className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${syncState.isEnabled ? "left-6" : "left-1"}`}
+                      />
+                    </button>
+                  </div>
+                  
+                  <p className="text-[10px] opacity-60 leading-relaxed mb-4">
+                    {t.settings.syncDesc}
+                  </p>
+
+                  {/* Sync status / action */}
+                  <div className="p-3 rounded-2xl bg-black/5 dark:bg-white/5 space-y-2">
+                    <div className="flex items-center justify-between text-[10px]">
+                      <span className="opacity-60">{t.settings.syncStatus}</span>
+                      <span className={`font-bold flex items-center gap-1 ${syncState.isSyncing ? "text-blue-500" : "text-emerald-500"}`}>
+                        {syncState.isSyncing ? (
+                          <>
+                            <RefreshCw size={10} className="animate-spin text-blue-500" />
+                            {t.settings.syncing}
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle size={10} className="text-emerald-500" />
+                            {t.settings.syncReady}
+                          </>
+                        )}
+                      </span>
+                    </div>
+
+                    {syncState.isSyncing && (
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-[9px] opacity-80">
+                          <span className="truncate max-w-[150px]">
+                            {syncState.currentArticleTitle || t.settings.syncProcessing}
+                          </span>
+                          <span>
+                            {syncState.completed}/{syncState.total}
+                          </span>
+                        </div>
+                        <div className="h-1 text-xs flex rounded bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                          <div
+                            style={{ width: `${(syncState.completed / (syncState.total || 1)) * 100}%` }}
+                            className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500 transition-all duration-300"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {!syncState.isSyncing && (
+                      <div className="flex items-center justify-between pt-1">
+                        <span className="text-[9px] opacity-50">
+                          {syncState.lastSyncedAt 
+                            ? `${t.settings.syncLast} ${new Date(syncState.lastSyncedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                            : t.settings.syncNever
+                          }
+                        </span>
+                        
+                        <button
+                          onClick={() => backgroundSyncService.runSync(savedArticles)}
+                          disabled={savedArticles.length === 0}
+                          className="px-2.5 py-1 rounded-lg bg-blue-600/10 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 text-[9px] font-black uppercase tracking-wider transition-colors disabled:opacity-40 disabled:pointer-events-none"
+                        >
+                          {t.settings.syncNow}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -5122,7 +5572,7 @@ function MainApp() {
                     <div className="flex items-center gap-2">
                       <ScanEye size={16} className="text-blue-500" />
                       <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
-                        AUTO RESALTADO
+                        {t.settings.autoXrayTitle}
                       </span>
                     </div>
                     <button
@@ -5142,7 +5592,7 @@ function MainApp() {
                   <div className="flex items-center gap-2 mb-4 text-red-500">
                     <Trash2 size={16} />
                     <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
-                      DATOS Y MANTENIMIENTO
+                      {t.settings.dataMaintenance}
                     </span>
                   </div>
                   <div className="space-y-3">
@@ -5155,7 +5605,7 @@ function MainApp() {
                           }}
                           className="flex-1 p-4 rounded-2xl bg-red-600 text-white font-black text-sm"
                         >
-                          CONFIRMAR BORRADO
+                          {t.settings.confirmDelete}
                         </button>
                         <button
                           onClick={() => setDeleteConfirmTarget(null)}
@@ -5169,7 +5619,7 @@ function MainApp() {
                         onClick={() => setDeleteConfirmTarget("history")}
                         className="w-full flex items-center justify-between p-4 rounded-2xl bg-red-500/10 text-red-500 font-bold text-sm hover:bg-red-500/20"
                       >
-                        <span>Limpiar Historial</span>
+                        <span>{t.settings.clearSearchHistory}</span>
                         <RotateCcw size={16} />
                       </button>
                     )}
@@ -5177,20 +5627,20 @@ function MainApp() {
                     {deleteConfirmTarget === "factory" ? (
                       <div className="p-4 rounded-2xl border-2 border-red-600 space-y-3 animate-in shake-1">
                         <p className="text-[10px] font-black text-red-600 uppercase text-center tracking-tighter">
-                          ¿ESTÁS SEGURO? SE PERDERÁ TODO
+                          {t.settings.areYouSure}
                         </p>
                         <div className="flex gap-2">
                           <button
                             onClick={handleFactoryReset}
                             className="flex-1 py-3 rounded-xl bg-red-600 text-white font-black text-xs uppercase"
                           >
-                            SÍ, RESET TOTAL
+                            {t.settings.yesReset}
                           </button>
                           <button
                             onClick={() => setDeleteConfirmTarget(null)}
                             className="px-6 py-3 rounded-xl bg-slate-200 dark:bg-slate-800 font-black text-xs"
                           >
-                            NO
+                            {t.settings.noReset}
                           </button>
                         </div>
                       </div>
@@ -5199,7 +5649,7 @@ function MainApp() {
                         onClick={() => setDeleteConfirmTarget("factory")}
                         className="w-full flex items-center justify-between p-4 rounded-2xl border border-red-500 text-red-500 font-black text-xs uppercase tracking-tighter hover:bg-red-500 hover:text-white"
                       >
-                        <span>Reset Total (Fábrica)</span>
+                        <span>{t.settings.factoryReset}</span>
                         <AlertCircle size={16} />
                       </button>
                     )}
@@ -5209,7 +5659,7 @@ function MainApp() {
                       }}
                       className="w-full p-4 rounded-2xl border border-slate-200 dark:border-white/10 text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-white/5 transition-all opacity-30 hover:opacity-100"
                     >
-                      Resetear Verificación (Debug)
+                      {t.settings.resetVerify}
                     </button>
                   </div>
                 </div>
@@ -5220,7 +5670,7 @@ function MainApp() {
                   <div className="flex items-center gap-2 mb-4">
                     <Info size={16} className="text-blue-500" />
                     <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
-                      INFORMACIÓN & AYUDA
+                      {t.settings.infoHelp}
                     </span>
                   </div>
                   <div className="space-y-3">
@@ -5228,7 +5678,7 @@ function MainApp() {
                       className={`flex items-center justify-between p-3 rounded-xl ${isDarkMode ? "bg-slate-800/50" : "bg-slate-100"}`}
                     >
                       <span className="text-xs font-bold opacity-70">
-                        Versión Actual
+                        {t.settings.currentVersion}
                       </span>
                       <span className="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded bg-blue-500/10 text-blue-500">
                         v1.0 Alpha
@@ -5239,7 +5689,7 @@ function MainApp() {
                       className="w-full py-3 rounded-xl bg-blue-600 text-white font-bold text-xs shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2"
                     >
                       <Info size={14} />
-                      VER INFORMACIÓN COMPLETA
+                      {t.settings.viewFullInfo}
                     </button>
                   </div>
                 </div>
@@ -5598,16 +6048,13 @@ function MainApp() {
                   <div className="flex items-center gap-2 mb-2 text-amber-500">
                     <AlertCircle size={16} />
                     <h3 className="text-[10px] font-black uppercase tracking-widest">
-                      Aviso Legal
+                      {t.legalNotice}
                     </h3>
                   </div>
                   <p
                     className={`text-[10px] leading-relaxed ${isDarkMode ? "text-amber-200/70" : "text-amber-800/70"}`}
                   >
-                    Esta aplicación es una herramienta de soporte para la
-                    investigación y educación médica. Los resúmenes generados
-                    por IA pueden contener imprecisiones. Siempre verifique la
-                    fuente original antes de tomar decisiones clínicas.
+                    {t.legalDesc}
                   </p>
                 </section>
 
@@ -5631,7 +6078,7 @@ function MainApp() {
             <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <h3 className="text-xl font-black flex items-center gap-2">
                 <User size={20} className="text-indigo-500" />
-                Seleccionar Colega
+                {t.selectColleague}
               </h3>
               <button
                 onClick={() => setIsUserSelectorOpen(false)}
@@ -5645,7 +6092,7 @@ function MainApp() {
                 <div className="text-center py-12 opacity-40">
                   <User size={48} className="mx-auto mb-2" />
                   <p className="text-xs font-bold uppercase">
-                    No se encontraron colegas activos
+                    {t.noColleagues}
                   </p>
                 </div>
               ) : (
@@ -5671,8 +6118,7 @@ function MainApp() {
             </div>
             <div className="p-6 bg-slate-50 dark:bg-slate-950/50 text-center">
               <p className="text-[10px] font-bold opacity-40 uppercase tracking-widest">
-                Se enviarán {selectedLibraryArticles.length} artículos como
-                mensaje directo
+                {t.sendingArticles.replace('{counts}', selectedLibraryArticles.length.toString())}
               </p>
             </div>
           </motion.div>
@@ -5805,7 +6251,7 @@ function MainApp() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 }
 

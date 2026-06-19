@@ -29,6 +29,16 @@ export const calculateBaseClinicalScore = (title: string, abstract: string, sour
       score -= 20; // Moderate penalty for mixed studies (e.g., animal models for human disease)
   }
 
+  // --- STRICT NEPHROLOGY ENFORCEMENT ---
+  const isAuthorSearch = topic.toUpperCase().startsWith("AUTHOR:");
+  if (!isAuthorSearch) {
+      const kidneyRequired = ["kidney", "renal", "nephrology", "dialysis", "glomerul", "transplant", "urine", "aki", "ckd"];
+      const hasKidneyTerm = kidneyRequired.some(k => textLower.includes(k));
+      if (!hasKidneyTerm) {
+          score -= 80;
+      }
+  }
+
   // --- 2. EVIDENCE PYRAMID ---
   if (titleLower.includes("kdigo") || titleLower.includes("guideline") || titleLower.includes("consensus") || titleLower.includes("position paper")) score += 45;
   else if (titleLower.includes("meta-analysis") || titleLower.includes("systematic review") || titleLower.includes("cochrane")) score += 35;

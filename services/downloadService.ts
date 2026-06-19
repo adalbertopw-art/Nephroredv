@@ -6,8 +6,7 @@ const JINA_BASE = "https://r.jina.ai/";
 const UNPAYWALL_BASE = "https://api.unpaywall.org/v2/";
 // List of proxies to try for raw HTML fetching
 const PROXY_LIST = [
-    "https://corsproxy.io/?",
-    "https://api.allorigins.win/raw?url="
+    "/api/proxy?url="
 ];
 
 // --- HELPERS ---

@@ -155,7 +155,7 @@ const VoiceModal: React.FC<VoiceModalProps> = ({ isOpen, onClose, contextText, i
 
       // Initialize session with correct model version.
       sessionPromiseRef.current = ai.live.connect({
-        model: 'gemini-2.5-flash-native-audio-preview-12-2025',
+        model: 'gemini-3.1-flash-live-preview',
         config: {
           responseModalities: [Modality.AUDIO],
           systemInstruction: systemInstruction,

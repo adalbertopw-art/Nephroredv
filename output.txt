@@ -1,0 +1,6 @@
+2776:            <span className="text-sm">Atrás</span>
+2846:              <h1 className="text-xl font-black">NephroUpdate</h1>
+3823:                              <span>Debates y Foro</span>
+3832:                              <span>Trabajo Colaborativo</span>
+4540:                <h2 className={`text-xl font-black ${isDarkMode ? "text-white" : "text-slate-900"}`}>Configuración Necesaria</h2>
+5442:                        <span>Limpiar Historial</span>

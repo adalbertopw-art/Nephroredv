@@ -8,6 +8,7 @@ interface NewsTickerProps {
   isDarkMode: boolean;
   className?: string;
   articles?: Article[];
+  title?: string;
 }
 
 interface NewsItem {
@@ -17,7 +18,7 @@ interface NewsItem {
   isEvent?: boolean;
 }
 
-const NewsTicker: React.FC<NewsTickerProps> = ({ isDarkMode, className = "" }) => {
+const NewsTicker: React.FC<NewsTickerProps> = ({ isDarkMode, className = "", title }) => {
   const [items, setItems] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -107,6 +108,7 @@ const NewsTicker: React.FC<NewsTickerProps> = ({ isDarkMode, className = "" }) =
     <div className={`flex items-center gap-2 py-1 px-2 rounded-full border border-transparent ${isDarkMode ? 'bg-slate-900/40' : 'bg-slate-100/50'} ${className}`}>
       <div className="flex items-center gap-1.5 shrink-0 pr-1.5 border-r border-slate-500/20">
         <Rss size={11} className="text-orange-500 animate-pulse" />
+        {title && <span className={`text-[10px] font-bold uppercase tracking-wider hidden sm:block ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>{title}</span>}
       </div>
       
       <div className="flex-1 overflow-hidden relative h-5">

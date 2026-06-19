@@ -376,6 +376,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, isSaved, onToggleSav
       : article.imageUrl;
   const [isPdfProcessing, setIsPdfProcessing] = useState(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
+  const [isAccessingPdf, setIsAccessingPdf] = useState(false);
   
   const cardRef = useRef<HTMLDivElement>(null);
   const textContainerRef = useRef<HTMLDivElement>(null);
@@ -846,6 +847,42 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, isSaved, onToggleSav
                  {/* Simplified Citation Heat - Only Flame */}
                  <CitationHeat score={article.relevanceScore} isDarkMode={isDarkMode} />
                  
+                 {article.pdfUrl && (
+                     <button onClick={async (e) => { 
+                         e.stopPropagation(); 
+                         if (isAccessingPdf) return;
+                         setIsAccessingPdf(true);
+                         
+                         // Log download activity to storage/history so users can track accessed PDFs
+                         try {
+                             await saveArticleOffline({
+                                 ...article,
+                                 localPdfData: article.localPdfData || "external-pdf-accessed"
+                             }, article.summary || "", true);
+                             
+                             if (onUpdateArticle) {
+                                 // Trigger a dummy update to refresh local UI state
+                                 onUpdateArticle(article.id, { isFree: true });
+                             }
+                         } catch (error) {
+                             console.error("Failed to log PDF access to history:", error);
+                         }
+
+                         // Add artificial delay for animation
+                         setTimeout(() => {
+                             setIsAccessingPdf(false);
+                             openExternalUrl(article.pdfUrl!, isDarkMode); 
+                         }, 800);
+                     }} className={`flex items-center gap-1 p-1 px-2 rounded-full transition-all hover:scale-110 active:scale-95 ${isAccessingPdf ? 'text-red-500 bg-red-100 dark:bg-red-900/40 dark:text-red-300 pointer-events-none' : (isDarkMode ? 'text-red-400 bg-red-900/20 border border-red-500/30' : 'text-red-600 bg-red-50 border border-red-200')}`} title="PDF">
+                         {isAccessingPdf ? (
+                             <Loader2 size={10} strokeWidth={3} className="animate-spin" />
+                         ) : (
+                             <FileText size={10} strokeWidth={2.5} />
+                         )}
+                         <span className="text-[9px] font-bold tracking-widest uppercase">{isAccessingPdf ? 'VER' : 'PDF'}</span>
+                     </button>
+                 )}
+
                  <button onClick={(e) => { e.stopPropagation(); handleEvidenceFlow(e); }} className={`p-1 rounded-full transition-all hover:scale-110 active:scale-95 ${hasPdf ? 'text-blue-500 bg-blue-50 dark:bg-blue-900/20' : (isDownloaded ? 'text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : (article.isFree ? 'text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : 'text-amber-500 bg-amber-50 dark:bg-amber-900/20'))}`} title={t.fullTextTip}>
                      {hasPdf ? <FileIcon size={13} strokeWidth={2.5} /> : (isDownloaded ? <CheckCircle2 size={13} strokeWidth={2.5} /> : (article.isFree ? <Unlock size={13} strokeWidth={2.5} /> : <Lock size={13} strokeWidth={2.5} />))}
                  </button>
@@ -874,6 +911,9 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, isSaved, onToggleSav
                   )}
                   <div className="flex flex-col gap-0.5 flex-1 min-w-0 relative z-10">
                      <span className={`text-[10px] font-black uppercase tracking-widest truncate w-full ${isDarkMode ? 'text-blue-400' : 'text-blue-700'}`}>{article.source}</span>
+                     {article.authors && (
+                         <span className={`text-[9px] font-medium truncate w-full opacity-80 ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>{article.authors}</span>
+                     )}
                      <div className="flex items-center gap-2 opacity-60 text-[8px] font-bold uppercase tracking-widest">
                          <span>{article.date}</span>
                          <span>•</span>
@@ -959,6 +999,30 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, isSaved, onToggleSav
                        </div>
                    )}
                    <div ref={textContainerRef} className="select-text pb-0 pt-1">{abstractWithHighlights}</div>
+
+                   {isExpanded && article?.figures && article.figures.length > 0 && (
+                       <div className="mt-8 mb-4">
+                           <div className="flex items-center gap-2 mb-4">
+                               <ImageIcon size={14} className="text-slate-400 group-hover/fig:text-blue-500 transition-colors" />
+                               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Figuras Extraídas</span>
+                           </div>
+                           <div className="flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                               {article.figures.map((figUrl, idx) => (
+                                   <div key={idx} className="flex-none w-64 md:w-80 aspect-[4/3] rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 snap-center bg-white dark:bg-slate-800 relative group/fig hover:shadow-xl transition-all">
+                                       <img src={figUrl} alt={`Figure ${idx + 1}`} className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal" referrerPolicy="no-referrer" />
+                                       <div className="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] font-bold px-2 py-1 rounded backdrop-blur-md">
+                                           Fig. {idx + 1}
+                                       </div>
+                                       <a href={figUrl} target="_blank" rel="noopener noreferrer" className="absolute top-2 right-2 p-1.5 bg-black/60 text-white rounded opacity-0 group-hover/fig:opacity-100 transition-opacity hover:bg-black/80">
+                                            <ExternalLink size={12} />
+                                       </a>
+                                   </div>
+                               ))}
+                           </div>
+                           {/* Support hiding css scrollbar for webkit via global styles or inline, here inline style handles firefox/ie, and we assume tailwind hides webkit if added, but let's drop a small style block just in case */}
+                           <style dangerouslySetInnerHTML={{__html: `div::-webkit-scrollbar { display: none; }`}} />
+                       </div>
+                   )}
               </div>
           </div>
           {!isExpanded && !isDesktop && (

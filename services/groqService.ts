@@ -50,6 +50,12 @@ async function tryGroqGeneration(
     maxTokens: number = 500,
     temperature: number = 0.3
 ): Promise<string | null> {
+    if (!apiKey || typeof apiKey !== "string" || apiKey.trim() === "") {
+        if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('REQUIRE_API_KEY', { detail: { provider: 'groq' } }));
+        }
+        throw new Error("MISSING_API_KEY");
+    }
     const cleanKey = apiKey.trim();
     let lastError = null;
 
@@ -103,7 +109,6 @@ export const enhanceArticleSummary = async (
     language: Language,
     apiKey: string
 ): Promise<{ summary: string; tldr: { change: string; population: string } } | null> => {
-    if (!apiKey) return null;
 
     const systemPrompt = language === 'es'
         ? "Eres un experto nefrólogo senior. Tu tarea es reescribir el resumen de un estudio científico para que sea claro y generar una 'Cápsula de Impacto'.\n\nResponde en JSON con los campos:\n- summary: El abstract mejorado.\n- tldr: Un objeto con 'change' (¿Qué cambió?) y 'population' (¿A quién aplica?)."
@@ -134,7 +139,13 @@ export const generateGroqSummary = async (
   language: Language,
   apiKey: string
 ): Promise<string> => {
-  if (!apiKey || articles.length === 0) return "";
+  if (!apiKey || typeof apiKey !== "string" || apiKey.trim() === "") {
+      if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('REQUIRE_API_KEY', { detail: { provider: 'groq' } }));
+      }
+      throw new Error("MISSING_API_KEY");
+  }
+  if (articles.length === 0) return "";
 
   const contextArticles = articles.slice(0, 8).map((a, i) => 
       `[Study ${i+1}] Title: ${a.title}\nFindings: ${a.summary.substring(0, 400)}...`

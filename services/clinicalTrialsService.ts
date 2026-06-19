@@ -10,7 +10,13 @@ export const fetchClinicalTrials = async (
   customQuery?: string
 ): Promise<ResearchUpdate> => {
   try {
-    let condition = customQuery || getClinicalTrialsQuery(topic);
+    let baseQuery = customQuery || getClinicalTrialsQuery(topic);
+    let condition = customQuery ? `${baseQuery} AND (nephrology OR kidney OR renal OR dialysis)` : baseQuery;
+    
+    const isAuthorSearch = customQuery && customQuery.startsWith("AUTHOR:");
+    if (isAuthorSearch) {
+        condition = customQuery.replace("AUTHOR:", "").replace(/"/g, "").trim();
+    }
     
     // Fix: Remove PubMed-specific date range filters
     condition = condition.replace(/\s*AND\s*\(?\"\d{4}\"\[Date\s*-\s*Publication\]\s*:\s*\"3000\"\[Date\s*-\s*Publication\]\)?/gi, '');
@@ -32,17 +38,16 @@ export const fetchClinicalTrials = async (
 
     let response: Response;
     try {
-        response = await fetch(url);
-        if (!response.ok) throw new Error(`Direct HTTP ${response.status}`);
-    } catch (err) {
-        // Proxy fallback
-        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+        const proxyUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
         response = await fetch(proxyUrl);
-        if (!response.ok) {
-            if (response.status === 400) {
-                return { summary: "ClinicalTrials query format adjusted.", articles: [] };
-            }
-            throw new Error(`ClinicalTrials API Error: ${response.status}`);
+        if (!response.ok) throw new Error(`Proxy HTTP ${response.status}`);
+    } catch (err) {
+        try {
+            response = await fetch(url);
+            if (!response.ok) throw new Error(`Direct HTTP ${response.status}`);
+        } catch (directErr: any) {
+            console.warn("ClinicalTrials retrieve failed", directErr);
+            return { summary: "ClinicalTrials unreachable.", articles: [] };
         }
     }
     
@@ -61,7 +66,7 @@ export const fetchClinicalTrials = async (
         const dateStr = study.protocolSection?.statusModule?.lastUpdateSubmitDate;
         if (!dateStr) return false;
         const year = new Date(dateStr).getFullYear();
-        return year >= minYear;
+        return isAuthorSearch || year >= minYear;
     });
 
     const articles: Article[] = filteredStudies.map((study: any) => {

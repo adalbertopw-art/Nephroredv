@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { X, ChevronUp, Calendar, Users, BookOpen, Highlighter, StickyNote, Plus, Trash2, Check, Copy, Image as ImageIcon, Activity, Type, Link as LinkIcon, FileText, MessageSquare, BarChart2, Zap, Flame, AlertTriangle, ShieldCheck, AlertCircle, FileText as PdfIcon, Download, ExternalLink, MessageCircle, Paperclip } from 'lucide-react';
+import { X, ChevronUp, Calendar, Users, BookOpen, Highlighter, StickyNote, Plus, Trash2, Check, Copy, Image as ImageIcon, Activity, Type, Link as LinkIcon, FileText, MessageSquare, BarChart2, Zap, Flame, AlertTriangle, ShieldCheck, AlertCircle, FileText as PdfIcon, Download, ExternalLink, MessageCircle, Paperclip, Unlock, Lock } from 'lucide-react';
 import { Article, FontStyle, DeepAnalysisResult } from '../types';
 import { getJournalLogo } from '../constants/journalLogos';
 import { highlightMedicalText } from '../utils/semanticHighlighter';
@@ -58,12 +58,76 @@ const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
   const [scrollProgress, setScrollProgress] = useState(0);
   const [imageError, setImageError] = useState(false);
   const [isScrollingDown, setIsScrollingDown] = useState(false);
+  const [isAuthorsExpanded, setIsAuthorsExpanded] = useState(false);
   const lastScrollY = useRef(0);
   
   const [analysisData, setAnalysisData] = useState<DeepAnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const journalLogo = getJournalLogo(article?.source || '');
-  
+
+  const translations = {
+    es: {
+      authors: 'Autores & Afiliaciones',
+      saveNote: 'Nota',
+      fontMenu: 'Fuente',
+      markAsRead: 'Marcar como Leído',
+      studyData: 'Datos del Estudio',
+      published: 'Publicado',
+      journal: 'Revista',
+      source: 'Fuente Original',
+      attachPdf: 'Adjuntar PDF Local',
+      noPdfFound: 'No se encontró archivo PDF.',
+      abstract: 'Abstract (Original)',
+      fullText: 'Cuerpo del Documento',
+      personalNotes: 'Notas Clínicas Privadas',
+      writeNote: 'Escribe tu observación o resumen aquí...',
+      highlights: 'Texto Resaltado',
+      runAnalysis: 'Generar Análisis Profundo Groq/Gemini',
+      analyzing: 'Analizando evidencia profunda...',
+      analysisTitle: 'Groq AI - Análisis Crítico',
+      analysisTakeaway: 'Takeaway Clínico',
+      close: 'Cerrar',
+      tabs: {
+        text: 'Texto',
+        pdf: 'PDF',
+        chat: 'Chat',
+        analysis: 'Análisis',
+        club: 'Club'
+      }
+    },
+    en: {
+      authors: 'Authors & Affiliations',
+      saveNote: 'Note',
+      fontMenu: 'Font',
+      markAsRead: 'Mark as Read',
+      studyData: 'Study Data',
+      published: 'Published',
+      journal: 'Journal',
+      source: 'Original Source',
+      attachPdf: 'Attach Local PDF',
+      noPdfFound: 'No PDF file found.',
+      abstract: 'Abstract (Original)',
+      fullText: 'Document Body',
+      personalNotes: 'Private Clinical Notes',
+      writeNote: 'Write your observation or summary here...',
+      highlights: 'Highlighted Text',
+      runAnalysis: 'Generate Deep Groq/Gemini Analysis',
+      analyzing: 'Analyzing deep evidence...',
+      analysisTitle: 'Groq AI - Critical Analysis',
+      analysisTakeaway: 'Clinical Takeaway',
+      close: 'Close',
+      tabs: {
+        text: 'Text',
+        pdf: 'PDF',
+        chat: 'Chat',
+        analysis: 'Analysis',
+        club: 'Club'
+      }
+    }
+  };
+
+  const t = translations[language];
+
   const displayImageUrl = (article && (!article.imageUrl || imageError))
     ? `https://picsum.photos/seed/${article.id}/1200/600?blur=2`
     : article?.imageUrl;
@@ -243,7 +307,16 @@ const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                         )}
                         <span className="text-[9px] font-black uppercase tracking-widest opacity-50 truncate relative z-10">{article.source}</span>
                     </div>
-                    <h2 className="text-xs font-bold truncate max-w-[200px] md:max-w-xs relative z-10">{article.title}</h2>
+                    <div className="flex items-center gap-1.5 relative z-10 mt-1">
+                        <h2 className="text-xs font-bold truncate max-w-[190px] md:max-w-[300px]">{article.title}</h2>
+                        <button 
+                            onClick={() => targetUrl && window.open(targetUrl, '_system', 'noopener,noreferrer')}
+                            className={`p-1 rounded-full transition-all hover:scale-110 active:scale-95 shrink-0 ${article.localPdfData ? 'text-blue-500 bg-blue-50 dark:bg-blue-900/20' : (article.isFree ? 'text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : 'text-amber-500 bg-amber-50 dark:bg-amber-900/20')}`}
+                            title={article.localPdfData ? 'PDF Local' : (article.isFree ? 'Open Access - Ir al PDF' : 'Closed Access - Ir a la fuente')}
+                        >
+                            {article.localPdfData ? <PdfIcon size={12} strokeWidth={2.5} /> : (article.isFree ? <Unlock size={12} strokeWidth={2.5} /> : <Lock size={12} strokeWidth={2.5} />)}
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -364,9 +437,17 @@ const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                                 <div className="flex items-center gap-1"><CitationHeat score={article.relevanceScore} isDarkMode={isDarkMode} /><span className="text-[10px] font-bold opacity-60">{article.relevanceScore}% Impact</span></div>
                             </div>
                             <h1 className={`text-2xl md:text-4xl ${fontClass} font-black leading-tight mb-4`}>{article.title}</h1>
-                            <div className="flex items-center gap-4 text-xs font-bold opacity-50 uppercase tracking-wider">
-                                <span className="flex items-center gap-1"><Calendar size={12}/> {article.date}</span>
-                                <span className="flex items-center gap-1"><Users size={12}/> {article.authors || 'Unknown'}</span>
+                            <div className={`flex flex-col sm:flex-row sm:items-start flex-wrap gap-2 sm:gap-4 text-xs font-bold opacity-50 uppercase tracking-wider relative`}>
+                                <span className="flex items-center gap-1 shrink-0 mt-0.5"><Calendar size={12}/> {article.date}</span>
+                                <button 
+                                    onClick={(e) => { e.stopPropagation(); setIsAuthorsExpanded(!isAuthorsExpanded); }} 
+                                    className={`flex items-start gap-1 hover:text-blue-500 transition-colors text-left w-full ${isAuthorsExpanded ? 'block' : 'max-h-6 overflow-hidden'}`}
+                                >
+                                    <Users size={12} className="shrink-0 mt-0.5" /> 
+                                    <span className={isAuthorsExpanded ? "whitespace-normal break-words leading-relaxed inline" : "truncate w-full block"}>
+                                        {isAuthorsExpanded ? (article.fullAuthors || article.authors || 'Unknown') : (article.authors || 'Unknown')}
+                                    </span>
+                                </button>
                             </div>
                         </div>
 

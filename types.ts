@@ -22,6 +22,7 @@ export interface Article {
   summary: string;
   source: string;
   authors?: string;
+  fullAuthors?: string;
   url: string;
   date: string;
   category: ArticleCategory;
@@ -31,6 +32,7 @@ export interface Article {
   isFree?: boolean; // New field for Open Access status
   note?: string; // Personal user note
   imageUrl?: string; // URL for article thumbnail or figure
+  figures?: string[]; // Array of image URLs for figures
   visualAbstract?: string; // ASCII/Markdown visual abstract
   
   // New Clinical TL;DR Feature
@@ -49,6 +51,7 @@ export interface Article {
   keywords?: string[]; // MeSH or Author keywords
   
   // PDF Ecosystem Features
+  pdfUrl?: string; // Direct link to open access PDF
   localPdfData?: string; // Base64 encoded PDF string
   fullTextContent?: string; // Semantic text extracted from PDF for AI
   

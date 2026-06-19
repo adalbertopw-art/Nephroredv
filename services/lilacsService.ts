@@ -1,4 +1,5 @@
 
+import { Capacitor } from '@capacitor/core';
 import { ResearchUpdate, Article, Topic } from "../types";
 import { getLilacsTopicQuery } from "../utils/searchContexts";
 import { calculateBaseClinicalScore } from "../constants/searchConstants";
@@ -6,16 +7,21 @@ import { detectArticleCategory } from "../utils/categoryDetection";
 
 // BVS (Biblioteca Virtual en Salud) API
 // Indexes LILACS, IBECS (Spain), MEDLINE, SciELO, etc.
-const BVS_API_BASE = 'https://pesquisa.bvsalud.org/portal/api/search/';
+const BVS_API_BASE = 'https://pesquisa.bvsalud.org/portal/';
+
+const resolveApiUrl = (url: string): string => {
+    if (Capacitor.isNativePlatform()) {
+        return url;
+    }
+    return `https://corsproxy.io/?${encodeURIComponent(url)}`;
+};
 
 const fetchWithProxy = async (url: string): Promise<any> => {
-    // Strategy: Try proxies first as direct access is usually CORS-blocked in browsers
-    // Reordered to prioritize more stable proxies for JSON data
+    // Strategy: Try resolveApiUrl (Native vs corsproxy.io), then fallback to local proxy, then direct fetch
     const proxies = [
-        (u: string) => `https://corsproxy.io/?${encodeURIComponent(u)}`,
-        (u: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-        (u: string) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-        (u: string) => u // Direct fetch last resort (works in native/server contexts)
+        (u: string) => resolveApiUrl(u),
+        (u: string) => `/api/proxy?url=${encodeURIComponent(u)}`,
+        (u: string) => u
     ];
 
     let lastError: any;
@@ -54,13 +60,35 @@ const fetchWithProxy = async (url: string): Promise<any> => {
     throw lastError || new Error("LILACS unreachable via all channels.");
 };
 
+const decodeHtml = (html: string) => {
+    if (typeof document === 'undefined') return html;
+    const txt = document.createElement("textarea");
+    txt.innerHTML = html;
+    return txt.value;
+};
+
+const normalizeText = (text: string) => {
+    return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+};
+
 export const fetchLilacsArticles = async (
   topic: Topic | string,
   language: 'es' | 'original' = 'original',
   customQuery?: string
 ): Promise<ResearchUpdate> => {
   try {
-    const mainTerm = customQuery || getLilacsTopicQuery(topic);
+    let mainTerm = "";
+    if (customQuery) {
+        const isAuthorSearch = customQuery.startsWith("AUTHOR:");
+        if (isAuthorSearch) {
+            mainTerm = `au:"${normalizeText(customQuery.replace("AUTHOR:", "").replace(/"/g, "").trim())}"`;
+        } else {
+            const normalizedQuery = normalizeText(customQuery);
+            mainTerm = `(tw:"${normalizedQuery}") AND (tw:"nefrologia" OR tw:"rinon" OR tw:"kidney" OR tw:"nephrology" OR tw:"renal")`;
+        }
+    } else {
+        mainTerm = getLilacsTopicQuery(topic);
+    }
     
     // BVS Parameters
     // db: 'LILACS' focuses on Latin American literature
@@ -77,16 +105,21 @@ export const fetchLilacsArticles = async (
     
     // Use the robust proxy-enabled fetcher
     const data = await fetchWithProxy(url);
-    const docs = data.docs || [];
+    const docs = data.diaServerResponse?.[0]?.response?.docs || data.docs || [];
 
     if (docs.length === 0) {
         return { summary: "No results in LILACS/BVS.", articles: [] };
     }
 
     const articles: Article[] = docs.map((doc: any) => {
-        // BVS API fields are often arrays
-        const title = Array.isArray(doc.ti) ? doc.ti[0] : (doc.ti || 'Untitled');
-        const abstract = Array.isArray(doc.ab) ? doc.ab[0] : (doc.ab || "Abstract not available.");
+        // Títulos: Revisa si existe ti_es, si no, usa ti_en o ti_pt.
+        let rawTitle = doc.ti_es || doc.ti_en || doc.ti_pt || doc.ti;
+        const title = decodeHtml(Array.isArray(rawTitle) ? rawTitle[0] : (rawTitle || 'Untitled'));
+
+        // Resúmenes: Busca ab_es, ab_en o ab_pt.
+        let rawAbstract = doc.ab_es || doc.ab_en || doc.ab_pt || doc.ab;
+        const abstract = decodeHtml(Array.isArray(rawAbstract) ? rawAbstract[0] : (rawAbstract || "Abstract not available."));
+        
         const authorsArr = doc.au || [];
         const authors = authorsArr.slice(0, 3).join(', ') + (authorsArr.length > 3 ? ' et al.' : '');
         const source = Array.isArray(doc.fo) ? doc.fo[0] : (doc.fo || doc.db || 'LILACS');
@@ -98,6 +131,14 @@ export const fetchLilacsArticles = async (
         
         // Detect free text indicators
         const isFree = doc.fulltext === '1' || (Array.isArray(doc.ur) && doc.ur.some((u:string) => u.includes('scielo') || u.includes('pmc')));
+        
+        let pdfUrl: string | undefined = undefined;
+        if (isFree && Array.isArray(doc.ur)) {
+            const potentialPdf = doc.ur.find((u: string) => u.endsWith('.pdf') || u.includes('scielo.php?script=sci_pdf'));
+            if (potentialPdf) {
+                pdfUrl = potentialPdf;
+            }
+        }
 
         const relevance = calculateBaseClinicalScore(title, abstract, source, typeof topic === 'string' ? topic : '', 0, year);
         const category = detectArticleCategory(title, abstract, source);
@@ -113,7 +154,8 @@ export const fetchLilacsArticles = async (
             category: category,
             relevanceScore: relevance,
             topic: typeof topic === 'string' ? topic : 'General',
-            isFree: isFree
+            isFree: isFree,
+            pdfUrl: pdfUrl
         };
     });
 

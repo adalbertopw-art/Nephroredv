@@ -1,0 +1,3787 @@
+);
+
+const translations = {
+  es: {
+    discover: "Descubrir",
+    library: "Biblioteca",
+    history: "Historial",
+    searchPlaceholder: "Explorar evidencia...",
+    welcome: "Bienvenido a",
+    subtitle: "NephroUpdate",
+    loading: "Analizando evidencia...",
+    error: "Error de conexión.",
+    saved: "Guardado",
+    removed: "Eliminado",
+    libraryTitle: "Tu Biblioteca",
+    historyTitle: "Línea de Tiempo",
+    communityTitle: "Comunidad Médica",
+    communityDesc: "Foros clínicos y encuestas de impacto.",
+    verifiedOnly: "Solo para Médicos Verificados",
+    fullTextError: "No se pudo extraer el texto completo.",
+    openingReader: "Obteniendo Texto Completo...",
+    analysisStopped: "Análisis detenido por el usuario.",
+    translating: "Traduciendo al inglés médico...",
+    picoTitle: "Búsqueda Estructurada PICO",
+    picoDesc:
+      "Define tu pregunta clínica para generar una query booleana precisa.",
+    pLabel: "Paciente / Problema",
+    pPlaceholder: "ej. Nefropatía Diabética, CKD Estadio 4...",
+    iLabel: "Intervención",
+    iPlaceholder: "ej. Inhibidores SGLT2, Finerenone...",
+    cLabel: "Comparación (Opcional)",
+    cPlaceholder: "ej. Placebo, Bloqueo RAS estándar...",
+    oLabel: "Resultado (Opcional)",
+    oPlaceholder: "ej. Progresión a ESRD, Mortalidad...",
+    searchPico: "Generar Query & Buscar",
+    searchingFor: "Buscando:",
+    translatedFrom: "Traducido de:",
+    undo: "Deshacer (Original)",
+    proposeDebate: "Proponer Debate",
+    settings: {
+      title: "Configuración",
+      profStatus: "ESTADO PROFESIONAL",
+      verified: "Verificado",
+      pending: "Pendiente",
+      guest: "Invitado (Guest)",
+      guestDesc: "Acceso limitado a lectura.",
+      createAccountTxt: "Crear Cuenta y Verificar",
+      verifyDesc: "Para participar en encuestas de impacto y foros clínicos, requerimos validación de licencia profesional durante el registro.",
+      pendingDesc: "Hemos recibido tus credenciales. La validación manual puede tomar hasta 24 horas.",
+      filters: "FILTROS DE BÚSQUEDA",
+      fullTextOnly: "Solo Texto Completo (PMC)",
+      fullTextDesc: "Muestra solo artículos disponibles en PubMed Central.",
+      bentoLayout: "Diseño Bento Grid",
+      bentoDesc: "Vista dinámica con tarjetas de tamaño variable.",
+      searchMode: "MODO DE BÚSQUEDA",
+      standardSearch: "Estándar",
+      standardDesc: "Barrida técnica en 9 bases de datos (incl. LILACS).",
+      aiSearch: "IA",
+      aiSearchDesc: "Analiza resultados y genera síntesis ejecutiva.",
+      connectivity: "CONECTIVIDAD Y SEGURIDAD",
+      apiKeyRequired: "Necesaria para búsqueda IA, Voice Mode y Resúmenes.",
+      verifyBtn: "Verificar",
+      getGoogleAI: "Obtener en Google AI Studio",
+      getGroq: "Obtener en console.groq.com",
+      interfaceAndReading: "INTERFAZ Y LECTURA",
+      darkMode: "Modo Oscuro",
+      darkModeDesc: "Esquema de colores invertido.",
+      language: "Idioma de la Interfaz",
+      langDesc: "Afecta los menús y botones principales.",
+      contentLang: "Idioma de Análisis (IA)",
+      contentLangDesc: "El idioma en el que Gemini y Groq generarán síntesis.",
+      aiProviderTitle: "Proveedor de IA",
+      aiProviderDesc: "Motor utilizado para Análisis Crítico y Voice Mode."
+    }
+  },
+  en: {
+    discover: "Discover",
+    library: "Library",
+    history: "History",
+    searchPlaceholder: "Search evidence...",
+    welcome: "Welcome to",
+    subtitle: "NephroUpdate",
+    loading: "Analyzing evidence...",
+    error: "Connection error.",
+    saved: "Saved",
+    removed: "Removed",
+    libraryTitle: "Your Library",
+    historyTitle: "Timeline",
+    communityTitle: "Medical Community",
+    communityDesc: "Clinical forums and impact surveys.",
+    verifiedOnly: "Verified Physicians Only",
+    fullTextError: "Could not extract full text.",
+    openingReader: "Fetching Full Text...",
+    analysisStopped: "Analysis stopped by user.",
+    translating: "Translating to medical English...",
+    picoTitle: "PICO Structured Search",
+    picoDesc: "Define clinical question for precise query.",
+    pLabel: "Patient / Problem",
+    pPlaceholder: "e.g., Diabetic Nephropathy...",
+    iLabel: "Intervention",
+    iPlaceholder: "e.g., SGLT2 Inhibitors...",
+    cLabel: "Comparison (Optional)",
+    cPlaceholder: "e.g., Placebo...",
+    oLabel: "Outcome (Optional)",
+    oPlaceholder: "e.g., Outcome...",
+    searchPico: "Generate & Search",
+    searchingFor: "Searching for:",
+    translatedFrom: "Translated from:",
+    undo: "Undo (Use original)",
+    proposeDebate: "Propose Debate",
+    settings: {
+      title: "Settings",
+      profStatus: "PROFESSIONAL STATUS",
+      verified: "Verified",
+      pending: "Pending",
+      guest: "Guest",
+      guestDesc: "Limited read-only access.",
+      createAccountTxt: "Create Account & Verify",
+      verifyDesc: "To participate in impact surveys and clinical forums, we require professional license validation during registration.",
+      pendingDesc: "We have received your credentials. Manual validation can take up to 24 hours.",
+      filters: "SEARCH FILTERS",
+      fullTextOnly: "Full Text Only (PMC)",
+      fullTextDesc: "Show only articles available in PubMed Central.",
+      bentoLayout: "Bento Grid Layout",
+      bentoDesc: "Dynamic view with variable size cards.",
+      searchMode: "SEARCH MODE",
+      standardSearch: "Standard",
+      standardDesc: "Technical sweep in 9 databases.",
+      aiSearch: "AI",
+      aiSearchDesc: "Analyzes results and generates executive synthesis.",
+      connectivity: "CONNECTIVITY & SECURITY",
+      apiKeyRequired: "Required for AI search, Voice Mode and Summaries.",
+      verifyBtn: "Verify",
+      getGoogleAI: "Get from Google AI Studio",
+      getGroq: "Get from console.groq.com",
+      interfaceAndReading: "INTERFACE & READING",
+      darkMode: "Dark Mode",
+      darkModeDesc: "Inverted color scheme.",
+      language: "Interface Language",
+      langDesc: "Affects main menus and buttons.",
+      contentLang: "Analysis Language (AI)",
+      contentLangDesc: "Language Gemini and Groq use for synthesis.",
+      aiProviderTitle: "AI Provider",
+      aiProviderDesc: "Engine used for Critical Analysis and Voice Mode."
+    }
+  },
+};
+
+const parseDateScore = (dateStr: string): number => {
+  if (!dateStr || dateStr === "N/A") return 0;
+  const standardDate = new Date(dateStr);
+  if (!isNaN(standardDate.getTime())) return standardDate.getTime();
+  const yearMatch = dateStr.match(/(20\d{2})/);
+  if (yearMatch) {
+    return new Date(parseInt(yearMatch[0]), 0, 1).getTime();
+  }
+  return 0;
+};
+
+const hybridSort = (
+  articles: Article[],
+  searchQuery: string = "",
+  effectiveQuery: string = "",
+) => {
+  const currentYear = new Date().getFullYear();
+  const recentThresholdYear = currentYear - 3;
+  const query = searchQuery.trim().toLowerCase();
+
+  // Extract keywords from effectiveQuery (English) or searchQuery (Spanish)
+  const extractKeywords = (q: string) => {
+    return Array.from(
+      new Set(
+        q
+          .toLowerCase()
+          .replace(/\b(and|or|not)\b/g, "")
+          .replace(/[^a-z0-9\s]/g, " ")
+          .split(/\s+/)
+          .filter(
+            (w) =>
+              w.length > 2 &&
+              ![
+                "with",
+                "this",
+                "that",
+                "from",
+                "what",
+                "when",
+                "where",
+                "your",
+                "have",
+                "were",
+                "they",
+                "about",
+                "which",
+                "the",
+                "and",
+                "for",
+                "are",
+                "was",
+                "not",
+                "but",
+                "all",
+                "any",
+                "can",
+                "has",
+                "had",
+                "how",
+                "its",
+                "out",
+                "use",
+                "who",
+                "why",
+                "you",
+                "the",
+                "and",
+                "for",
+                "are",
+                "was",
+                "not",
+                "but",
+                "all",
+                "any",
+                "can",
+                "has",
+                "had",
+                "how",
+                "its",
+                "out",
+                "use",
+                "who",
+                "why",
+                "you",
+                "their",
+                "there",
+                "then",
+                "than",
+                "these",
+                "those",
+              ].includes(w),
+          ),
+      ),
+    );
+  };
+
+  const keywords = extractKeywords(effectiveQuery || query);
+
+  const getKeywordScore = (a: Article) => {
+    if (keywords.length === 0) return 0;
+    const titleLower = a.title.toLowerCase();
+    const summaryLower = a.summary.toLowerCase();
+    const articleKeywords = (a.keywords || [])
+      .map((k) => k.toLowerCase())
+      .join(" ");
+
+    let score = 0;
+    let matchedKeywords = 0;
+
+    keywords.forEach((kw) => {
+      let matched = false;
+      // Exact word boundary match in title is strongest
+      if (new RegExp(`\\b${kw}\\b`).test(titleLower)) {
+        score += 5;
+        matched = true;
+      } else if (titleLower.includes(kw)) {
+        score += 3;
+        matched = true;
+      }
+
+      // Keyword array match
+      if (new RegExp(`\\b${kw}\\b`).test(articleKeywords)) {
+        score += 4;
+        matched = true;
+      } else if (articleKeywords.includes(kw)) {
+        score += 2;
+        matched = true;
+      }
+
+      // Summary match
+      if (new RegExp(`\\b${kw}\\b`).test(summaryLower)) {
+        score += 2;
+        matched = true;
+      } else if (summaryLower.includes(kw)) {
+        score += 1;
+        matched = true;
+      }
+
+      if (matched) matchedKeywords++;
+    });
+
+    // Huge bonus if ALL keywords are found somewhere in the article
+    if (matchedKeywords === keywords.length && keywords.length > 1) {
+      score += 10;
+    }
+
+    return score;
+  };
+
+  return articles.sort((a, b) => {
+    if (query) {
+      const titleA = a.title.toLowerCase();
+      const titleB = b.title.toLowerCase();
+
+      // Exact match gets highest priority
+      const exactMatchA = titleA === query;
+      const exactMatchB = titleB === query;
+      if (exactMatchA && !exactMatchB) return -1;
+      if (!exactMatchA && exactMatchB) return 1;
+
+      // Contains exact query as substring gets second priority
+      const containsA = titleA.includes(query);
+      const containsB = titleB.includes(query);
+      if (containsA && !containsB) return -1;
+      if (!containsA && containsB) return 1;
+
+      // Keyword score gets third priority
+      const kwScoreA = getKeywordScore(a);
+      const kwScoreB = getKeywordScore(b);
+
+      // Prioritize relevance over tier if there's a clear winner in keyword matching
+      if (kwScoreA !== kwScoreB) {
+        // If the difference is significant, or if one has all keywords and the other doesn't
+        if (
+          Math.abs(kwScoreA - kwScoreB) >= 5 ||
+          (kwScoreA > 10 && kwScoreB
+10 && kwScoreA
+2 && kwScoreB === 0 && kwScoreA
+2 && kwScoreA === 0 && kwScoreB
+= 5) {
+      return relB - relA;
+    }
+
+    const tierA = getArticleImpactTier(a);
+    const tierB = getArticleImpactTier(b);
+    if (tierA === 0 && tierB !== 0) return -1;
+    if (tierB === 0 && tierA !== 0) return 1;
+    const dateA = parseDateScore(a.date);
+    const dateB = parseDateScore(b.date);
+    const yearA = new Date(dateA).getFullYear();
+    const yearB = new Date(dateB).getFullYear();
+    const isRecentA = yearA >= recentThresholdYear;
+    const isRecentB = yearB >= recentThresholdYear;
+    if (isRecentA && !isRecentB) return -1;
+    if (!isRecentA && isRecentB) return 1;
+    if (tierA !== tierB) return tierA - tierB;
+    return dateB - dateA;
+  });
+};
+
+function MainApp() {
+  const {
+    user,
+    signOut,
+    verificationStatus,
+    updateVerificationStatus,
+    isAdmin,
+  } = useAuth();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState
+("discover");
+  const [direction, setDirection] = useState(0);
+  const [topics, setTopics] = useState
+(DEFAULT_TOPICS);
+  const [topicQueries, setTopicQueries] = useState
+>({});
+  const [selectedTopic, setSelectedTopic] = useState
+("General");
+  const [topicCache, setTopicCache] = useState
+>(
+    {},
+  );
+  const [articles, setArticles] = useState
+([]);
+  const [summary, setSummary] = useState
+("");
+  const [loading, setLoading] = useState(false);
+  const [isSynthesizing, setIsSynthesizing] = useState(false); // New State for manual synthesis
+  const [error, setError] = useState
+(null);
+  const [savedArticles, setSavedArticles] = useState
+([]);
+  const [readArticles, setReadArticles] = useState
+>({});
+  const [history, setHistory] = useState
+([]);
+  const [uiLanguage, setUiLanguage] = useState
+("es");
+  const [contentLanguage, setContentLanguage] = useState
+("es");
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [layoutMode, setLayoutMode] = useState
+(() => {
+    const saved = localStorage.getItem("nephro_layout_mode");
+    return (saved as LayoutMode) || "standard";
+  });
+  const [offlineStatus, setOfflineStatus] = useState
+>(
+    {},
+  );
+  const [syncState, setSyncState] = useState
+(backgroundSyncService.getState());
+
+  useEffect(() => {
+    const unsubscribe = backgroundSyncService.subscribe((state) => {
+      setSyncState(state);
+      updateOfflineStatusMap();
+    });
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    if (savedArticles.length > 0 && syncState.isEnabled) {
+      backgroundSyncService.assessAndTriggerSync();
+    }
+  }, [savedArticles, syncState.isEnabled]);
+
+  const prevUserRef = useRef(user);
+
+  // Clear library and history on logout
+  useEffect(() => {
+    if (prevUserRef.current && !user) {
+      setSavedArticles([]);
+      setHistory([]);
+      setReadArticles({});
+      // Clear localStorage explicitly just in case
+      localStorage.removeItem("ne_saved");
+      localStorage.removeItem("ne_hist");
+      localStorage.removeItem("ne_read");
+    }
+    prevUserRef.current = user;
+  }, [user]);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [suggestions, setSuggestions] = useState
+([]);
+
+  const getUserDisplayName = () => {
+    if (!user) return "";
+    const fullName = user.user_metadata?.full_name;
+    if (fullName) return fullName;
+    return user.email?.split("@")[0] || "Usuario";
+  };
+
+  const getUserInitials = () => {
+    if (!user) return "";
+    const fullName = user.user_metadata?.full_name;
+    if (fullName) {
+      return fullName
+        .split(" ")
+        .map((n: string) => n[0])
+        .join("")
+        .toUpperCase()
+        .substring(0, 2);
+    }
+    return user.email?.[0].toUpperCase() || "U";
+  };
+  const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
+
+  const [libraryFilter, setLibraryFilter] = useState("");
+  const [historyFilter, setHistoryFilter] = useState("");
+
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filterDesign, setFilterDesign] = useState
+([]);
+  const [filterTier, setFilterTier] = useState
+(4);
+  const [libraryTopicFilter, setLibraryTopicFilter] = useState
+("All");
+  const [historyTopicFilter, setHistoryTopicFilter] = useState
+("All");
+
+  const [voiceModalOpen, setVoiceModalOpen] = useState(false);
+  const [searchMode, setSearchMode] = useState
+("standard");
+  const [activeImmersiveArticle, setActiveImmersiveArticle] =
+    useState
+(null);
+  const [isManualSearchOpen, setIsManualSearchOpen] = useState(false);
+  const [searchModalTab, setSearchModalTab] = useState
+("text");
+  const [picoData, setPicoData] = useState({ p: "", i: "", c: "", o: "" });
+
+  const [visibleCount, setVisibleCount] = useState(20);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [activeSources, setActiveSources] = useState
+>({
+    pubmed: true,
+    openalex: true,
+    europepmc: true,
+    semanticscholar: true,
+    clinicaltrials: true,
+    core: true,
+    doaj: true,
+    elsevier: true,
+    lilacs: true,
+  });
+  const [expandedArticleId, setExpandedArticleId] = useState
+(
+    null,
+  );
+  const [viewingHistorySnapshot, setViewingHistorySnapshot] =
+    useState
+(null);
+
+  const [isReaderOpen, setIsReaderOpen] = useState(false);
+  const [communitySubTab, setCommunitySubTab] = useState
+(
+    "debates",
+  );
+  const [isLibrarySelectionMode, setIsLibrarySelectionMode] = useState(false);
+  const [isUserSelectorOpen, setIsUserSelectorOpen] = useState(false);
+  const [communityUsers, setCommunityUsers] = useState
+([]);
+  const [selectedLibraryArticles, setSelectedLibraryArticles] = useState
+([]);
+  const [readerArticle, setReaderArticle] = useState
+(null);
+  const [readerHtml, setReaderHtml] = useState("");
+  const [isReaderLoading, setIsReaderLoading] = useState(false);
+
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [showApiKeyWarning, setShowApiKeyWarning] = useState(false);
+  const [missingProvider, setMissingProvider] = useState
+(null);
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
+  const [aiProvider, setAiProvider] = useState
+("gemini");
+  const [autoXray, setAutoXray] = useState(true);
+  const [geminiApiKey, setGeminiApiKey] = useState("");
+  const [geminiStatus, setGeminiStatus] = useState
+("idle");
+
+  const [groqApiKey, setGroqApiKey] = useState("");
+  const [groqStatus, setGroqStatus] = useState
+("idle");
+
+  const [elsevierApiKey, setElsevierApiKey] = useState("");
+  const [coreApiKey, setCoreApiKey] = useState("");
+  const [s2ApiKey, setS2ApiKey] = useState("");
+  const [textSize, setTextSize] = useState
+("base");
+  const [toast, setToast] = useState
+(null);
+
+  const showToast = useCallback(
+    (message: string, type: "success" | "error" = "success") => {
+      setToast({ message, type });
+      setTimeout(() => setToast(null), 3000);
+    },
+    [],
+  );
+  const [fontStyle, setFontStyle] = useState
+("sans");
+  const [onlyFullText, setOnlyFullText] = useState(false);
+  const [newTopicInput, setNewTopicInput] = useState("");
+  const [showNewsFeed, setShowNewsFeed] = useState(true);
+  const [isFlashcardMode, setIsFlashcardMode] = useState(false);
+
+  const [sidebarDeletePending, setSidebarDeletePending] = useState
+(null);
+  const [deleteConfirmTarget, setDeleteConfirmTarget] = useState
+(null);
+
+  const [translationNotice, setTranslationNotice] = useState
+(null);
+
+  const [topContributors, setTopContributors] = useState
+([]);
+  const [trendingTopics, setTrendingTopics] = useState
+([
+    "KDIGO 2024 Implementation",
+    "SGLT2i in Transplant",
+    "Finerenone Real World Data",
+  ]);
+
+  const {
+    data: proposedDebates = [],
+    isLoading: loadingDebates,
+    refetch: refetchDebates,
+  } = useQuery({
+    queryKey: ["debates"],
+    queryFn: async () => {
+      if (!supabase) return [];
+
+      const { data, error } = await supabase
+        .from("forums")
+        .select("*")
+        .not("id", "ilike", "dm:%")
+        .not("id", "ilike", "dm_shared:%")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      if (!data) return [];
+
+      const forumIds = data.map((d: any) => d.id);
+      const { data: commentsData } = await supabase
+        .from("comments")
+        .select("post_id")
+        .in("post_id", forumIds);
+
+      const commentCounts =
+        commentsData?.reduce((acc: any, curr: any) => {
+          if (curr.post_id) {
+            acc[curr.post_id] = (acc[curr.post_id] || 0) + 1;
+          }
+          return acc;
+        }, {}) || {};
+
+      const formattedDebates = data.map((d: any) => ({
+        id: d.id,
+        title: d.title,
+        content: d.content,
+        author: d.author_name,
+        author_id: d.author_id,
+        authorSpecialty: d.author_specialty,
+        createdAt: d.created_at,
+        replies: commentCounts[d.id] || d.replies_count || 0,
+        likes: d.likes_count || 0,
+        tags: d.tags || [],
+        url: d.url,
+        doi: d.doi,
+        article_id: d.article_id,
+      }));
+
+      // Ensure General Forum is always present
+      const hasGeneral = formattedDebates.some(
+        (d: any) => d.id === "general-community-forum",
+      );
+      if (!hasGeneral) {
+        formattedDebates.unshift({
+          id: "general-community-forum",
+          title: "Foro Clínico General",
+          content:
+            "Espacio abierto para consultas, casos clínicos y discusión general de la comunidad.",
+          author: "Comunidad NephroUpdate",
+          author_id: "system",
+          authorSpecialty: "Moderación",
+          createdAt: new Date().toISOString(),
+          replies: 124,
+          likes: 450,
+          tags: ["General", "Casos", "Consultas"],
+          url: "",
+          doi: "",
+          article_id: "",
+        });
+      }
+
+      return formattedDebates;
+    },
+    enabled: !!supabase,
+  });
+
+  const {
+    data: collaborations = [],
+    isLoading: loadingCollaborations,
+    refetch: refetchCollaborations,
+  } = useQuery({
+    queryKey: ["collaborations", user?.id],
+    enabled: !!user?.id && !!supabase,
+    queryFn: async () => {
+      if (!supabase) return [];
+
+      const { data, error } = await supabase
+        .from("forums")
+        .select("*")
+        .ilike("id", `dm_shared:%${user.id}%`)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      if (!data) return [];
+
+      const forumIds = data.map((d: any) => d.id);
+      const { data: commentsData } = await supabase
+        .from("comments")
+        .select("post_id")
+        .in("post_id", forumIds);
+
+      const commentCounts =
+        commentsData?.reduce((acc: any, curr: any) => {
+          if (curr.post_id) {
+            acc[curr.post_id] = (acc[curr.post_id] || 0) + 1;
+          }
+          return acc;
+        }, {}) || {};
+
+      return data.map((d: any) => ({
+        id: d.id,
+        title: d.title,
+        content: d.content,
+        author: d.author_name,
+        specialty: d.author_specialty,
+        date: d.created_at,
+        replies: commentCounts[d.id] || d.replies_count || 0,
+        likes: d.likes_count || 0,
+        tags: d.tags || [],
+      }));
+    },
+  });
+
+  const [selectedDebate, setSelectedDebate] = useState
+(null);
+  const [selectedCollaboration, setSelectedCollaboration] = useState
+(null);
+
+  // --- SUPABASE TOPICS PERSISTENCE ---
+  useEffect(() => {
+    if (user && supabase) {
+      fetchUserTopics(user.id);
+    } else {
+      setTopics(DEFAULT_TOPICS);
+    }
+  }, [user]);
+
+  const fetchUserTopics = async (userId: string) => {
+    if (!supabase) return;
+    const { data, error } = await supabase
+      .from("user_topics")
+      .select("topic")
+      .eq("user_id", userId);
+    if (error) {
+      console.error("Error fetching topics:", error);
+      return;
+    }
+    const customTopics = data.map((d) => d.topic);
+    setTopics([...DEFAULT_TOPICS, ...customTopics]);
+  };
+
+  const addTopicToSupabase = async (topic: string) => {
+    if (!supabase || !user) return;
+    const { error } = await supabase
+      .from("user_topics")
+      .insert([{ user_id: user.id, topic }]);
+    if (error) {
+      console.error("Error adding topic:", error);
+    }
+  };
+
+  const removeTopicFromSupabase = async (topic: string) => {
+    if (!supabase || !user) return;
+    const { error } = await supabase
+      .from("user_topics")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("topic", topic);
+    if (error) {
+      console.error("Error removing topic:", error);
+    }
+  };
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [isUserScrolling, setIsUserScrolling] = useState(false);
+  const [isScrollingDown, setIsScrollingDown] = useState(false);
+  const lastScrollY = useRef(0);
+  const scrollTimeout = useRef
+| null>(null);
+
+  const topicRefs = useRef
+>({});
+  const topicContainerRef = useRef
+(null);
+  const abortControllerRef = useRef
+(null);
+  const scrollContainerRef = useRef
+(null);
+  const longPressTimer = useRef
+| null>(null);
+
+  const [touchStart, setTouchStart] = useState
+(null);
+  const touchStartY = useRef(0);
+
+  const t = translations[uiLanguage];
+
+  useEffect(() => {
+    localStorage.setItem("nephro_layout_mode", layoutMode);
+  }, [layoutMode]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const activeBtn = topicRefs.current[selectedTopic];
+      if (activeBtn && topicContainerRef.current) {
+        activeBtn.scrollIntoView({
+          behavior: "smooth",
+          inline: "center",
+          block: "nearest",
+        });
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [selectedTopic, topics]);
+
+  // Handle Scroll to Top logic with "Liquid Crystal" button behavior
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+
+    const handleScroll = () => {
+      const currentScroll = el.scrollTop;
+
+      // Show button if scrolled down > 400px
+      setShowScrollTop(currentScroll > 400);
+
+      // Smart Scroll Logic: Hide dock/header on scroll down, show on scroll up
+      if (currentScroll > lastScrollY.current + 10) {
+        setIsScrollingDown(true);
+      } else if (currentScroll
+{
+        setIsUserScrolling(false);
+      }, 300); // 300ms delay to reappear after stop
+    };
+
+    el.addEventListener("scroll", handleScroll);
+    return () => {
+      el.removeEventListener("scroll", handleScroll);
+      if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+    };
+  }, []);
+
+  // Smart Cache Writer: Automatically saves successful results to cache
+  useEffect(() => {
+    if (!loading && articles.length > 0 && selectedTopic && !searchQuery) {
+      setTopicCache((prev) => ({
+        ...prev,
+        [selectedTopic]: {
+          articles,
+          summary,
+          searchMode,
+          language: contentLanguage,
+        },
+      }));
+    }
+  }, [
+    articles,
+    summary,
+    loading,
+    selectedTopic,
+    searchQuery,
+    searchMode,
+    contentLanguage,
+  ]);
+
+  const scrollToTop = () => {
+    scrollContainerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleNextTopic = useCallback(() => {
+    const currentIndex = topics.indexOf(selectedTopic);
+    if (currentIndex
+{
+    const currentIndex = topics.indexOf(selectedTopic);
+    if (currentIndex > 0) {
+      handleTopicClick(topics[currentIndex - 1]);
+      if (navigator.vibrate) navigator.vibrate(10);
+    }
+  }, [selectedTopic, topics]);
+
+  const startLongPress = (action: () => void) => {
+    longPressTimer.current = setTimeout(() => {
+      if (navigator.vibrate) navigator.vibrate([30, 10, 30]);
+      action();
+    }, 600);
+  };
+
+  const cancelLongPress = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+
+  const updateOfflineStatusMap = async () => {
+    const map = await getOfflineStatusMap();
+    setOfflineStatus(map);
+  };
+
+  const handleFetchFullText = useCallback(
+    async (article: Article) => {
+      const offline = await getOfflineArticle(article.id);
+      if (offline && offline.hasFullText) {
+        setReaderArticle(article);
+        setReaderHtml(offline.htmlContent);
+        setIsReaderOpen(true);
+        setIsReaderLoading(false);
+        return;
+      }
+      setReaderArticle(article);
+      setReaderHtml("");
+      setIsReaderOpen(true);
+      setIsReaderLoading(true);
+      try {
+        const content = await fetchArticleContent(article);
+        setReaderHtml(content.html);
+      } catch (err) {
+        setReaderHtml(
+          `
+${t.fullTextError}
+Intenta abrirlo en la web original.
+`,
+        );
+      } finally {
+        setIsReaderLoading(false);
+      }
+    },
+    [t.fullTextError],
+  );
+
+  const handleSaveOffline = useCallback(
+    async (article: Article, html: string) => {
+      await saveArticleOffline(article, html, true);
+      setSavedArticles((prev) => {
+        if (prev.some((a) => a.id === article.id)) return prev;
+        return [article, ...prev];
+      });
+      await updateOfflineStatusMap();
+      if (navigator.vibrate) navigator.vibrate(50);
+    },
+    [],
+  );
+
+  const handleManualSearch = async (term: string) => {
+    if (!term.trim()) return;
+    setIsManualSearchOpen(false);
+    setSearchQuery(term);
+    setSuggestions([]);
+    setTranslationNotice(null);
+    setCurrentPage(1);
+
+    // Reset scroll position to top
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+
+    const newTopic = term.trim();
+    if (!topics.includes(newTopic)) {
+      setTopics((prev) => [...prev, newTopic]);
+      if (user && !DEFAULT_TOPICS.includes(newTopic))
+        addTopicToSupabase(newTopic);
+    }
+    setSelectedTopic(newTopic);
+
+    setLoading(true);
+    setArticles([]);
+    setSummary("");
+
+    try {
+      let finalQuery = newTopic;
+      if (!newTopic.toUpperCase().startsWith("AUTHOR:")) {
+          finalQuery = await translateSimpleQuery(
+            newTopic,
+            geminiApiKey,
+          );
+      }
+      const translatedQuery = finalQuery;
+      if (translatedQuery.toLowerCase() !== newTopic.toLowerCase()) {
+        setTranslationNotice({
+          original: newTopic,
+          translated: translatedQuery,
+        });
+      }
+      setTopicQueries((prev) => ({ ...prev, [newTopic]: translatedQuery }));
+      await fetchNews(newTopic, translatedQuery, undefined, undefined, true);
+    } catch (e) {
+      setTopicQueries((prev) => ({ ...prev, [newTopic]: newTopic }));
+      await fetchNews(newTopic, newTopic, undefined, undefined, true);
+    }
+  };
+
+  const searchTimeoutRef = useRef
+| null>(null);
+
+  const handleSearchInputChange = async (
+    e: React.ChangeEvent
+,
+  ) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    if (value.length >= 3) {
+      setIsFetchingSuggestions(true);
+      searchTimeoutRef.current = setTimeout(async () => {
+        try {
+          const results = await fetchClinicalSuggestions(value, geminiApiKey);
+          setSuggestions(results);
+        } catch (error) {
+          console.error("Failed to fetch suggestions", error);
+          setSuggestions([]);
+        } finally {
+          setIsFetchingSuggestions(false);
+        }
+      }, 500);
+    } else {
+      setSuggestions([]);
+      setIsFetchingSuggestions(false);
+    }
+  };
+
+  const handlePicoSearch = async () => {
+    setIsManualSearchOpen(false);
+    setLoading(true);
+    setArticles([]);
+    setSummary("");
+    setTranslationNotice(null);
+    setCurrentPage(1);
+
+    // Reset scroll position to top
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+
+    try {
+      const refined = await refinePicoTerms(
+        picoData.p,
+        picoData.i,
+        picoData.c,
+        picoData.o,
+        geminiApiKey,
+      );
+      const query = `(${refined.p}) AND (${refined.i}) ${refined.c ? `AND (${refined.c})` : ""} ${refined.o ? `AND (${refined.o})` : ""}`;
+      const shortP =
+        picoData.p.length > 25
+          ? picoData.p.substring(0, 25) + "..."
+          : picoData.p;
+      const topicName = `PICO: ${shortP}`;
+
+      if (!topics.includes(topicName)) {
+        setTopics((prev) => [...prev, topicName]);
+        if (user && !DEFAULT_TOPICS.includes(topicName))
+          addTopicToSupabase(topicName);
+      }
+      setSelectedTopic(topicName);
+      setSearchQuery(query);
+      setTopicQueries((prev) => ({ ...prev, [topicName]: query }));
+
+      setTranslationNotice({
+        original: `P: ${picoData.p} I: ${picoData.i}`,
+        translated: query,
+      });
+      fetchNews(topicName, query, undefined, undefined, true);
+    } catch (e) {
+      const rawQuery = `(${picoData.p}) AND (${picoData.i})`;
+      const shortP =
+        picoData.p.length > 25
+          ? picoData.p.substring(0, 25) + "..."
+          : picoData.p;
+      const topicName = `PICO: ${shortP}`;
+
+      if (!topics.includes(topicName)) {
+        setTopics((prev) => [...prev, topicName]);
+        if (user && !DEFAULT_TOPICS.includes(topicName))
+          addTopicToSupabase(topicName);
+      }
+      setSelectedTopic(topicName);
+      setSearchQuery(rawQuery);
+      setTopicQueries((prev) => ({ ...prev, [topicName]: rawQuery }));
+
+      fetchNews(topicName, rawQuery, undefined, undefined, true);
+    }
+  };
+
+  const handleUndoTranslation = () => {
+    if (translationNotice) {
+      // Wrap in parentheses to prevent re-translation
+      const queryToPass = `(${translationNotice.original})`;
+      fetchNews(selectedTopic, queryToPass, undefined, undefined, true);
+      setTranslationNotice(null);
+    }
+  };
+
+  const handleCloseTopic = (topic: string) => {
+    finalizeTopicDeletion(topic);
+  };
+
+  const toggleFilterDesign = (design: StudyDesign) => {
+    setFilterDesign((prev) =>
+      prev.includes(design)
+        ? prev.filter((d) => d !== design)
+        : [...prev, design],
+    );
+  };
+
+  const availableLibraryTopics = useMemo(() => {
+    const topics = new Set(savedArticles.map((a) => a.topic || "General"));
+    return ["All", ...Array.from(topics)];
+  }, [savedArticles]);
+
+  const availableHistoryTopics = useMemo(() => {
+    const topics = new Set(history.map((h) => h.topic));
+    return ["All", ...Array.from(topics)];
+  }, [history]);
+
+  const filteredArticles = useMemo(() => {
+    let result = articles;
+
+    if (filterDesign.length > 0) {
+      result = result.filter((a) =>
+        filterDesign.includes(detectStudyDesign(a)),
+      );
+    }
+    if (filterTier
+{
+        const tier = getArticleImpactTier(a);
+        return tier
+{
+    let result = savedArticles;
+    if (debouncedLibraryFilter.trim()) {
+      const lowSearch = debouncedLibraryFilter.toLowerCase();
+      result = result.filter(
+        (a) =>
+          a.title.toLowerCase().includes(lowSearch) ||
+          a.source.toLowerCase().includes(lowSearch) ||
+          (a.note && a.note.toLowerCase().includes(lowSearch)),
+      );
+    }
+    if (filterDesign.length > 0) {
+      result = result.filter((a) =>
+        filterDesign.includes(detectStudyDesign(a)),
+      );
+    }
+    if (filterTier
+getArticleImpactTier(a)
+(a.topic || "General") === libraryTopicFilter,
+      );
+    }
+    return hybridSort([...result], debouncedLibraryFilter);
+  }, [
+    savedArticles,
+    debouncedLibraryFilter,
+    filterDesign,
+    filterTier,
+    libraryTopicFilter,
+  ]);
+
+  const filteredHistory = useMemo(() => {
+    let result = history;
+    if (debouncedHistoryFilter.trim()) {
+      const lowSearch = debouncedHistoryFilter.toLowerCase();
+      result = result.filter(
+        (h) =>
+          h.topic.toLowerCase().includes(lowSearch) ||
+          (h.query && h.query.toLowerCase().includes(lowSearch)),
+      );
+    }
+    if (historyTopicFilter !== "All") {
+      result = result.filter((h) => h.topic === historyTopicFilter);
+    }
+    return result;
+  }, [history, debouncedHistoryFilter, historyTopicFilter]);
+
+  const handleTopicClick = (topic: Topic) => {
+    // Reset scroll position
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+
+    const isManualTopic = !DEFAULT_TOPICS.includes(topic);
+    const queryToPass = isManualTopic ? topicQueries[topic] || topic : "";
+
+    if (selectedTopic === topic && activeTab === "discover") {
+      fetchNews(topic, queryToPass, undefined, undefined, true);
+    } else {
+      const currentIndex = topics.indexOf(selectedTopic);
+      const newIndex = topics.indexOf(topic);
+      setDirection(newIndex > currentIndex ? 1 : -1);
+      setSelectedTopic(topic);
+      setSearchQuery(queryToPass);
+      setTranslationNotice(null);
+      setCurrentPage(1);
+      setActiveTab("discover");
+      // Fix: Pass queryToPass explicitly to ensure query is cleared or set correctly
+      fetchNews(topic, queryToPass, undefined, undefined, false);
+    }
+  };
+
+  useEffect(() => {
+    const fetchSidebarData = async () => {
+      if (!supabase) return;
+
+      try {
+        // Fetch Top Contributors (simplified: last 200 comments and group by user)
+        const { data: comments, error: cError } = await supabase
+          .from("comments")
+          .select("user_name, user_specialty, user_id")
+          .order("created_at", { ascending: false })
+          .limit(200);
+
+        if (!cError && comments) {
+          const counts: Record
+= {};
+          comments.forEach((c) => {
+            if (!counts[c.user_id]) {
+              counts[c.user_id] = {
+                name: c.user_name,
+                specialty: c.user_specialty,
+                count: 0,
+              };
+            }
+            counts[c.user_id].count += 1;
+          });
+
+          const sorted = Object.values(counts)
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 3)
+            .map((c) => ({
+              name: c.name,
+              specialty: c.specialty,
+              score: c.count * 10 + 5,
+            }));
+
+          if (sorted.length > 0) setTopContributors(sorted);
+        }
+      } catch (err) {
+        console.error("Error fetching sidebar data:", err);
+      }
+    };
+
+    if (activeTab === "community") {
+      fetchSidebarData();
+    }
+  }, [activeTab]);
+
+  const fetchNews = async (
+    overrideTopic?: string,
+    overrideQuery?: string,
+    overrideSearchMode?: SearchMode,
+    overrideLanguage?: Language,
+    forceRefresh = false,
+    years = 3,
+    page = 1,
+  ) => {
+    const topicToUse = overrideTopic || selectedTopic;
+    const queryToUse =
+      overrideQuery !== undefined ? overrideQuery : searchQuery;
+    const modeToUse = overrideSearchMode || searchMode;
+    const langToUse = overrideLanguage || contentLanguage;
+    const yearsToFetch = forceRefresh ? 20 : years;
+
+    // Smart Cache Check: Must match Topic + Search Mode + Language
+    const cached = topicCache[topicToUse];
+    const isCacheValid =
+      cached &&
+      cached.searchMode === modeToUse &&
+      cached.language === langToUse;
+
+    if (!forceRefresh && page === 1 && !queryToUse && isCacheValid) {
+      setArticles(cached.articles);
+      setSummary(cached.summary);
+      setLoading(false);
+      return;
+    }
+
+    if (abortControllerRef.current) abortControllerRef.current.abort();
+    abortControllerRef.current = new AbortController();
+    const currentSignal = abortControllerRef.current.signal;
+
+    setLoading(true);
+    setError(null);
+    if (page === 1) {
+      setArticles([]);
+      setSummary("");
+      setVisibleCount(forceRefresh ? 50 : 20);
+    }
+
+    try {
+      const baseSearchTerm = queryToUse || topicToUse;
+      let effectiveQuery = queryToUse;
+
+      const needsTranslation =
+        baseSearchTerm &&
+        !baseSearchTerm.startsWith("AUTHOR:") &&
+        !baseSearchTerm.includes("(") &&
+        !baseSearchTerm.includes("AND") &&
+        !baseSearchTerm.includes("[MeSH]") &&
+        !baseSearchTerm.includes("[Title]");
+      const isManualSearch = !!queryToUse;
+
+      if (needsTranslation && (isManualSearch || modeToUse === "ai")) {
+        setSummary(t.translating);
+        effectiveQuery = await translateSimpleQuery(
+          baseSearchTerm,
+          geminiApiKey,
+        );
+      }
+
+      if (filterDesign.length > 0) {
+        const filterTerms = filterDesign
+          .map((d) => {
+            if (d === "RCT")
+              return '("Randomized Controlled Trial" OR "Clinical Trial" OR "Ensayo Clinico")';
+            if (d === "Meta-Analysis")
+              return '("Meta-Analysis" OR "Systematic Review" OR "Metaanalisis")';
+            if (d === "Case Report")
+              return '("Case Report" OR "Case Series" OR "Reporte de Caso")';
+            if (d === "Guideline")
+              return '("Guideline" OR "Practice Guideline" OR "Consensus" OR "Guia de Practica")';
+            if (d === "Review") return '("Review" OR "Revision")';
+            return "";
+          })
+          .filter((t) => t !== "")
+          .join(" OR ");
+
+        if (filterTerms) {
+          effectiveQuery = effectiveQuery
+            ? `(${effectiveQuery}) AND (${filterTerms})`
+            : `(${topicToUse}) AND (${filterTerms})`;
+        }
+      }
+
+      const sourcePromises: Promise
+[] = [];
+      const offset = (page - 1) * 200;
+
+      if (page === 1) {
+        if (activeSources.pubmed)
+          sourcePromises.push(
+            fetchPubMedArticles(
+              topicToUse,
+              langToUse,
+              effectiveQuery,
+              yearsToFetch,
+              offset,
+              onlyFullText,
+            ),
+          );
+        if (activeSources.openalex)
+          sourcePromises.push(
+            fetchOpenAlexArticles(
+              topicToUse,
+              langToUse,
+              effectiveQuery,
+              yearsToFetch,
+              offset,
+            ),
+          );
+        if (activeSources.europepmc)
+          sourcePromises.push(
+            fetchEuropePmcArticles(
+              topicToUse,
+              langToUse,
+              effectiveQuery,
+              yearsToFetch,
+              onlyFullText,
+            ),
+          );
+        if (activeSources.semanticscholar)
+          sourcePromises.push(
+            fetchSemanticScholarArticles(
+              topicToUse,
+              langToUse,
+              effectiveQuery,
+              s2ApiKey,
+            ),
+          );
+        if (activeSources.clinicaltrials)
+          sourcePromises.push(
+            fetchClinicalTrials(topicToUse, langToUse, effectiveQuery),
+          );
+        if (activeSources.core)
+          sourcePromises.push(
+            fetchCoreArticles(
+              topicToUse,
+              langToUse,
+              effectiveQuery,
+              coreApiKey,
+            ),
+          );
+        if (activeSources.doaj)
+          sourcePromises.push(
+            fetchDoajArticles(topicToUse, langToUse, effectiveQuery),
+          );
+        if (activeSources.elsevier)
+          sourcePromises.push(
+            fetchElsevierArticles(
+              topicToUse,
+              langToUse,
+              effectiveQuery,
+              elsevierApiKey,
+            ),
+          );
+        if (activeSources.lilacs)
+          sourcePromises.push(
+            fetchLilacsArticles(topicToUse, langToUse, effectiveQuery),
+          );
+
+        if (modeToUse === "ai") {
+          sourcePromises.push(
+            searchMedicalGoogle(
+              effectiveQuery || baseSearchTerm,
+              langToUse,
+              geminiApiKey,
+            ),
+          );
+        }
+      } else {
+        if (activeSources.pubmed)
+          sourcePromises.push(
+            fetchPubMedArticles(
+              topicToUse,
+              langToUse,
+              effectiveQuery,
+              yearsToFetch,
+              offset,
+              onlyFullText,
+            ),
+          );
+        if (activeSources.openalex)
+          sourcePromises.push(
+            fetchOpenAlexArticles(
+              topicToUse,
+              langToUse,
+              effectiveQuery,
+              yearsToFetch,
+              offset,
+            ),
+          );
+      }
+
+      let completedCount = 0;
+      sourcePromises.forEach((promise) => {
+        promise
+          .then((update) => {
+            if (currentSignal.aborted) return;
+            if (update.articles.length > 0) {
+              setArticles((prev) => {
+                const combined = [...prev, ...update.articles];
+                const seenTitles = new Set();
+                const kidneyRequired = ["kidney", "renal", "nephrology", "dialysis", "glomerular", "transplant", "urine", "AKI", "CKD"];
+                const unique = combined.filter((a) => {
+                  const normTitle = a.title
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]/g, "")
+                    .slice(0, 60);
+                  if (seenTitles.has(normTitle)) return false;
+                  seenTitles.add(normTitle);
+                  
+                  // Final aggressive safety net: If relevanceScore is extremely low and no nephrology keywords exist, drop it
+                  // Skip this for author searches where papers might not explicitly mention kidney in title/abstract
+                  if ((a.relevanceScore || 0)
+textToSearch.includes(k.toLowerCase()));
+                      if (!hasKidneyTerm) return false;
+                  }
+                  
+                  return true;
+                });
+                return hybridSort(
+                  unique,
+                  queryToUse || topicToUse,
+                  effectiveQuery,
+                );
+              });
+            }
+          })
+          .finally(() => {
+            completedCount++;
+            if (completedCount === sourcePromises.length) {
+              if (modeToUse === "ai" && page === 1) {
+                setArticles((currentArticles) => {
+                  if (currentArticles.length > 0) {
+                    generateGeminiSummary(
+                      currentArticles,
+                      topicToUse,
+                      langToUse,
+                      geminiApiKey,
+                    ).then((aiSummary) => setSummary(aiSummary));
+                  }
+                  return currentArticles;
+                });
+              }
+              setLoading(false);
+              if (articles.length > 0 && page === 1) {
+                setHistory((prev) => {
+                  const currentQuery = queryToUse || topicToUse;
+                  const latest = prev[0];
+
+                  // Prevent duplicate history entries by checking if the latest one matches
+                  if (
+                    latest &&
+                    latest.topic === topicToUse &&
+                    latest.query === currentQuery
+                  ) {
+                    const updatedSnapshot = {
+                      ...latest,
+                      timestamp: Date.now(),
+                      date: new Date().toISOString(),
+                      summary: summary || latest.summary,
+                      articles: articles.slice(0, 15),
+                    };
+                    return [updatedSnapshot, ...prev.slice(1)];
+                  }
+
+                  const snapshot: HistorySnapshot = {
+                    id: `snap-${Date.now()}`,
+                    date: new Date().toISOString(),
+                    timestamp: Date.now(),
+                    topic: topicToUse,
+                    query: currentQuery,
+                    summary: summary,
+                    articles: articles.slice(0, 15),
+                  };
+                  return [snapshot, ...prev].slice(0, 50);
+                });
+              }
+            }
+          });
+      });
+    } catch (err: any) {
+      if (!currentSignal.aborted) {
+        setError(err.message || t.error);
+        setLoading(false);
+      }
+    }
+  };
+
+  // Add reactive effect for Search Mode changes
+  const isMounted = useRef(false);
+  useEffect(() => {
+    if (isMounted.current && activeTab === "discover" && !loading) {
+      // Force refresh using current state but with new search mode
+      fetchNews(selectedTopic, searchQuery, searchMode, undefined, true);
+    }
+    isMounted.current = true;
+  }, [searchMode]);
+
+  const handleLoadMore = () => {
+    if (visibleCount
+prev + 20);
+    } else {
+      const nextPage = currentPage + 1;
+      setCurrentPage(nextPage);
+      fetchNews(
+        selectedTopic,
+        searchQuery,
+        undefined,
+        undefined,
+        false,
+        3,
+        nextPage,
+      );
+    }
+  };
+
+  const handleMarkAsRead = useCallback((articleId: string) => {
+    setReadArticles((prev) => {
+      if (prev[articleId]) return prev;
+      return { ...prev, [articleId]: true };
+    });
+  }, []);
+
+  const handleOpenImmersive = useCallback(
+    (article: Article) => {
+      handleMarkAsRead(article.id);
+      setActiveImmersiveArticle(article);
+    },
+    [handleMarkAsRead],
+  );
+
+  const handleReadFullText = useCallback(
+    (article: Article) => {
+      handleMarkAsRead(article.id);
+      handleFetchFullText(article);
+    },
+    [handleMarkAsRead, handleFetchFullText],
+  );
+
+  const handleToggleExpand = useCallback(
+    (articleId: string) => {
+      handleMarkAsRead(articleId);
+      setExpandedArticleId((prev) => (prev === articleId ? null : articleId));
+    },
+    [handleMarkAsRead],
+  );
+
+  const handleUpdateNote = useCallback(
+    (articleId: string, note: string) => {
+      setArticles((prev) =>
+        prev.map((a) => (a.id === articleId ? { ...a, note } : a)),
+      );
+      setSavedArticles((prev) => {
+        const existingIndex = prev.findIndex((a) => a.id === articleId);
+        if (existingIndex !== -1) {
+          const next = [...prev];
+          next[existingIndex] = { ...next[existingIndex], note };
+          return next;
+        } else if (note.trim().length > 0) {
+          const sourceArticle = articles.find((a) => a.id === articleId);
+          if (sourceArticle) return [{ ...sourceArticle, note }, ...prev];
+        }
+        return prev;
+      });
+    },
+    [articles],
+  );
+
+  const handleProposeDebate = useCallback(
+    async (article: Article) => {
+      if (!user) {
+        setIsAuthModalOpen(true);
+        return;
+      }
+
+      const doiMatch = article.url?.match(
+        /10\.\d{4,9}\/[-._;()/:A-Z0-9a-zA-Z]+/i,
+      );
+      const doi = doiMatch ? doiMatch[0] : null;
+
+      const forumPayload = {
+        id: uuidv4(),
+        title: `Debate: ${article.title}`,
+        content: `Debate propuesto desde la Vista Inmersiva para análisis comunitario.\n\n${article.summary ? article.summary.substring(0, 200) + "..." : ""}`,
+        url: article.url || null,
+        doi: doi,
+        article_id: article.id,
+        author_name:
+          user.user_metadata?.full_name ||
+          user.email?.split("@")[0] ||
+          "Usuario",
+        author_specialty: user.user_metadata?.specialty || "Médico",
+        author_id: user.id,
+        tags: ["Artículo", "Debate"],
+        created_at: new Date().toISOString(),
+        replies_count: 0,
+        likes_count: 0,
+      };
+
+      try {
+        if (supabase) {
+          const { error } = await supabase
+            .from("forums")
+            .insert([forumPayload]);
+
+          if (error) {
+            console.error("Error posting forum proposal:", error);
+            // Fallback to comment in general forum if forum insert fails
+            const commentContent = `🚀 **PROPUESTA DE DEBATE**\n\n**Artículo:** ${article.title}\n**Enlace:** ${article.url || "No provisto"}\n**DOI:** ${doi || "No provisto"}\n\n**¿Por qué discutirlo?:** Propuesto desde la Vista Inmersiva.`;
+            await supabase.from("comments").insert([
+              {
+                post_id: "general-community-forum",
+                article_id: article.id,
+                user_id: user.id,
+                user_name:
+                  user.user_metadata?.full_name ||
+                  user.email?.split("@")[0] ||
+                  "Usuario",
+                user_specialty: user.user_metadata?.specialty || "Médico",
+                content: commentContent,
+              },
+            ]);
+          }
+
+          // Success!
+          setActiveImmersiveArticle(null);
+          setActiveTab("community");
+          setCommunitySubTab("debates");
+        } else {
+          console.warn("Supabase not available for proposal");
+        }
+      } catch (error) {
+        console.error("Error posting proposal:", error);
+      }
+    },
+    [user],
+  );
+
+  const toggleLibrarySelection = (articleId: string) => {
+    console.log("toggleLibrarySelection called for:", articleId);
+    setSelectedLibraryArticles((prev) => {
+      const isSelected = prev.includes(articleId);
+      const next = isSelected
+        ? prev.filter((id) => id !== articleId)
+        : [...prev, articleId];
+      console.log("New selection state:", next);
+      return next;
+    });
+  };
+
+  const handleShareCollection = useCallback(async () => {
+    console.log(
+      "handleShareCollection triggered. Selected articles:",
+      selectedLibraryArticles.length,
+    );
+    if (!user) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+
+    if (selectedLibraryArticles.length === 0) {
+      console.log("No articles selected to share.");
+      return;
+    }
+
+    const articlesToShare = savedArticles.filter((a) =>
+      selectedLibraryArticles.includes(a.id),
+    );
+    console.log(
+      "Articles to share:",
+      articlesToShare.map((a) => a.title),
+    );
+
+    let content = `### 📚 COLECCIÓN DE EVIDENCIA COMPARTIDA\n\nHe seleccionado estos **${articlesToShare.length}** artículos de mi biblioteca para análisis comunitario:\n\n`;
+
+    articlesToShare.forEach((a, idx) => {
+      content += `${idx + 1}. **${a.title}**\n   * [Ver Fuente](${a.url || "#"})\n\n`;
+    });
+
+    content += `\n---\n*Compartido por un colega desde su biblioteca personal.*`;
+
+    const payload = {
+      post_id: "general-community-forum",
+      user_id: user.id,
+      user_name:
+        user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuario",
+      user_specialty: user.user_metadata?.specialty || "Médico",
+      content: content,
+      created_at: new Date().toISOString(),
+    };
+
+    try {
+      if (supabase) {
+        console.log("Inserting shared collection into Supabase comments...");
+        const { error } = await supabase.from("comments").insert([payload]);
+        if (error) throw error;
+
+        console.log(
+          "Successfully shared collection. Navigating to community tab.",
+        );
+        showToast("¡Colección compartida en el foro general!");
+        // Success!
+        setIsLibrarySelectionMode(false);
+        setSelectedLibraryArticles([]);
+        setActiveTab("community");
+        setCommunitySubTab("debates");
+        setSelectedDebate({
+          id: "general-community-forum",
+          title: "Foro General de la Comunidad",
+          content: "Espacio para compartir y debatir artículos científicos.",
+          author: "Sistema",
+          authorSpecialty: "Admin",
+          createdAt: new Date().toISOString(),
+          replies: 0,
+          likes: 0,
+          tags: ["General", "Comunidad"],
+        });
+      } else {
+        console.error("Supabase client is not initialized.");
+        showToast(
+          "Error: El servicio de base de datos no está disponible.",
+          "error",
+        );
+      }
+    } catch (error) {
+      console.error("Error sharing collection:", error);
+      showToast(
+        "Error al compartir la colección. Por favor, intenta de nuevo.",
+        "error",
+      );
+    }
+  }, [user, selectedLibraryArticles, savedArticles]);
+
+  const fetchCommunityUsers = useCallback(async () => {
+    if (!supabase) return;
+    try {
+      // Fetch unique users from comments to simulate a directory
+      const { data, error } = await supabase
+        .from("comments")
+        .select("user_id, user_name, user_specialty")
+        .not("user_id", "eq", user?.id || "");
+
+      if (error) throw error;
+
+      const uniqueUsers = Array.from(
+        new Map(data.map((item) => [item.user_id, item])).values(),
+      );
+      setCommunityUsers(
+        uniqueUsers.map((u) => ({
+          id: u.user_id,
+          name: u.user_name,
+          specialty: u.user_specialty,
+        })),
+      );
+    } catch (err) {
+      console.error("Error fetching users:", err);
+    }
+  }, [user]);
+
+  const handleShareWithUser = useCallback(
+    async (recipient: { id: string; name: string }) => {
+      console.log(
+        "handleShareWithUser triggered for recipient:",
+        recipient.name,
+      );
+      if (!user || selectedLibraryArticles.length === 0) {
+        console.log("Missing user or selected articles.");
+        return;
+      }
+
+      const articlesToShare = savedArticles.filter((a) =>
+        selectedLibraryArticles.includes(a.id),
+      );
+      console.log(
+        "Articles to share privately:",
+        articlesToShare.map((a) => a.title),
+      );
+
+      let content = `### 🤝 TRABAJO COLABORATIVO\n\nHola colega, he seleccionado estos artículos de mi biblioteca para nuestro trabajo colaborativo:\n\n`;
+
+      articlesToShare.forEach((a, idx) => {
+        content += `${idx + 1}. **${a.title}**\n   * [Ver Fuente](${a.url || "#"})\n\n`;
+      });
+
+      content += `\n---\n*Propuesta de colaboración enviada por **${user.user_metadata?.full_name || user.email?.split("@")[0]}***`;
+
+      const sharedId = [user.id, recipient.id].sort().join("_");
+      const postId = `dm_shared:${sharedId}`;
+
+      const payload = {
+        id: uuidv4(),
+        post_id: postId,
+        article_id: null,
+        user_id: user.id,
+        user_name:
+          user.user_metadata?.full_name ||
+          user.email?.split("@")[0] ||
+          "Usuario",
+        user_specialty: user.user_metadata?.specialty || "Médico",
+        content: content,
+        created_at: new Date().toISOString(),
+      };
+
+      try {
+        if (supabase) {
+          // Ensure the shared forum entry exists
+          const { data: existingForum } = await supabase
+            .from("forums")
+            .select("id")
+            .eq("id", postId)
+            .maybeSingle();
+
+          if (!existingForum) {
+            console.log("Creating shared collaboration forum:", postId);
+            const { error: forumError } = await supabase.from("forums").insert([
+              {
+                id: postId,
+                title: `Colaboración: ${user.user_metadata?.full_name || "Colega"} & ${recipient.name}`,
+                content:
+                  "Espacio compartido para coordinación de trabajos y revisión de casos.",
+                author_id: user.id,
+                author_name:
+                  user.user_metadata?.full_name ||
+                  user.email?.split("@")[0] ||
+                  "Sistema",
+                author_specialty: user.user_metadata?.specialty || "Médico",
+                created_at: new Date().toISOString(),
+                replies_count: 0,
+                likes_count: 0,
+                tags: ["Colaboración", "Privado"],
+                article_id: null,
+                url: null,
+                doi: null,
+              },
+            ]);
+
+            if (forumError && forumError.code !== "23505") {
+              console.error("Failed to create shared forum:", forumError);
+              showToast(
+                `Error de base de datos (Foro): ${forumError.message}`,
+                "error",
+              );
+              throw forumError;
+            }
+          }
+
+          console.log("Inserting shared message into Supabase comments...");
+          const { error } = await supabase.from("comments").insert([payload]);
+          if (error) throw error;
+
+          console.log(
+            "Successfully sent shared message. Navigating to community inbox.",
+          );
+          showToast("¡Artículos compartidos con éxito!");
+          // Success!
+          setIsUserSelectorOpen(false);
+          setIsLibrarySelectionMode(false);
+          setSelectedLibraryArticles([]);
+          setActiveTab("community");
+          setCommunitySubTab("inbox");
+          refetchCollaborations();
+        } else {
+          console.error("Supabase client is not initialized.");
+          showToast(
+            "Error: El servicio de base de datos no está disponible.",
+            "error",
+          );
+        }
+      } catch (error) {
+        console.error("Error sharing with user:", error);
+        showToast(
+          "Error al compartir artículos. Por favor, intenta de nuevo.",
+          "error",
+        );
+      }
+    },
+    [user, selectedLibraryArticles, savedArticles],
+  );
+
+  const handleAddHighlight = useCallback((articleId: string, text: string) => {
+    setArticles((prev) =>
+      prev.map((a) =>
+        a.id === articleId
+          ? { ...a, highlights: [...(a.highlights || []), text] }
+          : a,
+      ),
+    );
+    setSavedArticles((prev) => {
+      const existingIndex = prev.findIndex((a) => a.id === articleId);
+      if (existingIndex !== -1) {
+        const next = [...prev];
+        next[existingIndex] = {
+          ...next[existingIndex],
+          highlights: [...(next[existingIndex].highlights || []), text],
+        };
+        return next;
+      }
+      return prev;
+    });
+  }, []);
+
+  const handleRemoveHighlight = useCallback(
+    (articleId: string, index: number) => {
+      setArticles((prev) =>
+        prev.map((a) => {
+          if (a.id === articleId && a.highlights) {
+            const newH = [...a.highlights];
+            newH.splice(index, 1);
+            return { ...a, highlights: newH };
+          }
+          return a;
+        }),
+      );
+      setSavedArticles((prev) => {
+        const idx = prev.findIndex((a) => a.id === articleId);
+        if (idx !== -1 && prev[idx].highlights) {
+          const next = [...prev];
+          const newH = [...next[idx].highlights!];
+          newH.splice(index, 1);
+          next[idx] = { ...next[idx], highlights: newH };
+          return next;
+        }
+        return prev;
+      });
+    },
+    [],
+  );
+
+  const handleUpdateReadingStatus = useCallback(
+    (articleId: string, status: "unread" | "in_progress" | "completed") => {
+      setArticles((prev) =>
+        prev.map((a) =>
+          a.id === articleId ? { ...a, readingStatus: status } : a,
+        ),
+      );
+      setSavedArticles((prev) => {
+        const idx = prev.findIndex((a) => a.id === articleId);
+        if (idx !== -1) {
+          const next = [...prev];
+          next[idx] = { ...next[idx], readingStatus: status };
+          return next;
+        }
+        return prev;
+      });
+    },
+    [],
+  );
+
+  const handleUpdateArticle = useCallback(
+    (articleId: string, updates: Partial
+) => {
+      setArticles((prev) =>
+        prev.map((a) => (a.id === articleId ? { ...a, ...updates } : a)),
+      );
+      setSavedArticles((prev) => {
+        const idx = prev.findIndex((a) => a.id === articleId);
+        if (idx !== -1) {
+          const next = [...prev];
+          next[idx] = { ...next[idx], ...updates };
+          return next;
+        }
+        return prev;
+      });
+      setActiveImmersiveArticle((prev) =>
+        prev && prev.id === articleId ? { ...prev, ...updates } : prev,
+      );
+      setViewingHistorySnapshot((prev) => {
+        if (!prev) return null;
+        const updatedArticles = prev.articles.map((a) =>
+          a.id === articleId ? { ...a, ...updates } : a,
+        );
+        return { ...prev, articles: updatedArticles };
+      });
+    },
+    [],
+  );
+
+  const toggleSave = useCallback(
+    async (article: Article) => {
+      console.log(
+        "toggleSave triggered for article:",
+        article.id,
+        article.title,
+      );
+      const isAlreadySaved = savedArticles.some((a) => a.id === article.id);
+      console.log("Is already saved?", isAlreadySaved);
+
+      // Optimistic UI update
+      if (isAlreadySaved) {
+        setSavedArticles((prev) => prev.filter((a) => a.id !== article.id));
+      } else {
+        setSavedArticles((prev) => [article, ...prev]);
+      }
+
+      if (user && supabase) {
+        try {
+          if (isAlreadySaved) {
+            console.log("Deleting from Supabase...");
+            const { error } = await supabase
+              .from("saved_articles")
+              .delete()
+              .eq("user_id", user.id)
+              .eq("article_id", article.id);
+
+            if (error) {
+              console.error(
+                "Error removing saved article from Supabase:",
+                error,
+              );
+              showToast("Error al eliminar el artículo guardado.", "error");
+              // Revert optimistic update on error
+              setSavedArticles((prev) => [article, ...prev]);
+            } else {
+              console.log("Successfully deleted from Supabase");
+            }
+          } else {
+            console.log("Inserting into Supabase...");
+            const { error } = await supabase.from("saved_articles").upsert(
+              {
+                user_id: user.id,
+                article_id: article.id,
+                article_data: article,
+              },
+              { onConflict: "user_id, article_id" },
+            );
+
+            if (error) {
+              console.error("Error saving article to Supabase:", error);
+              showToast("Error al guardar el artículo.", "error");
+              // Revert optimistic update on error
+              setSavedArticles((prev) =>
+                prev.filter((a) => a.id !== article.id),
+              );
+            } else {
+              console.log("Successfully inserted into Supabase");
+            }
+          }
+        } catch (err) {
+          console.error("Unexpected error in toggleSave:", err);
+          showToast("Error inesperado al guardar/eliminar.", "error");
+          // Revert optimistic update on error
+          if (isAlreadySaved) {
+            setSavedArticles((prev) => [article, ...prev]);
+          } else {
+            setSavedArticles((prev) => prev.filter((a) => a.id !== article.id));
+          }
+        }
+      }
+    },
+    [user, savedArticles],
+  );
+
+  const navigateToTab = (
+    tab: "discover" | "saved" | "history" | "community" | "admin",
+  ) => {
+    const fromIdx = TAB_ORDER.indexOf(activeTab as any);
+    const toIdx = TAB_ORDER.indexOf(tab);
+    setDirection(toIdx > fromIdx ? 1 : -1);
+    setActiveTab(tab as any);
+  };
+
+  useEffect(() => {
+    if (!isAdmin && activeTab === "admin") {
+      navigateToTab("discover");
+    }
+  }, [isAdmin, activeTab]);
+
+  const handleBack = useCallback(() => {
+    // 1. Close Modals/Overlays
+    if (activeImmersiveArticle) {
+      setActiveImmersiveArticle(null);
+      return true;
+    }
+    if (isReaderOpen) {
+      setIsReaderOpen(false);
+      return true;
+    }
+    if (viewingHistorySnapshot) {
+      setViewingHistorySnapshot(null);
+      return true;
+    }
+    if (isFlashcardMode) {
+      setIsFlashcardMode(false);
+      return true;
+    }
+    if (isSettingsOpen) {
+      setIsSettingsOpen(false);
+      return true;
+    }
+    if (isAuthModalOpen) {
+      setIsAuthModalOpen(false);
+      return true;
+    }
+    if (isManualSearchOpen) {
+      setIsManualSearchOpen(false);
+      return true;
+    }
+    if (voiceModalOpen) {
+      setVoiceModalOpen(false);
+      return true;
+    }
+    if (isInfoModalOpen) {
+      setIsInfoModalOpen(false);
+      return true;
+    }
+
+    // 2. Sub-views within tabs
+    if (activeTab === "community") {
+      if (selectedDebate) {
+        setSelectedDebate(null);
+        return true;
+      }
+    }
+
+    // 3. Tab navigation
+    if (activeTab !== "discover") {
+      navigateToTab("discover");
+      return true;
+    }
+
+    // 4. Default: Let the system handle it (exit/minimize) if possible,
+    // or just do nothing if we are at the root
+    return false;
+  }, [
+    activeImmersiveArticle,
+    selectedDebate,
+    isReaderOpen,
+    viewingHistorySnapshot,
+    isFlashcardMode,
+    isSettingsOpen,
+    isAuthModalOpen,
+    isManualSearchOpen,
+    voiceModalOpen,
+    isInfoModalOpen,
+    activeTab,
+  ]);
+
+  useEffect(() => {
+    const handleRequireApiKey = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      setMissingProvider(customEvent.detail?.provider || aiProvider);
+      setShowApiKeyWarning(true);
+    };
+    window.addEventListener('REQUIRE_API_KEY', handleRequireApiKey);
+    return () => {
+      window.removeEventListener('REQUIRE_API_KEY', handleRequireApiKey);
+    };
+  }, [aiProvider]);
+
+  useEffect(() => {
+    const backButtonListener = CapacitorApp.addListener(
+      "backButton",
+      ({ canGoBack }) => {
+        const handled = handleBack();
+        if (!handled) {
+          if (canGoBack) {
+            window.history.back();
+          } else {
+            const confirmExit = window.confirm(
+              "¿Seguro que quieres salir de la aplicación?",
+            );
+            if (confirmExit) {
+              CapacitorApp.exitApp();
+            }
+          }
+        }
+      },
+    );
+
+    return () => {
+      backButtonListener.then((l) => l.remove());
+    };
+  }, [handleBack]);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+    touchStartY.current = e.targetTouches[0].clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStart === null) return;
+
+    if (activeImmersiveArticle || isSettingsOpen || isManualSearchOpen) {
+      setTouchStart(null);
+      return;
+    }
+
+    const touchEnd = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    const distance = touchStart - touchEnd;
+    const deltaY = Math.abs(touchEndY - touchStartY.current);
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+
+    const isEdgeSwipe = touchStart > screenWidth * 0.85;
+
+    if (isEdgeSwipe && distance > 50 && distance > deltaY) {
+      setIsSettingsOpen(true);
+      if (navigator.vibrate) navigator.vibrate(15);
+      setTouchStart(null);
+      return;
+    }
+
+    if (!isEdgeSwipe && activeTab === "discover") {
+      const startY = touchStartY.current;
+      const isSafeZone = startY > 120 && startY
+60 &&
+        Math.abs(distance) > deltaY
+      ) {
+        if (distance > 0) handleNextTopic();
+        else handlePrevTopic();
+      }
+    }
+    setTouchStart(null);
+  };
+
+  const handleAddTopic = () => {
+    const val = newTopicInput.trim();
+    if (val && !topics.includes(val)) {
+      setTopics((prev) => [...prev, val]);
+      setNewTopicInput("");
+      if (navigator.vibrate) navigator.vibrate(20);
+      if (user) addTopicToSupabase(val);
+    }
+  };
+
+  const handleMoveTopic = (index: number, direction: "up" | "down") => {
+    const newTopics = [...topics];
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex
+= newTopics.length) return;
+    [newTopics[index], newTopics[targetIndex]] = [
+      newTopics[targetIndex],
+      newTopics[index],
+    ];
+    setTopics(newTopics);
+    if (navigator.vibrate) navigator.vibrate(10);
+  };
+
+  const finalizeTopicDeletion = (topic: string) => {
+    if (topics.length
+prev.filter((t) => t !== topic));
+    setSidebarDeletePending(null);
+    if (selectedTopic === topic) handleTopicClick(topics[0]);
+    if (navigator.vibrate) navigator.vibrate(20);
+    if (user && !DEFAULT_TOPICS.includes(topic)) removeTopicFromSupabase(topic);
+  };
+
+  const handleResetTopics = async () => {
+    setTopics(DEFAULT_TOPICS);
+    setSelectedTopic(DEFAULT_TOPICS[0]);
+    setSearchQuery("");
+    setCurrentPage(1);
+
+    // Reset scroll position
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+
+    // Fix: Explicitly pass empty query string
+    fetchNews(DEFAULT_TOPICS[0], "");
+    if (navigator.vibrate) navigator.vibrate(50);
+
+    if (user && supabase) {
+      await supabase.from("user_topics").delete().eq("user_id", user.id);
+    }
+  };
+
+  const handleClearHistory = () => {
+    setHistory([]);
+    localStorage.removeItem("ne_hist");
+    if (navigator.vibrate) navigator.vibrate(50);
+  };
+
+  const handleFactoryReset = async () => {
+    localStorage.clear();
+    await clearOfflineStorage();
+    window.location.reload();
+  };
+
+  const setSearchChip = (term: string) => {
+    setSearchQuery(term);
+    handleManualSearch(term);
+  };
+
+  const handleVerifyGemini = async () => {
+    if (!geminiApiKey.trim()) return;
+    setGeminiStatus("checking");
+    const isValid = await verifyGeminiKey(geminiApiKey);
+    setGeminiStatus(isValid ? "valid" : "invalid");
+    if (isValid && navigator.vibrate) navigator.vibrate([10, 30]);
+  };
+
+  const handleVerifyGroq = async () => {
+    if (!groqApiKey.trim()) return;
+    setGroqStatus("checking");
+    const isValid = await verifyGroqKey(groqApiKey);
+    setGroqStatus(isValid ? "valid" : "invalid");
+    if (isValid && navigator.vibrate) navigator.vibrate([10, 30]);
+  };
+
+  const handleManualSynthesis = async () => {
+    if (articles.length === 0) return;
+    setIsSynthesizing(true);
+    try {
+      const aiSummary = await generateGeminiSummary(
+        articles,
+        selectedTopic,
+        contentLanguage,
+        geminiApiKey,
+      );
+      setSummary(aiSummary);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsSynthesizing(false);
+    }
+  };
+
+  // --- VERIFICATION HANDLERS ---
+  // Verification is now handled entirely within AuthModal
+
+  // Sync saved articles with Supabase on login
+  useEffect(() => {
+    const syncSavedArticles = async () => {
+      if (!user || !supabase) return;
+
+      try {
+        const { data, error } = await supabase
+          .from("saved_articles")
+          .select("article_data")
+          .eq("user_id", user.id);
+
+        if (error) {
+          console.error("Error fetching saved articles:", error);
+          return;
+        }
+
+        if (data) {
+          const remoteArticles = data.map((row) => row.article_data as Article);
+
+          setSavedArticles((prevLocal) => {
+            const combined = [...remoteArticles];
+            const combinedIds = new Set(combined.map((a) => a.id));
+
+            const localOnly = prevLocal.filter((a) => !combinedIds.has(a.id));
+
+            // Upload local-only to Supabase
+            if (localOnly.length > 0) {
+              const inserts = localOnly.map((a) => ({
+                user_id: user.id,
+                article_id: a.id,
+                article_data: a,
+              }));
+              supabase
+                .from("saved_articles")
+                .upsert(inserts, { onConflict: "user_id, article_id" })
+                .then(({ error }) => {
+                  if (error)
+                    console.error("Error syncing local articles:", error);
+                });
+            }
+
+            return [...combined, ...localOnly];
+          });
+        }
+      } catch (err) {
+        console.error("Sync error:", err);
+      }
+    };
+
+    syncSavedArticles();
+  }, [user]);
+
+  useEffect(() => {
+    const load = async () => {
+      const hasSeenIntro = localStorage.getItem("ne_intro_seen");
+      if (!hasSeenIntro) {
+        setIsInfoModalOpen(true);
+        localStorage.setItem("ne_intro_seen", "true");
+      }
+
+      const saved = localStorage.getItem("ne_saved");
+      const hist = localStorage.getItem("ne_hist");
+      const pref = localStorage.getItem("ne_pref");
+      const read = localStorage.getItem("ne_read");
+      if (saved) setSavedArticles(JSON.parse(saved));
+      if (hist) setHistory(JSON.parse(hist));
+      if (read) setReadArticles(JSON.parse(read));
+      if (pref) {
+        const p = JSON.parse(pref);
+        setIsDarkMode(p.isDarkMode || false);
+        setUiLanguage(p.uiLanguage || "es");
+        setSearchMode(p.searchMode || "standard");
+        setTextSize(p.textSize || "base");
+        setAiProvider(p.aiProvider || "gemini");
+        setGeminiApiKey(p.geminiApiKey || "");
+        if (p.geminiApiKey) setGeminiStatus("idle");
+        setGroqApiKey(p.groqApiKey || "");
+        if (p.groqApiKey) setGroqStatus("idle");
+        setElsevierApiKey(p.elsevierApiKey || "");
+        setCoreApiKey(p.coreApiKey || "");
+        setS2ApiKey(p.s2ApiKey || "");
+        setAutoXray(p.autoXray !== undefined ? p.autoXray : true);
+        setShowNewsFeed(p.showNewsFeed !== undefined ? p.showNewsFeed : true);
+        setIsFlashcardMode(
+          p.isFlashcardMode !== undefined ? p.isFlashcardMode : false,
+        );
+        setOnlyFullText(p.onlyFullText !== undefined ? p.onlyFullText : false);
+        setFontStyle(p.fontStyle || "sans");
+      }
+      updateOfflineStatusMap();
+      fetchNews("General");
+    };
+    load();
+  }, []);
+
+  useEffect(() => {
+    try {
+      // Strip localPdfData before saving to avoid quota issues
+      const strippedSavedArticles = savedArticles.map((a) => {
+        const { localPdfData, ...rest } = a;
+        return rest;
+      });
+      localStorage.setItem("ne_saved", JSON.stringify(strippedSavedArticles));
+      localStorage.setItem("ne_hist", JSON.stringify(history));
+      localStorage.setItem("ne_read", JSON.stringify(readArticles));
+    } catch (e) {
+      if (
+        e instanceof DOMException &&
+        (e.name === "QuotaExceededError" ||
+          e.name === "NS_ERROR_DOM_QUOTA_REACHED")
+      ) {
+        console.error("LocalStorage quota exceeded", e);
+      } else {
+        console.error("Error saving to localStorage", e);
+      }
+    }
+  }, [savedArticles, history, readArticles]);
+
+  useEffect(() => {
+    if (isDarkMode) document.documentElement.classList.add("dark");
+    else document.documentElement.classList.remove("dark");
+    localStorage.setItem(
+      "ne_pref",
+      JSON.stringify({
+        isDarkMode,
+        uiLanguage,
+        contentLanguage,
+        searchMode,
+        aiProvider,
+        autoXray,
+        textSize,
+        geminiApiKey,
+        groqApiKey,
+        elsevierApiKey,
+        coreApiKey,
+        s2ApiKey,
+        showNewsFeed,
+        fontStyle,
+        isFlashcardMode,
+        onlyFullText, // Persist status
+      }),
+    );
+  }, [
+    isDarkMode,
+    uiLanguage,
+    contentLanguage,
+    searchMode,
+    aiProvider,
+    autoXray,
+    textSize,
+    geminiApiKey,
+    groqApiKey,
+    elsevierApiKey,
+    coreApiKey,
+    s2ApiKey,
+    showNewsFeed,
+    fontStyle,
+    isFlashcardMode,
+    onlyFullText,
+  ]);
+
+  return (
+{`
+        .noise-bg {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='${isDarkMode ? "0.015" : "0.03"}'/%3E%3C/svg%3E");
+        }
+      `}
+{activeImmersiveArticle ||
+        selectedDebate ||
+        isReaderOpen ||
+        isSettingsOpen ||
+        isAuthModalOpen ||
+        viewingHistorySnapshot ||
+        isFlashcardMode ||
+        isManualSearchOpen ||
+        voiceModalOpen ||
+        isInfoModalOpen ? (
+Atrás
+navigateToTab("discover")}
+            className="flex items-center gap-2 h-full"
+          >
+{!showNewsFeed && (
+NephroUpdate
+)}
+        {showNewsFeed ? (
+user
+                ? setIsUserMenuOpen(!isUserMenuOpen)
+                : setIsAuthModalOpen(true)
+            }
+            className={`p-2 sm:p-2.5 flex items-center justify-center transition-colors ${user ? "text-blue-500" : "text-slate-400"}`}
+          >
+            {user ? (
+{getUserInitials()}
+setIsUserMenuOpen(false)}
+            onOpenAuth={() => setIsAuthModalOpen(true)}
+            isDarkMode={isDarkMode}
+          />
+setIsSettingsOpen(true)}
+            className="p-2 sm:p-2.5 flex items-center justify-center text-slate-400"
+          >
+NephroUpdate
+{[
+                { id: "discover", icon: Radar, label: t.discover },
+                { id: "saved", icon: Bookmark, label: t.library },
+                { id: "history", icon: History, label: t.history },
+                { id: "community", icon: Building2, label: t.communityTitle },
+                ...(isAdmin
+                  ? [{ id: "admin", icon: ShieldCheck, label: "Admin" }]
+                  : []),
+              ].map((item) => (
+navigateToTab(item.id as any)}
+                  className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 font-bold transition-all ${activeTab === item.id ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30" : "opacity-60 hover:opacity-100"}`}
+                >
+{item.label}
+setIsSearchFocused(true)}
+                onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                onChange={handleSearchInputChange}
+                onKeyDown={(e) =>
+                  e.key === "Enter" && handleManualSearch(searchQuery)
+                }
+                placeholder={t.searchPlaceholder}
+                className={`w-full rounded-2xl border outline-none pl-11 pr-10 py-2.5 transition-colors ${isDarkMode ? "bg-slate-900 border-slate-700 focus:bg-slate-800" : "bg-slate-50 border-slate-200 focus:bg-white"}`}
+              />
+{isSearchFocused && (
+{suggestions.length > 0 && (
+Sugerencias
+{suggestions.map((suggestion, idx) => (
+{
+                                  setSearchQuery(suggestion);
+                                  setSuggestions([]);
+                                  handleManualSearch(suggestion);
+                                }}
+                                className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors flex items-center gap-2 ${isDarkMode ? "hover:bg-slate-800 text-slate-200" : "hover:bg-slate-50 text-slate-700"}`}
+                              >
+{suggestion}
+)}
+                      {searchQuery.trim().length >= 3 && !searchQuery.toUpperCase().startsWith("AUTHOR:") && (
+Autor
+{
+                              const authorTerm = `AUTHOR:"${searchQuery.trim()}"`;
+                              setSearchQuery(authorTerm);
+                              setSuggestions([]);
+                              handleManualSearch(authorTerm);
+                            }}
+                            className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-colors flex items-center gap-2 text-blue-600 ${isDarkMode ? "hover:bg-slate-800 bg-slate-800/50" : "hover:bg-blue-50 bg-slate-50"} border ${isDarkMode ? "border-slate-700" : "border-slate-200"}`}
+                          >
+Buscar artículos del autor: "{searchQuery.trim()}"
+Time
+{["Last 6 months", "2025-2026", "Last 5 years"].map(
+                            (chip) => (
+setSearchChip(chip)}
+                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-colors ${isDarkMode ? "border-white/10 hover:bg-white/5" : "border-slate-100 hover:bg-slate-50"}`}
+                              >
+                                {chip}
+Evidence Type
+{["RCT", "Guideline", "Meta-Analysis", "Review"].map(
+                            (chip) => (
+setSearchChip(chip)}
+                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-colors ${isDarkMode ? "border-white/10 hover:bg-white/5" : "border-slate-100 hover:bg-slate-50"}`}
+                              >
+                                {chip}
+user
+                    ? setIsUserMenuOpen(!isUserMenuOpen)
+                    : setIsAuthModalOpen(true)
+                }
+                className={`p-2.5 rounded-xl border dark:border-white/10 transition-all ${user ? "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/50" : "hover:bg-slate-100 dark:hover:bg-white/5"}`}
+              >
+                {user ? (
+{getUserInitials()}
+setIsUserMenuOpen(false)}
+                onOpenAuth={() => setIsAuthModalOpen(true)}
+                isDarkMode={isDarkMode}
+              />
+setIsSettingsOpen(true)}
+                className="p-2.5 rounded-xl border dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 transition-all"
+              >
+fetchNews()}
+                disabled={loading}
+                className="rounded-xl bg-blue-600 p-2.5 text-white shadow-lg"
+              >
+{activeTab === "discover" && (
+0 ? 300 : -300 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: direction > 0 ? -300 : 300 }}
+                  className="mx-auto max-w-6xl min-h-full w-full"
+                >
+                  {/* Explicit Spacer for Mobile Header */}
+{topics.map((topic) => (
+{
+                              topicRefs.current[topic] = el;
+                            }}
+                            onClick={() => handleTopicClick(topic)}
+                            className={`px-4 py-1.5 text-[10px] font-semibold uppercase tracking-widest transition-all ${selectedTopic === topic ? "bg-blue-600 text-white rounded-full shadow-sm" : "text-slate-500"}`}
+                          >
+                            {topic.startsWith("AUTHOR:") ? topic.replace("AUTHOR:", "AUTOR: ").replace(/"/g, '') : topic}
+{!DEFAULT_TOPICS.includes(topic) &&
+                            selectedTopic === topic && (
+{
+                                  e.stopPropagation();
+                                  handleCloseTopic(topic);
+                                }}
+                                className="absolute -top-1 -right-1 p-0.5 rounded-full bg-red-500 text-white shadow-md hover:scale-110 transition-transform"
+                              >
+{searchQuery 
+                            ? `${t.searchingFor} ${searchQuery.toUpperCase().startsWith("AUTHOR:") ? searchQuery.replace(/AUTHOR:/i, "").replace(/"/g, '') : searchQuery}` 
+                            : (selectedTopic.toUpperCase().startsWith("AUTHOR:") ? selectedTopic.replace(/AUTHOR:/i, "Autor: ").replace(/"/g, '') : selectedTopic)}
+{filteredArticles.length > 0 && (
+setIsFlashcardMode(!isFlashcardMode)}
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all ${isFlashcardMode ? "bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-600/30" : isDarkMode ? "bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200" : "bg-white border-slate-200 text-slate-600 hover:text-slate-900"}`}
+                        >
+Medical Shorts
+{translationNotice && (
+{t.searchingFor}{" "}
+"{translationNotice.translated}"
+({t.translatedFrom} "{translationNotice.original}")
+{t.undo}
+)}
+
+                    {loading && searchMode === "ai" && (
+)}
+
+                    {summary ? (
+{summary}
+) : (
+                      articles.length > 0 &&
+                      !loading && (
+{isSynthesizing ? (
+{isSynthesizing
+                                  ? "Analizando..."
+                                  : "Generar Reporte"}
+{isSynthesizing
+                                  ? "Sintetizando Evidencia..."
+                                  : "¿Cuáles son los desarrollos científicos?"}
+{loading && articles.length === 0
+                        ? Array(6)
+                            .fill(0)
+                            .map((_, i) => (
+))
+                        : (() => {
+                            const visibleArticles = filteredArticles.slice(
+                              0,
+                              visibleCount,
+                            );
+                            let separatorIndex = -1;
+                            let hasUnread = false;
+                            for (let i = 0; i
+{
+                              const isLarge =
+                                layoutMode === "bento" &&
+                                (index === 0 ||
+                                  (article.relevanceScore &&
+                                    article.relevanceScore > 95));
+                              return (
+{index === separatorIndex && (
+{t.historyTitle ||
+                                          "Visto anteriormente"}
+a.id === article.id,
+                                    )}
+                                    onToggleSave={toggleSave}
+                                    isDarkMode={isDarkMode}
+                                    onOpenImmersive={handleOpenImmersive}
+                                    onUpdateNote={handleUpdateNote}
+                                    onReadFullText={handleReadFullText}
+                                    isDownloaded={!!offlineStatus[article.id]}
+                                    textSize={textSize}
+                                    groqApiKey={groqApiKey}
+                                    geminiApiKey={geminiApiKey}
+                                    language={contentLanguage}
+                                    defaultXrayMode={autoXray}
+                                    onAddHighlight={handleAddHighlight}
+                                    fontStyle={fontStyle}
+                                    onUpdateArticle={handleUpdateArticle}
+                                    isExpanded={
+                                      expandedArticleId === article.id
+                                    }
+                                    onToggleExpand={handleToggleExpand}
+                                    isUnread={!readArticles[article.id]}
+                                    className={
+                                      isLarge
+                                        ? "md:col-span-2 xl:col-span-2"
+                                        : ""
+                                    }
+                                  />
+{t.discover}
+{visibleCount
+= filteredArticles.length && (
+)}
+
+              {activeTab === "saved" && (
+{/* Explicit Spacer for Mobile Header */}
+{!user ? (
+Tu Biblioteca Personal
+Inicia sesión para guardar artículos, sincronizar tu
+                        biblioteca entre dispositivos y acceder a tus notas
+                        personales.
+setIsAuthModalOpen(true)}
+                        className="px-8 py-4 rounded-2xl bg-blue-600 text-white font-black text-sm uppercase tracking-widest shadow-xl shadow-blue-600/20 active:scale-95 transition-all"
+                      >
+                        Iniciar Sesión para Continuar
+{t.libraryTitle}
+{filteredSavedArticles.length} Artículos
+                                guardados
+{syncState.isSyncing && (
+Sincronizando Wi-Fi ({syncState.completed}/{syncState.total})
+)}
+                              {(filterDesign.length > 0 ||
+                                filterTier
+{
+                                    setFilterDesign([]);
+                                    setFilterTier(4);
+                                    setLibraryTopicFilter("All");
+                                    setLibraryFilter("");
+                                  }}
+                                  className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-rose-500 hover:text-rose-600 transition-colors"
+                                >
+Limpiar Filtros
+{
+                                setIsLibrarySelectionMode(
+                                  !isLibrarySelectionMode,
+                                );
+                                if (isLibrarySelectionMode)
+                                  setSelectedLibraryArticles([]);
+                              }}
+                              className={`flex items-center gap-2 px-4 py-2 rounded-2xl border font-black text-[10px] uppercase tracking-widest transition-all ${
+                                isLibrarySelectionMode
+                                  ? "bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-600/20"
+                                  : "text-slate-500 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900"
+                              }`}
+                            >
+{isLibrarySelectionMode
+                                  ? "Cancelar"
+                                  : "Seleccionar"}
+{isLibrarySelectionMode &&
+                              filteredSavedArticles.length > 0 && (
+{
+                                    if (
+                                      selectedLibraryArticles.length ===
+                                      filteredSavedArticles.length
+                                    ) {
+                                      setSelectedLibraryArticles([]);
+                                    } else {
+                                      setSelectedLibraryArticles(
+                                        filteredSavedArticles.map((a) => a.id),
+                                      );
+                                    }
+                                  }}
+                                  className={`flex items-center gap-2 px-4 py-2 rounded-2xl border font-black text-[10px] uppercase tracking-widest transition-all ${
+                                    selectedLibraryArticles.length ===
+                                    filteredSavedArticles.length
+                                      ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800"
+                                      : "text-slate-500 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900"
+                                  }`}
+                                >
+{selectedLibraryArticles.length ===
+                                    filteredSavedArticles.length
+                                      ? "Deseleccionar Todo"
+                                      : "Seleccionar Todo"}
+)}
+
+                            {isLibrarySelectionMode &&
+                              selectedLibraryArticles.length > 0 && (
+Foro General (
+                                      {selectedLibraryArticles.length})
+{
+                                      fetchCommunityUsers();
+                                      setIsUserSelectorOpen(true);
+                                    }}
+                                    className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-indigo-600 text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-indigo-600/20 animate-in zoom-in-95"
+                                  >
+Colaborar (
+                                      {selectedLibraryArticles.length})
+setIsFilterOpen(!isFilterOpen)}
+                              className={`relative flex items-center gap-2 px-3 py-2 rounded-2xl border transition-all hover:scale-105 active:scale-95 ${
+                                filterDesign.length > 0 ||
+                                filterTier
+{(filterDesign.length > 0 ||
+                                filterTier
+setLibraryFilter(e.target.value)
+                                }
+                                placeholder="Buscar en biblioteca..."
+                                className={`w-full md:w-72 rounded-2xl border text-sm outline-none pl-11 pr-4 py-2 transition-all ${
+                                  isDarkMode
+                                    ? "bg-slate-900 border-slate-700 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+                                    : "bg-white border-slate-200 shadow-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+                                }`}
+                              />
+{isFilterOpen && (
+Study Design
+{[
+                                      "RCT",
+                                      "Meta-Analysis",
+                                      "Guideline",
+                                      "Cohort",
+                                      "Case Report",
+                                    ].map((d) => (
+toggleFilterDesign(d as StudyDesign)
+                                        }
+                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all border ${
+                                          filterDesign.includes(
+                                            d as StudyDesign,
+                                          )
+                                            ? "bg-blue-600 border-blue-600 text-white"
+                                            : "border-slate-200 dark:border-slate-700"
+                                        }`}
+                                      >
+                                        {d}
+Journal Impact
+setFilterTier(4)}
+                                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase border ${filterTier === 4 ? "bg-blue-50 text-blue-600 border-blue-200" : "border-slate-200 dark:border-slate-700"}`}
+                                    >
+                                      All
+setFilterTier(2)}
+                                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase border ${filterTier === 2 ? "bg-blue-50 text-blue-600 border-blue-200" : "border-slate-200 dark:border-slate-700"}`}
+                                    >
+                                      High Impact
+setFilterTier(1)}
+                                      className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase border ${filterTier === 1 ? "bg-blue-50 text-blue-600 border-blue-200" : "border-slate-200 dark:border-slate-700"}`}
+                                    >
+                                      Top Tier
+Topic / Nicho
+{availableLibraryTopics.map((t) => (
+setLibraryTopicFilter(t)}
+                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all border ${
+                                          libraryTopicFilter === t
+                                            ? "bg-blue-600 border-blue-600 text-white"
+                                            : "border-slate-200 dark:border-slate-700"
+                                        }`}
+                                      >
+                                        {t}
+{filteredSavedArticles.length > 0 ? (
+{filteredSavedArticles.map((article) => (
+toggleLibrarySelection(article.id)
+                              }
+                            />
+                          ))}
+No se encontraron artículos
+Intenta ajustar los filtros o la búsqueda para
+                            encontrar lo que necesitas en tu biblioteca.
+{(filterDesign.length > 0 ||
+                            filterTier
+{
+                                setFilterDesign([]);
+                                setFilterTier(4);
+                                setLibraryTopicFilter("All");
+                                setLibraryFilter("");
+                              }}
+                              className="mt-6 px-6 py-2 rounded-xl bg-blue-600 text-white font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-95 transition-all"
+                            >
+                              Restablecer Filtros
+)}
+
+              {activeTab === "history" && (
+{!user ? (
+Historial de Búsqueda
+Inicia sesión para mantener un registro de tus
+                        investigaciones, analizar tus patrones de búsqueda y
+                        retomar donde lo dejaste.
+setIsAuthModalOpen(true)}
+                        className="px-8 py-4 rounded-2xl bg-blue-600 text-white font-black text-sm uppercase tracking-widest shadow-xl shadow-blue-600/20 active:scale-95 transition-all"
+                      >
+                        Iniciar Sesión para Continuar
+{t.historyTitle}
+{availableHistoryTopics.map((t) => (
+setHistoryTopicFilter(t)}
+                            className={`shrink-0 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all ${historyTopicFilter === t ? "bg-blue-600 text-white border-blue-600" : "bg-transparent border-slate-200 dark:border-slate-800 text-slate-500"}`}
+                          >
+                            {t}
+{filteredHistory.map((snapshot, idx) => (
+setViewingHistorySnapshot(snapshot)
+                              }
+                              className={`cursor-pointer rounded-3xl border p-5 transition-all relative overflow-hidden ${isDarkMode ? "bg-slate-900 border-slate-800 hover:border-slate-700" : "bg-white border-slate-200 hover:border-blue-200 hover:shadow-lg"}`}
+                            >
+{snapshot.topic}
+{" "}
+                                  {new Date(
+                                    snapshot.timestamp,
+                                  ).toLocaleDateString()}
+{" "}
+                                  {new Date(
+                                    snapshot.timestamp,
+                                  ).toLocaleTimeString([], {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  })}
+{snapshot.query &&
+                                snapshot.query !== snapshot.topic && (
+{">"} {snapshot.query}
+{snapshot.articles.slice(0, 5).map((a, i) => (
+{a.source.charAt(0)}
+))}
+                                {snapshot.articles.length > 5 && (
++{snapshot.articles.length - 5}
+)}
+
+              {activeTab === "community" && (
+{t.communityTitle}
+{t.communityDesc}
+{!user ? (
+Inicia Sesión Requerida
+El intercambio de casos clínicos y encuestas de
+                          impacto está reservado para miembros de la comunidad.
+setIsAuthModalOpen(true)}
+                        className="px-8 py-4 rounded-2xl bg-blue-600 text-white font-black text-sm uppercase tracking-widest shadow-xl shadow-blue-600/20 active:scale-95 transition-all flex items-center justify-center gap-2 mx-auto"
+                      >
+Iniciar Sesión / Registrarse
+{/* Main Feed Column */}
+{/* Community Sub-tabs */}
+setCommunitySubTab("debates")}
+                            className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${communitySubTab === "debates" ? "bg-white dark:bg-slate-800 shadow-md text-emerald-600" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"}`}
+                          >
+Debates y Foro
+setCommunitySubTab("inbox")}
+                            className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${communitySubTab === "inbox" ? "bg-white dark:bg-slate-800 shadow-md text-indigo-600" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"}`}
+                          >
+Trabajo Colaborativo
+{/* Unified Community View */}
+                        {communitySubTab === "inbox" ? (
+{selectedCollaboration ? (
+setSelectedCollaboration(null)
+                                    }
+                                    className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5"
+                                  >
+{selectedCollaboration.title}
+Colaboración activa
+setIsAuthModalOpen(true)}
+                                    isGeneralForum={true}
+                                    onRefresh={() => refetchCollaborations()}
+                                  />
+Mis Colaboraciones
+Espacios privados para trabajar con otros
+                                    colegas.
+{loadingCollaborations ? (
+Cargando colaboraciones...
+) : collaborations.length === 0 ? (
+No hay colaboraciones activas
+Comparte artículos desde tu biblioteca
+                                          con otros usuarios para iniciar un
+                                          trabajo colaborativo.
+) : (
+                                    collaborations.map((collab: any) => (
+setSelectedCollaboration(collab)
+                                        }
+                                        className={`w-full text-left p-4 rounded-2xl border transition-all hover:scale-[1.01] active:scale-95 flex items-center gap-4 ${isDarkMode ? "bg-slate-800/50 border-white/5 hover:bg-slate-800" : "bg-white border-slate-100 hover:shadow-md"}`}
+                                      >
+{collab.title}
+Colaboración
+{collab.replies} mensajes
+{selectedDebate ? (
+setSelectedDebate(null)}
+                                    className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5"
+                                  >
+{selectedDebate.title}
+Debate iniciado por @
+                                      {selectedDebate.author
+                                        .toLowerCase()
+                                        .replace(/\s+/g, "")}
+setIsAuthModalOpen(true)}
+                                    isGeneralForum={
+                                      selectedDebate.id ===
+                                      "general-community-forum"
+                                    }
+                                    isDebate={
+                                      selectedDebate.id !==
+                                      "general-community-forum"
+                                    }
+                                    onRefresh={() => refetchDebates()}
+                                  />
+refetchDebates()}
+                              />
+                            )}
+{/* Sidebar Column */}
+{/* Profile Summary Card */}
+{user.user_metadata?.full_name?.charAt(0) ||
+                                user.email?.charAt(0) ||
+                                "U"}
+{user.user_metadata?.full_name ||
+                                  user.email?.split("@")[0] ||
+                                  "Usuario Médico"}
+{user.user_metadata?.specialty ||
+                                  "Especialista"}
+Aportes
+Impacto
+{/* Trending Topics */}
+Trending Topics
+{trendingTopics.map((topic) => (
+#{topic.replace(/\s+/g, "")}
+{/* Encuesta de Impacto */}
+Encuesta Clínica
+¿Cuál es su primera línea en pacientes con CKD y
+                            albuminuria &gt;300mg/g?
+{[
+                              "ACEi/ARB + SGLT2i",
+                              "Triple Terapia (inc. nsMRA)",
+                              "Solo Bloqueo RAS",
+                            ].map((opt) => (
+{opt}
+{/* Top Contributors */}
+Top Contributors
+{(topContributors.length > 0
+                              ? topContributors
+                              : [
+                                  {
+                                    name: "Dr. Carlos M.",
+                                    specialty: "Nefrología",
+                                    score: 156,
+                                  },
+                                  {
+                                    name: "Dra. Ana R.",
+                                    specialty: "Trasplante",
+                                    score: 142,
+                                  },
+                                  {
+                                    name: "Dr. Luis F.",
+                                    specialty: "Medicina Interna",
+                                    score: 98,
+                                  },
+                                ]
+                            ).map((contributor, i) => (
+{contributor.name
+                                      .split(" ")
+                                      .pop()
+                                      ?.charAt(0) || contributor.name.charAt(0)}
+{contributor.name}
+{contributor.specialty}
+{contributor.score} pts
+)}
+
+              {activeTab === "admin" && isAdmin && (
+navigateToTab("discover")}
+                    isDarkMode={isDarkMode}
+                  />
+{[
+                {
+                  id: "history",
+                  icon: History,
+                  action: () => navigateToTab("history"),
+                },
+                {
+                  id: "discover",
+                  icon: Radar,
+                  action: () => handleTopicClick(selectedTopic),
+                  onHold: () =>
+                    fetchNews(
+                      selectedTopic,
+                      !DEFAULT_TOPICS.includes(selectedTopic)
+                        ? topicQueries[selectedTopic] || selectedTopic
+                        : "",
+                      undefined,
+                      undefined,
+                      true,
+                      20,
+                    ),
+                },
+                {
+                  id: "saved",
+                  icon: Bookmark,
+                  action: () => navigateToTab("saved"),
+                },
+                {
+                  id: "community",
+                  icon: Building2,
+                  action: () => navigateToTab("community"),
+                },
+                ...(isAdmin
+                  ? [
+                      {
+                        id: "admin",
+                        icon: ShieldCheck,
+                        action: () => navigateToTab("admin"),
+                      },
+                    ]
+                  : []),
+              ].map((item) => {
+                const isActive = activeTab === item.id;
+                return (
+{
+                      if (item.onHold) startLongPress(item.onHold);
+                      if (navigator.vibrate) navigator.vibrate(10);
+                    }}
+                    onPointerUp={cancelLongPress}
+                    onPointerLeave={cancelLongPress}
+                    onClick={item.action}
+                    className={`relative rounded-full p-3 lg:p-4 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-90 ${isActive ? "text-white" : isDarkMode ? "text-slate-400 hover:text-white" : "text-slate-500 hover:text-slate-900"}`}
+                  >
+                    {isActive && (
+{isActive && (
+{
+                  startLongPress(() => setIsManualSearchOpen(true));
+                  if (navigator.vibrate) navigator.vibrate(10);
+                }}
+                onPointerUp={cancelLongPress}
+                onPointerLeave={cancelLongPress}
+                onClick={() => {
+                  setIsManualSearchOpen(true);
+                  setSearchModalTab("text");
+                }}
+                className={`p-3.5 rounded-full transition-all active:scale-90 ${isDarkMode ? "text-slate-300 hover:bg-white/5" : "text-slate-600 hover:bg-slate-100"}`}
+              >
+{
+                  setVoiceModalOpen(true);
+                  if (navigator.vibrate) navigator.vibrate(10);
+                }}
+                className={`relative p-3.5 rounded-full transition-all active:scale-90 overflow-hidden group ${isDarkMode ? "bg-indigo-500/10 text-indigo-400" : "bg-indigo-50 text-indigo-600"}`}
+              >
+{/* Liquid Crystal Scroll To Top Button */}
+{showScrollTop && !isUserScrolling && (
+{isManualSearchOpen && (
+setSearchModalTab("text")}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${searchModalTab === "text" ? "bg-white dark:bg-slate-700 shadow-sm" : "opacity-50"}`}
+                >
+                  Texto Libre
+setSearchModalTab("pico")}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${searchModalTab === "pico" ? "bg-white dark:bg-slate-700 shadow-sm" : "opacity-50"}`}
+                >
+                  Estructurada PICO
+setIsManualSearchOpen(false)}
+                className="p-2 opacity-50"
+              >
+{searchModalTab === "text" ? (
+e.key === "Enter" && handleManualSearch(searchQuery)
+                    }
+                    placeholder={t.searchPlaceholder}
+                    className="w-full bg-transparent text-lg font-bold outline-none"
+                  />
+                  {isFetchingSuggestions && (
+{(suggestions.length > 0 || searchQuery.trim().length >= 3) && (
+{suggestions.map((suggestion, idx) => (
+{
+                            setSearchQuery(suggestion);
+                            setSuggestions([]);
+                            handleManualSearch(suggestion);
+                          }}
+                          className={`w-full text-left px-4 py-3 text-sm font-medium transition-colors flex items-center gap-2 ${isDarkMode ? "hover:bg-slate-700 text-slate-200" : "hover:bg-slate-50 text-slate-700"} ${idx !== suggestions.length - 1 ? (isDarkMode ? "border-b border-white/5" : "border-b border-slate-100") : ""}`}
+                        >
+{suggestion}
+))}
+                      
+                      {searchQuery.trim().length >= 3 && !searchQuery.toUpperCase().startsWith("AUTHOR:") && (
+{
+                              const authorTerm = `AUTHOR:"${searchQuery.trim()}"`;
+                              setSearchQuery(authorTerm);
+                              setSuggestions([]);
+                              handleManualSearch(authorTerm);
+                            }}
+                            className={`w-full text-left px-4 py-3 text-sm font-bold transition-colors flex items-center gap-2 text-blue-600 ${isDarkMode ? "hover:bg-slate-700" : "hover:bg-blue-50"} border-t ${isDarkMode ? "border-white/5" : "border-slate-100"}`}
+                          >
+Buscar artículos del autor: "{searchQuery.trim()}"
+{[
+                    "Last 6 months",
+                    "2025-2026",
+                    "RCT",
+                    "Guideline",
+                    "Meta-Analysis",
+                  ].map((chip) => (
+setSearchChip(chip)}
+                      className={`shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-colors ${isDarkMode ? "border-white/10 hover:bg-white/5" : "border-slate-100 hover:bg-slate-50"}`}
+                    >
+                      {chip}
+handleManualSearch(searchQuery)}
+                  className="w-full rounded-2xl bg-blue-600 py-4 font-black text-white shadow-xl transition-transform active:scale-[0.98]"
+                >
+                  BUSCAR EVIDENCIA
+{[
+                    { id: "p", label: t.pLabel, ph: t.pPlaceholder },
+                    { id: "i", label: t.iLabel, ph: t.iPlaceholder },
+                    { id: "c", label: t.cLabel, ph: t.cPlaceholder },
+                    { id: "o", label: t.oLabel, ph: t.oPlaceholder },
+                  ].map((f) => (
+{f.label}
+setPicoData({ ...picoData, [f.id]: e.target.value })
+                        }
+                        placeholder={f.ph}
+                        className={`w-full p-4 rounded-2xl border text-base font-bold outline-none focus:ring-2 focus:ring-blue-500 transition-all ${isDarkMode ? "bg-slate-800 border-white/5" : "bg-slate-50 border-slate-200"}`}
+                      />
+{t.searchPico}
+{showApiKeyWarning && (
+Configuración Necesaria
+Esta función avanzada requiere de una API Key de
+{missingProvider === "groq" ? "Groq" : "Gemini"}
+. 
+                  Puedes obtenerla en
+{missingProvider === "groq" ? "console.groq.com" : "Google AI Studio"}
+y luego configurarla en Ajustes.
+setShowApiKeyWarning(false)}
+                    className={`flex-1 py-3 rounded-xl font-bold border transition-colors ${isDarkMode ? "border-slate-700 hover:bg-slate-800 text-slate-300" : "border-slate-200 hover:bg-slate-50 text-slate-700"}`}
+                  >
+                    Cerrar
+{
+                      setShowApiKeyWarning(false);
+                      setIsSettingsOpen(true);
+                    }}
+                    className="flex-1 py-3 rounded-xl font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+                  >
+                    Configurar
+{isSettingsOpen && (
+setIsSettingsOpen(false)}
+              className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm"
+            />
+{t.settings.title}
+setIsSettingsOpen(false)}
+                  className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+                >
+{/* 1. PROFESSIONAL VERIFICATION SECTION */}
+{/* Header */}
+{verificationStatus === "verified" ? (
+{t.settings.profStatus}
+{verificationStatus === "verified" && (
+{t.settings.verified}
+)}
+                    {verificationStatus === "pending" && (
+{t.settings.pending}
+{/* Content Body based on Step */}
+{verificationStatus === "unverified" && (
+{user ? (
+{getUserInitials()}
+{t.settings.guest}
+{t.settings.guestDesc}
+setIsAuthModalOpen(true)}
+                          className="w-full py-3 rounded-xl bg-blue-600 text-white font-black text-xs uppercase tracking-wider shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2"
+                        >
+{t.settings.createAccountTxt}
+{t.settings.verifyDesc}
+)}
+
+                    {/* STATE 4: SUCCESS / PENDING */}
+                    {verificationStatus === "pending" && (
+{t.settings.pending}
+{t.settings.pendingDesc}
+)}
+
+                    {/* STATE 5: VERIFIED */}
+                    {verificationStatus === "verified" && (
+Dr. {user?.user_metadata?.full_name || "User"}{" "}
+NPI Verified • Nephrology
+{t.settings.filters}
+{t.settings.fullTextOnly}
+{t.settings.fullTextDesc}
+{
+                          setOnlyFullText(!onlyFullText);
+                          if (navigator.vibrate) navigator.vibrate(10);
+                        }}
+                        className={`w-10 h-5 rounded-full relative transition-colors ${onlyFullText ? "bg-blue-600" : "bg-slate-300 dark:bg-slate-700"}`}
+                      >
+{t.settings.bentoLayout}
+{t.settings.bentoDesc}
+{
+                          setLayoutMode(
+                            layoutMode === "bento" ? "standard" : "bento",
+                          );
+                          if (navigator.vibrate) navigator.vibrate(10);
+                        }}
+                        className={`w-10 h-5 rounded-full relative transition-colors ${layoutMode === "bento" ? "bg-blue-600" : "bg-slate-300 dark:bg-slate-700"}`}
+                      >
+setSearchMode("standard")}
+                      className={`w-full p-4 rounded-2xl border text-left transition-all ${searchMode === "standard" ? "bg-blue-600 border-blue-600 text-white shadow-lg" : "bg-white dark:bg-slate-800 border-slate-200 dark:border-white/10"}`}
+                    >
+{t.settings.standardSearch}
+{searchMode === "standard" &&
+{t.settings.standardDesc}
+setSearchMode("ai")}
+                      className={`w-full p-4 rounded-2xl border text-left transition-all ${searchMode === "ai" ? "bg-blue-600 border-blue-600 text-white shadow-lg" : "bg-white dark:bg-slate-800 border-slate-200 dark:border-white/10"}`}
+                    >
+{t.settings.aiSearch}
+{searchMode === "ai" &&
+{t.settings.aiSearchDesc}
+{t.settings.connectivity}
+Gemini API Key (Google)
+{geminiStatus === "valid" && (
+{t.settings.verified}
+)}
+                        {geminiStatus === "invalid" && (
+Inválida
+{t.settings.apiKeyRequired}
+{
+                            setGeminiApiKey(e.target.value);
+                            setGeminiStatus("idle");
+                          }}
+                          placeholder="AIzaSy..."
+                          className="w-full p-2.5 rounded-xl border bg-white dark:bg-slate-800 text-[11px] font-mono outline-none dark:border-white/10 pr-20"
+                        />
+{geminiStatus === "checking" ? (
+) : (
+                            t.settings.verifyBtn
+                          )}
+{t.settings.getGoogleAI}
+Groq Key (Llama 3)
+{groqStatus === "valid" && (
+{t.settings.verified}
+)}
+                        {groqStatus === "invalid" && (
+Inválida
+NLP de baja latencia para re-escritura de abstracts y
+                        lenguaje clínico directo.
+{
+                            setGroqApiKey(e.target.value);
+                            setGroqStatus("idle");
+                          }}
+                          placeholder="gsk_..."
+                          className="w-full p-2.5 rounded-xl border bg-white dark:bg-slate-800 text-[11px] font-mono outline-none dark:border-white/10 pr-20"
+                        />
+{groqStatus === "checking" ? (
+) : (
+                            t.settings.verifyBtn
+                          )}
+{t.settings.getGroq}
+{t.settings.aiProviderTitle}
+setAiProvider("gemini")}
+                      className={`flex-1 py-2 text-[10px] font-black rounded-lg transition-all ${aiProvider === "gemini" ? "bg-blue-600 text-white shadow-lg" : "opacity-40 hover:opacity-100"}`}
+                    >
+                      Gemini
+setAiProvider("groq")}
+                      className={`flex-1 py-2 text-[10px] font-black rounded-lg transition-all ${aiProvider === "groq" ? "bg-blue-600 text-white shadow-lg" : "opacity-40 hover:opacity-100"}`}
+                    >
+                      Groq (Llama 3)
+FILTROS DE EVIDENCIA (Reactive)
+Diseño del Estudio (Smart Inject)
+{[
+                          "RCT",
+                          "Meta-Analysis",
+                          "Guideline",
+                          "Cohort",
+                          "Case Report",
+                        ].map((d) => (
+toggleFilterDesign(d as StudyDesign)}
+                            className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase transition-all border ${
+                              filterDesign.includes(d as StudyDesign)
+                                ? "bg-blue-600 border-blue-600 text-white shadow-md"
+                                : isDarkMode
+                                  ? "bg-slate-900 border-slate-700 text-slate-400 hover:bg-slate-800"
+                                  : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                            }`}
+                          >
+                            {d}
+Impacto de Revista
+{[
+                          { val: 4, label: "Todas las Revistas" },
+                          { val: 2, label: "Alto Impacto (Tier 1 & 2)" },
+                          { val: 1, label: "Top Tier (NEJM, Lancet...)" },
+                        ].map((opt) => (
+setFilterTier(opt.val)}
+                            className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-xs font-bold ${
+                              filterTier === opt.val
+                                ? "bg-blue-500/10 border-blue-500 text-blue-500"
+                                : isDarkMode
+                                  ? "bg-slate-900 border-slate-700 text-slate-400"
+                                  : "bg-white border-slate-200 text-slate-600"
+                            }`}
+                          >
+{opt.label}
+{filterTier === opt.val &&
+GESTIÓN DE TÓPICOS
+Reset
+setNewTopicInput(e.target.value)}
+                      placeholder="Añadir nicho (ej. IgA)..."
+                      className="flex-1 p-2.5 rounded-xl border bg-white dark:bg-slate-800 text-xs font-bold outline-none dark:border-white/10 shadow-sm"
+                      onKeyDown={(e) => e.key === "Enter" && handleAddTopic()}
+                    />
+{topics.map((topic, idx) => (
+{topic}
+{sidebarDeletePending === topic ? (
+finalizeTopicDeletion(topic)}
+                                className="p-1.5 bg-emerald-500/10 text-emerald-500 rounded-lg"
+                              >
+setSidebarDeletePending(null)}
+                                className="p-1.5 bg-slate-500/10 text-slate-400 rounded-lg"
+                              >
+handleMoveTopic(idx, "up")}
+                                disabled={idx === 0}
+                                className={`p-1 rounded-md ${idx === 0 ? "opacity-20" : "text-blue-500 hover:bg-blue-500/10"}`}
+                              >
+handleMoveTopic(idx, "down")}
+                                disabled={idx === topics.length - 1}
+                                className={`p-1 rounded-md ${idx === topics.length - 1 ? "opacity-20" : "text-blue-500 hover:bg-blue-500/10"}`}
+                              >
+setSidebarDeletePending(topic)}
+                                className="p-1 text-red-500 hover:bg-red-500/10 rounded-md ml-1"
+                              >
+{t.settings.interfaceAndReading}
+{t.settings.darkMode}
+setIsDarkMode(false)}
+                        className={`flex-1 py-1.5 rounded-lg flex justify-center items-center transition-all ${!isDarkMode ? "bg-white text-blue-600 shadow-sm" : "opacity-40"}`}
+                      >
+setIsDarkMode(true)}
+                        className={`flex-1 py-1.5 rounded-lg flex justify-center items-center transition-all ${isDarkMode ? "bg-slate-700 text-white" : "opacity-40"}`}
+                      >
+Estilo de Fuente (Titles & Abstracts)
+setFontStyle("sans")}
+                        className={`flex-1 py-2 text-[10px] font-sans font-bold rounded-lg transition-all ${fontStyle === "sans" ? "bg-blue-600 text-white shadow-lg" : "opacity-40 hover:opacity-100"}`}
+                      >
+                        Standard (Inter)
+setFontStyle("serif")}
+                        className={`flex-1 py-2 text-[10px] font-serif font-bold rounded-lg transition-all ${fontStyle === "serif" ? "bg-blue-600 text-white shadow-lg" : "opacity-40 hover:opacity-100"}`}
+                      >
+                        Editorial (Merriweather)
+setFontStyle("modern")}
+                        className={`flex-1 py-2 text-[10px] font-modern font-bold rounded-lg transition-all ${fontStyle === "modern" ? "bg-blue-600 text-white shadow-lg" : "opacity-40 hover:opacity-100"}`}
+                      >
+                        Modern (Outfit)
+News Ticker (Noticias)
+setShowNewsFeed(!showNewsFeed)}
+                      className={`w-10 h-5 rounded-full transition-colors relative ${showNewsFeed ? "bg-blue-600" : "bg-slate-300 dark:bg-slate-700"}`}
+                    >
+Modo Flashcards (Medical Shorts)
+setIsFlashcardMode(!isFlashcardMode)}
+                      className={`w-10 h-5 rounded-full transition-colors relative ${isFlashcardMode ? "bg-blue-600" : "bg-slate-300 dark:bg-slate-700"}`}
+                    >
+TAMAÑO DE TEXTO
+{[
+                      { id: "sm", label: "A" },
+                      { id: "base", label: "AA" },
+                      { id: "lg", label: "AAA" },
+                      { id: "xl", label: "AAAA" },
+                    ].map((size) => (
+setTextSize(size.id as TextSize)}
+                        className={`flex-1 py-2 text-xs font-black rounded-lg transition-all ${textSize === size.id ? "bg-blue-600 text-white shadow-lg" : "opacity-40 hover:opacity-100"}`}
+                      >
+                        {size.label}
+IDIOMAS
+{t.settings.language}
+setUiLanguage("es")}
+                          className={`flex-1 py-2 text-[10px] font-black rounded-lg transition-all ${uiLanguage === "es" ? "bg-blue-600 text-white shadow-lg" : "opacity-40 hover:opacity-100"}`}
+                        >
+                          Español
+setUiLanguage("en")}
+                          className={`flex-1 py-2 text-[10px] font-black rounded-lg transition-all ${uiLanguage === "en" ? "bg-blue-600 text-white shadow-lg" : "opacity-40 hover:opacity-100"}`}
+                        >
+                          English
+{t.settings.contentLang}
+setContentLanguage("es")}
+                          className={`flex-1 py-2 text-[10px] font-black rounded-lg transition-all ${contentLanguage === "es" ? "bg-blue-600 text-white shadow-lg" : "opacity-40 hover:opacity-100"}`}
+                        >
+                          Español
+setContentLanguage("original")}
+                          className={`flex-1 py-2 text-[10px] font-black rounded-lg transition-all ${contentLanguage === "original" ? "bg-blue-600 text-white shadow-lg" : "opacity-40 hover:opacity-100"}`}
+                        >
+                          Original
+SINCRONIZACIÓN EN WI-FI
+backgroundSyncService.setEnabled(!syncState.isEnabled)}
+                      className={`w-10 h-5 rounded-full transition-colors relative ${syncState.isEnabled ? "bg-blue-600" : "bg-slate-300 dark:bg-slate-700"}`}
+                    >
+Descargar automáticamente el texto completo de tus artículos guardados en segundo plano cuando estás en Wi-Fi.
+{/* Sync status / action */}
+Estado de Sincronización:
+{syncState.isSyncing ? (
+Sincronizando...
+Listo / Inactivo
+{syncState.isSyncing && (
+{syncState.currentArticleTitle || "Procesando..."}
+{syncState.completed}/{syncState.total}
+)}
+
+                    {!syncState.isSyncing && (
+{syncState.lastSyncedAt 
+                            ? `Última sinc: ${new Date(syncState.lastSyncedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                            : "No sincronizado aún."
+                          }
+backgroundSyncService.runSync(savedArticles)}
+                          disabled={savedArticles.length === 0}
+                          className="px-2.5 py-1 rounded-lg bg-blue-600/10 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 text-[9px] font-black uppercase tracking-wider transition-colors disabled:opacity-40 disabled:pointer-events-none"
+                        >
+                          Sincronizar Ya
+AUTO RESALTADO
+setAutoXray(!autoXray)}
+                      className={`w-10 h-5 rounded-full transition-colors relative ${autoXray ? "bg-blue-600" : "bg-slate-300 dark:bg-slate-700"}`}
+                    >
+DATOS Y MANTENIMIENTO
+{deleteConfirmTarget === "history" ? (
+{
+                            handleClearHistory();
+                            setDeleteConfirmTarget(null);
+                          }}
+                          className="flex-1 p-4 rounded-2xl bg-red-600 text-white font-black text-sm"
+                        >
+                          CONFIRMAR BORRADO
+setDeleteConfirmTarget(null)}
+                          className="p-4 rounded-2xl bg-slate-200 dark:bg-slate-800 font-bold text-sm"
+                        >
+                          X
+setDeleteConfirmTarget("history")}
+                        className="w-full flex items-center justify-between p-4 rounded-2xl bg-red-500/10 text-red-500 font-bold text-sm hover:bg-red-500/20"
+                      >
+Limpiar Historial
+)}
+
+                    {deleteConfirmTarget === "factory" ? (
+¿ESTÁS SEGURO? SE PERDERÁ TODO
+SÍ, RESET TOTAL
+setDeleteConfirmTarget(null)}
+                            className="px-6 py-3 rounded-xl bg-slate-200 dark:bg-slate-800 font-black text-xs"
+                          >
+                            NO
+setDeleteConfirmTarget("factory")}
+                        className="w-full flex items-center justify-between p-4 rounded-2xl border border-red-500 text-red-500 font-black text-xs uppercase tracking-tighter hover:bg-red-500 hover:text-white"
+                      >
+Reset Total (Fábrica)
+{
+                        updateVerificationStatus("unverified");
+                      }}
+                      className="w-full p-4 rounded-2xl border border-slate-200 dark:border-white/10 text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-white/5 transition-all opacity-30 hover:opacity-100"
+                    >
+                      Resetear Verificación (Debug)
+INFORMACIÓN & AYUDA
+Versión Actual
+v1.0 Alpha
+setIsInfoModalOpen(true)}
+                      className="w-full py-3 rounded-xl bg-blue-600 text-white font-bold text-xs shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2"
+                    >
+VER INFORMACIÓN COMPLETA
+{isInfoModalOpen && (
+setIsInfoModalOpen(false)}
+          >
+e.stopPropagation()}
+              className={`w-full max-w-lg max-h-[85vh] overflow-hidden flex flex-col rounded-[2.5rem] shadow-2xl border ${isDarkMode ? "bg-slate-950 border-slate-800" : "bg-white border-slate-200"}`}
+            >
+NephroUpdate
+v1.0 Alpha
+setIsInfoModalOpen(false)}
+                  className={`p-2 rounded-full transition-colors ${isDarkMode ? "hover:bg-slate-800 text-slate-400" : "hover:bg-slate-100 text-slate-500"}`}
+                >
+Navegación & Dock
+Descubrir
+Feed principal de artículos por tópico.
+Historial
+Línea de tiempo de búsquedas anteriores.
+Biblioteca
+Artículos guardados y lectura offline.
+Voz (IA)
+Asistente Gemini Live para comandos verbales.
+Comunidad
+Red social médica, foros y encuestas.
+Cloud Sync
+Sincronización de biblioteca en la nube.
+Herramientas de Estudio
+{[
+                      {
+                        icon: Bookmark,
+                        label: "Guardar / Offline",
+                        desc: "Descarga para leer sin internet.",
+                      },
+                      {
+                        icon: StickyNote,
+                        label: "Notas Personales",
+                        desc: "Añade observaciones clínicas.",
+                      },
+                      {
+                        icon: MessageCircle,
+                        label: "Debate Clínico",
+                        desc: "Discute artículos con otros médicos.",
+                      },
+                      {
+                        icon: Quote,
+                        label: "Citar (APA)",
+                        desc: "Copia la referencia bibliográfica.",
+                      },
+                      {
+                        icon: Zap,
+                        label: "IA Enhance (Groq)",
+                        desc: "Reescribe el abstract con lenguaje claro.",
+                      },
+                      {
+                        icon: ImageIcon,
+                        label: "Visual Abstract",
+                        desc: "Genera diagrama de flujo (Mermaid).",
+                      },
+                      {
+                        icon: Sparkles,
+                        label: "Relacionados",
+                        desc: "Busca estudios similares con IA.",
+                      },
+                      {
+                        icon: Workflow,
+                        label: "Full Text Flow",
+                        desc: "Intenta acceder al texto completo.",
+                      },
+                    ].map((item, i) => (
+{item.label}
+{item.desc}
+Glosario de Estado
+{[
+                      {
+                        icon: Flame,
+                        color: "text-orange-500",
+                        label: "Alto Impacto / Tendencia",
+                      },
+                      {
+                        icon: Unlock,
+                        color: "text-emerald-500",
+                        label: "Acceso Abierto (Gratis)",
+                      },
+                      {
+                        icon: WifiOff,
+                        color: "text-emerald-500",
+                        label: "Disponible Offline",
+                      },
+                      {
+                        icon: Activity,
+                        color: "text-blue-500",
+                        label: "Cápsula Clínica",
+                      },
+                      {
+                        icon: FlaskConical,
+                        color: "text-blue-400",
+                        label: "Ensayo Clínico",
+                      },
+                      {
+                        icon: Scale,
+                        color: "text-emerald-400",
+                        label: "Guía Clínica",
+                      },
+                    ].map((item, i) => (
+{item.label}
+Motor de Búsqueda Inteligente
+NephroUpdate utiliza un motor híbrido que combina la
+                      precisión de bases de datos médicas con la flexibilidad de
+                      la IA Generativa.
+Traducción Neural:
+Puedes escribir en
+                        español (ej. "Nefropatía IgA"). El sistema lo traduce
+                        internamente a términos MeSH en inglés ("IgA
+                        Glomerulonephritis") para maximizar resultados en PubMed
+                        y OpenAlex.
+Modo PICO:
+Utiliza la búsqueda
+                        estructurada (Paciente, Intervención, Comparación,
+                        Outcome) para generar queries booleanas complejas
+                        automáticamente.
+Grounding:
+Las búsquedas se verifican
+                        contra Google Search para incluir noticias de última
+                        hora que aún no están indexadas en PubMed.
+Sobre la Aplicación
+NephroUpdate es una herramienta de descubrimiento de
+                    investigación médica de alto nivel diseñada para nefrólogos.
+                    Utiliza inteligencia artificial para rastrear, filtrar y
+                    sintetizar la evidencia más reciente de múltiples bases de
+                    datos biomédicas.
+Dirección Médica & Desarrollo
+Dr. Adalberto Peña Wilches
+Nefrólogo / Developer
+adalberto.pw@gmail.com
+Aviso Legal
+Esta aplicación es una herramienta de soporte para la
+                    investigación y educación médica. Los resúmenes generados
+                    por IA pueden contener imprecisiones. Siempre verifique la
+                    fuente original antes de tomar decisiones clínicas.
+Build: 2026.1.0-alpha • React Native / Capacitor
+{isUserSelectorOpen && (
+Seleccionar Colega
+setIsUserSelectorOpen(false)}
+                className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+{communityUsers.length === 0 ? (
+No se encontraron colegas activos
+) : (
+                communityUsers.map((u) => (
+handleShareWithUser(u)}
+                    className={`w-full p-4 rounded-2xl border text-left flex items-center gap-4 transition-all hover:scale-[1.02] active:scale-95 ${isDarkMode ? "bg-slate-800 border-slate-700 hover:border-indigo-500/50" : "bg-slate-50 border-slate-200 hover:border-indigo-500/50 hover:shadow-md"}`}
+                  >
+{u.name.charAt(0).toUpperCase()}
+{u.name}
+{u.specialty}
+Se enviarán {selectedLibraryArticles.length} artículos como
+                mensaje directo
+setVoiceModalOpen(false)}
+        contextText={summary}
+        isDarkMode={isDarkMode}
+        language={uiLanguage === "es" ? "es" : "original"}
+        apiKey={geminiApiKey}
+      />
+{activeImmersiveArticle && (
+setActiveImmersiveArticle(null)}
+            isDarkMode={isDarkMode}
+            onUpdateNote={handleUpdateNote}
+            onAddHighlight={handleAddHighlight}
+            onRemoveHighlight={handleRemoveHighlight}
+            onUpdateReadingStatus={handleUpdateReadingStatus}
+            onProposeDebate={handleProposeDebate}
+            onUpdateArticle={(updatedArticle) => {
+              handleUpdateArticle(updatedArticle.id, updatedArticle);
+              setActiveImmersiveArticle(updatedArticle);
+            }}
+            fontStyle={fontStyle}
+            language={uiLanguage === "es" ? "es" : "en"}
+            geminiApiKey={geminiApiKey}
+            onOpenAuth={() => setIsAuthModalOpen(true)}
+          />
+        )}
+setIsReaderOpen(false)}
+        article={readerArticle}
+        htmlContent={readerHtml}
+        isDarkMode={isDarkMode}
+        isLoading={isReaderLoading}
+        onSaveOffline={handleSaveOffline}
+        isAlreadyDownloaded={
+          readerArticle ? !!offlineStatus[readerArticle.id] : false
+        }
+        onUpdateReadingStatus={handleUpdateReadingStatus}
+      />
+      {viewingHistorySnapshot && (
+setViewingHistorySnapshot(null)}
+          isDarkMode={isDarkMode}
+          onToggleSave={toggleSave}
+          savedArticles={savedArticles}
+          language={uiLanguage === "es" ? "es" : "original"}
+          textSize={textSize}
+          fontStyle={fontStyle}
+          apiKey={geminiApiKey}
+          groqApiKey={groqApiKey}
+          offlineStatus={offlineStatus}
+          onReadOffline={() => {}}
+          onReadFullText={handleFetchFullText}
+          onUpdateArticle={handleUpdateArticle}
+          onOpenImmersive={setActiveImmersiveArticle}
+        />
+      )}
+{isFlashcardMode && filteredArticles.length > 0 && (
+setIsFlashcardMode(false)}
+            onOpenImmersive={setActiveImmersiveArticle}
+            onToggleSave={toggleSave}
+            savedArticles={savedArticles}
+            geminiApiKey={geminiApiKey}
+            fontStyle={fontStyle}
+          />
+        )}
+setIsAuthModalOpen(false)}
+        isDarkMode={isDarkMode}
+      />
+{toast && (
+{toast.type === "success" ? (
+)}
+            {toast.message}
+);
+}
+
+export default function App() {
+  return (

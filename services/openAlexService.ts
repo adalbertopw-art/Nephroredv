@@ -1,4 +1,5 @@
 
+import { Capacitor } from '@capacitor/core';
 import { ResearchUpdate, Article, Topic } from "../types";
 import { calculateBaseClinicalScore } from "../constants/searchConstants";
 import { getOpenAlexTopicQuery } from "../utils/searchContexts";
@@ -17,6 +18,13 @@ const reconstructAbstract = (invertedIndex: any): string => {
     return words.join(" ");
 };
 
+const resolveApiUrl = (url: string): string => {
+    if (Capacitor.isNativePlatform()) {
+        return url;
+    }
+    return `/api/proxy?url=${encodeURIComponent(url)}`;
+};
+
 const fetchWithProxyFallback = async (url: string): Promise<any> => {
     const urlObj = new URL(url);
     if (!urlObj.searchParams.has('mailto')) {
@@ -25,17 +33,17 @@ const fetchWithProxyFallback = async (url: string): Promise<any> => {
     const finalUrl = urlObj.toString();
 
     try {
-        const response = await fetch(finalUrl);
-        if (!response.ok) throw new Error(`Direct HTTP ${response.status}`);
+        const proxyUrl = resolveApiUrl(finalUrl);
+        const response = await fetch(proxyUrl);
+        if (!response.ok) throw new Error(`Proxy HTTP ${response.status}`);
         return await response.json();
-    } catch (directError) {
+    } catch (proxyError) {
         try {
-            const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(finalUrl)}`;
-            const response = await fetch(proxyUrl);
-            if (!response.ok) throw new Error(`Proxy HTTP ${response.status}`);
+            const response = await fetch(finalUrl);
+            if (!response.ok) throw new Error(`Direct HTTP ${response.status}`);
             return await response.json();
-        } catch (proxyError) {
-            throw directError;
+        } catch (directError) {
+            throw proxyError;
         }
     }
 };
@@ -49,7 +57,8 @@ export const fetchOpenAlexArticles = async (
 ): Promise<ResearchUpdate> => {
   try {
     const mainTerm = customQuery || getOpenAlexTopicQuery(topic);
-    const searchTerm = customQuery ? `(${mainTerm})` : `(${mainTerm}) AND (nephrology OR kidney OR renal)`;
+    const kidneyContext = '(nephrology OR kidney OR renal)';
+    const searchTerm = customQuery ? `(${mainTerm}) AND ${kidneyContext}` : `(${mainTerm}) AND ${kidneyContext}`;
     const encodedTerm = encodeURIComponent(searchTerm);
     
     // Calculate page from offset (assuming 200 per page as below)
@@ -63,12 +72,22 @@ export const fetchOpenAlexArticles = async (
         filter = `&filter=from_publication_date:${startYear}-01-01`;
     }
 
-    let searchParam = `search=${encodedTerm}`;
-    if (customQuery) {
+    let searchParam = '';
+    const isAuthorSearch = customQuery && customQuery.startsWith("AUTHOR:");
+    if (isAuthorSearch) {
+        const authorName = customQuery.replace("AUTHOR:", "").replace(/"/g, "").trim();
+        searchParam = '';
+        const authorFilter = `raw_author_name.search:${encodeURIComponent(authorName)}`;
+        filter = filter ? `${filter},${authorFilter}` : `filter=${authorFilter}`;
+    } else if (customQuery) {
         // Restrict to title and abstract for custom queries to improve relevance
         searchParam = '';
+        const encodedTerm = encodeURIComponent(`${mainTerm} nephrology`);
         const titleAbstractFilter = `title_and_abstract.search:${encodedTerm}`;
         filter = filter ? `${filter},${titleAbstractFilter}` : `filter=${titleAbstractFilter}`;
+    } else {
+        const encodedTerm = encodeURIComponent(`${mainTerm}`);
+        searchParam = `search=${encodedTerm}`;
     }
 
     const url = `${OPENALEX_API_BASE}?${searchParam}${searchParam && filter ? '&' : ''}${filter.replace(/^&/, '')}&sort=publication_date:desc&per-page=200&page=${page}&select=id,title,type,open_access,cited_by_count,primary_location,publication_date,doi,abstract_inverted_index,authorships,publication_year,concepts`;
@@ -90,10 +109,12 @@ export const fetchOpenAlexArticles = async (
       const category = detectArticleCategory(title, abstract, sourceName);
 
       let authorsStr = "";
+      let fullAuthorsStr = "";
       if (item.authorships && item.authorships.length > 0) {
-          const names = item.authorships.slice(0, 3).map((a: any) => a.author.display_name);
+          const names = item.authorships.slice(0, 3).map((a: any) => a.author?.display_name || '');
           if (item.authorships.length > 3) names.push("et al");
           authorsStr = names.join(", ");
+          fullAuthorsStr = item.authorships.map((a: any) => a.author?.display_name || '').filter(Boolean).join(", ");
       }
 
       const keywords = (item.concepts || []).map((c: any) => c.display_name);
@@ -104,12 +125,14 @@ export const fetchOpenAlexArticles = async (
         summary: summary,
         source: sourceName,
         authors: authorsStr, 
+        fullAuthors: fullAuthorsStr || authorsStr,
         url: item.doi || item.primary_location?.landing_page_url || item.id,
         date: item.publication_date || 'N/A',
         category: category,
         relevanceScore: relevance,
         topic: typeof topic === 'string' ? topic : 'General',
-        isFree: !!item.openAccess?.is_oa,
+        isFree: !!item.open_access?.is_oa,
+        pdfUrl: item.open_access?.oa_url && item.open_access.oa_url.endsWith('.pdf') ? item.open_access.oa_url : undefined,
         keywords: keywords.length > 0 ? keywords : undefined
       };
     });

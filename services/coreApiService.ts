@@ -13,9 +13,11 @@ export const fetchCoreArticles = async (
 ): Promise<ResearchUpdate> => {
   try {
     const term = customQuery || getGeneralTopicQuery(topic);
-    const query = customQuery 
-        ? `(${term})` 
-        : `(${term}) AND (nephrology OR kidney)`;
+    const isAuthorSearch = customQuery && customQuery.startsWith("AUTHOR:");
+    let query = `(${term}) AND (nephrology OR kidney OR renal)`;
+    if (isAuthorSearch) {
+        query = `authors:"${customQuery.replace("AUTHOR:", "").replace(/"/g, "").trim()}"`;
+    }
     
     try {
         const headers: HeadersInit = {
@@ -53,8 +55,11 @@ export const fetchCoreArticles = async (
           const relevance = calculateBaseClinicalScore(title, abstract, source, typeof topic === 'string' ? topic : '', 0, year);
 
           let authorsStr = "";
+          let fullAuthorsStr = "";
           if (item.authors && item.authors.length > 0) {
-              authorsStr = item.authors.map((a: any) => a.name).slice(0,3).join(', ');
+              const names = item.authors.map((a: any) => a.name || '').filter(Boolean);
+              authorsStr = names.slice(0,3).join(', ') + (names.length > 3 ? ', et al' : '');
+              fullAuthorsStr = names.join(", ");
           }
           
           const link = item.downloadUrl || item.fullTextIdentifier || `https://core.ac.uk/display/${item.id}`;
@@ -65,6 +70,7 @@ export const fetchCoreArticles = async (
             summary: abstract,
             source: source,
             authors: authorsStr,
+            fullAuthors: fullAuthorsStr || authorsStr,
             url: link,
             date: date,
             category: 'Research',

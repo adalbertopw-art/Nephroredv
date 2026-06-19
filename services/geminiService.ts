@@ -18,12 +18,15 @@ const sanitizeUrl = (url: string): string => {
  * Initializes the AI client.
  * Prioritizes the user-provided key, falls back to the environment variable.
  */
-const getAIClient = (apiKey?: string) => {
-  const key = apiKey || process.env.API_KEY;
-  if (!key) {
-      console.warn("No Gemini API Key provided.");
+const getAIClient = (apiKey?: string, silentMode = false) => {
+  const key = apiKey;
+  if (!key || typeof key !== "string" || key.trim() === "") {
+      if (typeof window !== 'undefined' && !silentMode) {
+          window.dispatchEvent(new CustomEvent('REQUIRE_API_KEY', { detail: { provider: 'gemini' } }));
+      }
+      throw new Error("MISSING_API_KEY");
   }
-  return new GoogleGenAI({ apiKey: key || "" });
+  return new GoogleGenAI({ apiKey: key });
 };
 
 async function fetchWithRetry<T>(fn: () => Promise<T>, retries = 3, delay = 1000): Promise<T> {
@@ -58,7 +61,7 @@ export const verifyGeminiKey = async (apiKey?: string): Promise<boolean> => {
     try {
         const ai = getAIClient(apiKey);
         await fetchWithRetry(() => ai.models.generateContent({
-            model: "gemini-3-flash-preview",
+            model: "gemini-3.5-flash",
             contents: "Test",
         }));
         return true;
@@ -87,7 +90,7 @@ export const generateGeminiSummary = async (
     
     const prompt = `${systemPrompt}\n\nTopic: ${topic}\n\nStudies:\n${contextArticles}`;
     const response = await fetchWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
-        model: "gemini-3-flash-preview",
+        model: "gemini-3.5-flash",
         contents: prompt,
     }));
     return response.text || "";
@@ -118,7 +121,7 @@ export const searchMedicalGoogle = async (
 
     try {
         const response = await fetchWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
-            model: "gemini-3-pro-preview",
+            model: "gemini-3.1-pro-preview",
             contents: prompt,
             config: {
                 tools: [{ googleSearch: {} }],
@@ -171,8 +174,9 @@ export const searchMedicalGoogle = async (
 
 export const translateSimpleQuery = async (query: string, apiKey?: string): Promise<string> => {
     if (!query) return query;
-    const ai = getAIClient(apiKey);
-    const prompt = `Act as an expert Nephrology research librarian. Refine the following manual search query:
+    try {
+        const ai = getAIClient(apiKey, true);
+        const prompt = `Act as an expert Nephrology research librarian. Refine the following manual search query:
     1. Translate the query from Spanish (or any language) to English.
     2. Map the concepts to highly specific, relevant MeSH (Medical Subject Headings) terms focused on Nephrology and related conditions.
     3. Combine them using standard Boolean operators (AND, OR).
@@ -186,28 +190,27 @@ export const translateSimpleQuery = async (query: string, apiKey?: string): Prom
     - No extra text, quotes, or explanation.
     
     Query: "${query}"`;
-    
-    try {
+        
         const response = await fetchWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
-            model: "gemini-3-flash-preview",
-            contents: prompt
-        }));
-        return response.text?.trim() || query;
-    } catch (e) {
-        return query;
-    }
+             model: "gemini-3.5-flash",
+             contents: prompt
+         }));
+         return response.text?.trim() || query;
+     } catch (e) {
+         return query;
+     }
 };
 
 export const refinePicoTerms = async (
     p: string, i: string, c: string, o: string, apiKey?: string
 ): Promise<{ p: string; i: string; c: string; o: string }> => {
-    const ai = getAIClient(apiKey);
-    const prompt = `Refine and translate PICO terms for a broad medical database search into highly specific English medical keywords: P:"${p}" I:"${i}" C:"${c}" O:"${o}". 
+    try {
+        const ai = getAIClient(apiKey);
+        const prompt = `Refine and translate PICO terms for a broad medical database search into highly specific English medical keywords: P:"${p}" I:"${i}" C:"${c}" O:"${o}". 
     Ensure terms are standard medical English (MeSH-aligned keywords) but avoid using bracketed tags like [MeSH] to maintain compatibility with non-PubMed APIs.
     Return JSON.`;
-    try {
         const response = await fetchWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
-            model: "gemini-3-flash-preview",
+            model: "gemini-3.5-flash",
             contents: prompt,
             config: { responseMimeType: "application/json" }
         }));
@@ -220,13 +223,13 @@ export const refinePicoTerms = async (
 export const generateVisualAbstract = async (
     title: string, summary: string, language: Language, apiKey?: string
 ): Promise<string | null> => {
-    const ai = getAIClient(apiKey);
-    const prompt = `Act as a data visualization expert. Create a MERMAID.JS flowchart that visually summarizes the methods and results of this study. 
+    try {
+        const ai = getAIClient(apiKey);
+        const prompt = `Act as a data visualization expert. Create a MERMAID.JS flowchart that visually summarizes the methods and results of this study. 
     Title: ${title}. Abstract: ${summary}. 
     Return ONLY the code for the diagram, no explanations or markdown blocks.`;
-    try {
         const response = await fetchWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
-            model: "gemini-3-flash-preview",
+            model: "gemini-3.5-flash",
             contents: prompt
         }));
         return response.text || null;
@@ -239,17 +242,18 @@ export const fetchClinicalSuggestions = async (
     query: string,
     apiKey?: string
 ): Promise<string[]> => {
-    if (!query || query.length < 2) return [];
+    if (!query || query.length < 2 || !apiKey) return [];
     
-    const ai = getAIClient(apiKey);
-    const prompt = `Act as a medical autocomplete system. The user is typing a search query related to Nephrology or general medicine: "${query}".
+    try {
+        // We don't want to alert the user repeatedly while typing
+        const ai = getAIClient(apiKey, true);
+        const prompt = `Act as a medical autocomplete system. The user is typing a search query related to Nephrology or general medicine: "${query}".
     Suggest 5 highly relevant, specific medical terms, drug names, diseases, or clinical concepts that complete or relate to this query.
     Return ONLY a JSON array of strings. No markdown, no explanations.
     Example: ["diabetic nephropathy", "dialysis", "diuretics"]`;
 
-    try {
         const response = await fetchWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
-            model: "gemini-3-flash-preview",
+            model: "gemini-3.5-flash",
             contents: prompt,
             config: { responseMimeType: "application/json" }
         }));
@@ -268,11 +272,11 @@ export const fetchLatestNephrologyNews = async (
   customQuery?: string,
   apiKey?: string
 ): Promise<ResearchUpdate> => {
-  const ai = getAIClient(apiKey);
-  const prompt = `Find top scientific Nephrology developments for 2026 regarding "${customQuery || topic}" using Google Search. Focus on breakthroughs from 2025 and 2026. Return JSON.`;
   try {
+    const ai = getAIClient(apiKey);
+    const prompt = `Find top scientific Nephrology developments for 2026 regarding "${customQuery || topic}" using Google Search. Focus on breakthroughs from 2025 and 2026. Return JSON.`;
     const response = await fetchWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
-      model: "gemini-3-pro-preview",
+      model: "gemini-3.1-pro-preview",
       contents: prompt,
       config: {
         tools: [{ googleSearch: {} }],
@@ -298,7 +302,7 @@ export const fetchRelatedArticles = async (articleTitle: string, language: Langu
     const ai = getAIClient(apiKey);
     const prompt = `Find 3 high-impact related clinical articles for: "${articleTitle}". Return JSON.`;
     const response = await fetchWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
-      model: "gemini-3-pro-preview",
+      model: "gemini-3.1-pro-preview",
       contents: prompt,
       config: { tools: [{ googleSearch: {} }], responseMimeType: "application/json" },
     }));
@@ -315,8 +319,9 @@ export const generateDeepAnalysis = async (
     content: string, // Full text or Summary
     apiKey?: string
 ): Promise<DeepAnalysisResult | null> => {
-    const ai = getAIClient(apiKey);
-    const prompt = `Act as an expert Academic Nephrologist. Perform a rigorous Methodological and Clinical Analysis of the following study.
+    try {
+        const ai = getAIClient(apiKey);
+        const prompt = `Act as an expert Academic Nephrologist. Perform a rigorous Methodological and Clinical Analysis of the following study.
     
     Target Structure (JSON):
     1. keyResults: Array of objects { group: "Intervention/Control", outcome: "Primary Outcome", pValue: "0.0x" }. Summarize quantitative data table.
@@ -328,9 +333,8 @@ export const generateDeepAnalysis = async (
     Study Title: ${title}
     Study Content: ${content.substring(0, 15000)} (Truncated if too long)`;
 
-    try {
         const response = await fetchWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
-            model: "gemini-3-pro-preview",
+            model: "gemini-3.1-pro-preview",
             contents: prompt,
             config: { responseMimeType: "application/json" }
         }));
@@ -347,8 +351,9 @@ export const chatWithArticle = async (
     context: string, // Article full text or summary
     apiKey?: string
 ): Promise<string> => {
-    const ai = getAIClient(apiKey);
-    const systemPrompt = `You are an expert Nephrology Research Assistant. You are analyzing a specific scientific article.
+    try {
+        const ai = getAIClient(apiKey);
+        const systemPrompt = `You are an expert Nephrology Research Assistant. You are analyzing a specific scientific article.
     Context:
     ${context.substring(0, 20000)}...
     
@@ -357,18 +362,17 @@ export const chatWithArticle = async (
     2. Be precise with data (doses, p-values, N).
     3. Keep answers concise and clinical.`;
 
-    const historyParts = history.map(h => ({
-        role: h.role,
-        parts: [{ text: h.content }]
-    }));
+        const historyParts = history.map(h => ({
+            role: h.role,
+            parts: [{ text: h.content }]
+        }));
 
-    const chatSession = ai.chats.create({
-        model: "gemini-3-flash-preview",
-        config: { systemInstruction: systemPrompt },
-        history: historyParts
-    });
+        const chatSession = ai.chats.create({
+            model: "gemini-3.5-flash",
+            config: { systemInstruction: systemPrompt },
+            history: historyParts
+        });
 
-    try {
         const result = await chatSession.sendMessage({ message: newMessage });
         return result.text || "No response generated.";
     } catch (e) {
@@ -384,13 +388,14 @@ export const generateModeratorComment = async (
     apiKey?: string,
     isGeneralForum?: boolean
 ): Promise<string> => {
-    const ai = getAIClient(apiKey);
-    const threadContext = comments.map(c => `${c.user_name} said: ${c.content}`).join("\n");
-    
-    let prompt = '';
-    
-    if (isGeneralForum) {
-        prompt = `Act as an Expert Clinical Consultant in a Medical Community Forum.
+    try {
+        const ai = getAIClient(apiKey);
+        const threadContext = comments.map(c => `${c.user_name} said: ${c.content}`).join("\n");
+        
+        let prompt = '';
+        
+        if (isGeneralForum) {
+            prompt = `Act as an Expert Clinical Consultant in a Medical Community Forum.
         Your goal is to provide evidence-based insights, differential diagnoses, or point out clinical guidelines relevant to the ongoing discussion.
         
         Current Discussion:
@@ -404,8 +409,8 @@ export const generateModeratorComment = async (
         5. Maintain a professional, collegial tone.
         
         Generate the consultant comment in Spanish.`;
-    } else {
-        prompt = `Act as a "Devil's Advocate" Scientific Moderator in a Journal Club.
+        } else {
+            prompt = `Act as a "Devil's Advocate" Scientific Moderator in a Journal Club.
         Your goal is to break confirmation bias and challenge weak arguments in the discussion thread politely but rigorously.
         
         Article: ${articleTitle}
@@ -421,11 +426,10 @@ export const generateModeratorComment = async (
         4. Do NOT be rude. Be purely academic.
         
         Generate the moderator comment in Spanish.`;
-    }
+        }
 
-    try {
         const response = await fetchWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
-            model: "gemini-3-flash-preview",
+            model: "gemini-3.5-flash",
             contents: prompt
         }));
         return response.text || "Interesting points. However, have we considered the limitations of the sample size in this cohort?";

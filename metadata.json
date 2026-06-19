@@ -3,5 +3,8 @@
   "description": "A high-end medical research discovery tool focused on the latest developments in Nephrology, utilizing Google Search grounding to fetch real-time data from PubMed and academic sources.",
   "requestFramePermissions": [
     "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
   ]
 }

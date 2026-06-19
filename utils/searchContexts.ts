@@ -38,47 +38,47 @@ export const getPubMedTopicQuery = (topic: Topic | string): string => {
 export const getOpenAlexTopicQuery = (topic: Topic | string): string => {
   switch (topic) {
     case 'Renal Transplant':
-      return '(concepts.id:C168038930 OR title:"kidney transplantation")';
+      return '"kidney transplantation"';
     case 'Acute Kidney Injury':
-      return '(concepts.id:C50294073 OR title:"acute kidney injury") NOT (title:chronic OR title:dialysis)';
+      return '"acute kidney injury"';
     case 'Chronic Kidney Disease':
-      return '(concepts.id:C152309569 OR title:"chronic kidney disease")';
+      return '"chronic kidney disease"';
     case 'Glomerular Diseases':
-      return '(concepts.id:C55738837 OR title:glomerulonephritis OR title:"iga nephropathy")';
+      return 'glomerulonephritis OR "iga nephropathy"';
     case 'Hypertension':
-      return '(concepts.id:C1459194 AND (title:renal OR title:kidney))';
+      return '"renal hypertension" OR "hypertensive nephropathy"';
     case 'Renal Support Therapies':
-      return '(concepts.id:C29633887 OR title:hemodialysis OR title:"peritoneal dialysis")';
+      return 'hemodialysis OR "peritoneal dialysis"';
     case 'Onco-Nephrology':
-      return '(title:"kidney cancer" OR title:"renal cell carcinoma" OR title:"onco-nephrology")';
+      return '"kidney cancer" OR "renal cell carcinoma"';
     case 'General':
     default:
       // Broadened to the general Nephrology concept without restricting by publication type
-      return '(concepts.id:C127413603 OR title:nephrology OR title:kidney)';
+      return 'nephrology OR kidney';
   }
 };
 
-// --- EuropePMC (MESH_HEADING Syntax) ---
+// --- EuropePMC (MESH Syntax) ---
 export const getEPMCTopicQuery = (topic: Topic | string): string => {
   switch (topic) {
     case 'Renal Transplant':
-      return '(MESH_HEADING:"Kidney Transplantation" OR TITLE:"Kidney Transplantation")';
+      return '(MESH:"Kidney Transplantation" OR TITLE:"Kidney Transplantation")';
     case 'Acute Kidney Injury':
-      return '(MESH_HEADING:"Acute Kidney Injury" OR TITLE:"Acute Kidney Injury" OR TITLE:"AKI") NOT TITLE:"Chronic"';
+      return '(MESH:"Acute Kidney Injury" OR TITLE:"Acute Kidney Injury" OR TITLE:"AKI") NOT TITLE:"Chronic"';
     case 'Chronic Kidney Disease':
-      return '(MESH_HEADING:"Renal Insufficiency, Chronic" OR TITLE:"Chronic Kidney Disease")';
+      return '(MESH:"Renal Insufficiency, Chronic" OR TITLE:"Chronic Kidney Disease")';
     case 'Glomerular Diseases':
-      return '(MESH_HEADING:"Glomerulonephritis" OR TITLE:"Glomerulonephritis")';
+      return '(MESH:"Glomerulonephritis" OR TITLE:"Glomerulonephritis")';
     case 'Hypertension':
-      return '(MESH_HEADING:"Hypertension, Renal" OR TITLE:"Renal Hypertension")';
+      return '(MESH:"Hypertension, Renal" OR TITLE:"Renal Hypertension")';
     case 'Renal Support Therapies':
-      return '(MESH_HEADING:"Renal Dialysis" OR TITLE:"Hemodialysis" OR TITLE:"Peritoneal Dialysis")';
+      return '(MESH:"Renal Dialysis" OR TITLE:"Hemodialysis" OR TITLE:"Peritoneal Dialysis")';
     case 'Onco-Nephrology':
-      return '(MESH_HEADING:"Kidney Neoplasms" OR TITLE:"Renal Cell Carcinoma")';
+      return '(MESH:"Kidney Neoplasms" OR TITLE:"Renal Cell Carcinoma")';
     case 'General':
     default:
       // Broadened to general Kidney/Nephrology terms
-      return '(MESH_HEADING:"Kidney Diseases" OR TITLE:"Nephrology" OR TITLE:"Kidney")';
+      return '(MESH:"Kidney Diseases" OR TITLE:"Nephrology" OR TITLE:"Kidney")';
   }
 };
 
@@ -86,48 +86,45 @@ export const getEPMCTopicQuery = (topic: Topic | string): string => {
 export const getS2TopicQuery = (topic: Topic | string): string => {
     switch (topic) {
       case 'Renal Transplant':
-        return '"kidney transplantation"|"renal transplantation"';
+        return 'kidney transplantation';
       case 'Acute Kidney Injury':
-        return '"acute kidney injury"|"AKI" -chronic';
+        return 'acute kidney injury';
       case 'Chronic Kidney Disease':
-        return '"chronic kidney disease"|"CKD"';
+        return 'chronic kidney disease';
       case 'Glomerular Diseases':
-        return '"glomerulonephritis"|"iga nephropathy"';
+        return 'glomerulonephritis';
       case 'Hypertension':
-        return '"renal hypertension"';
+        return 'renal hypertension';
       case 'Renal Support Therapies':
-        return '"hemodialysis"|"peritoneal dialysis"';
+        return 'hemodialysis';
       case 'Onco-Nephrology':
-        return '"renal cell carcinoma"|"kidney cancer"';
+        return 'kidney cancer';
       case 'General':
       default:
-        // Broadened to general Nephrology terms
-        return '"Nephrology"|"Kidney"|"Renal"';
+        return 'nephrology';
     }
 };
 
 // --- LILACS / BVS (DeCS/MeSH simple boolean) ---
 export const getLilacsTopicQuery = (topic: Topic | string): string => {
-  // LILACS search engine works best with simple boolean descriptors
-  // It searches in English, Spanish and Portuguese simultaneously via DeCS
   switch (topic) {
     case 'Renal Transplant':
-      return '(ti:"kidney transplantation" OR ti:"trasplante de riñon" OR ti:"transplante de rim" OR mh:"Kidney Transplantation")';
+      return '(tw:"kidney transplantation") OR (tw:"trasplante de rinon") OR (tw:"transplante de rim")';
     case 'Acute Kidney Injury':
-      return '(ti:"acute kidney injury" OR ti:"lesion renal aguda" OR ti:"injuria renal aguda" OR mh:"Acute Kidney Injury")';
+      return '(tw:"acute kidney injury") OR (tw:"lesion renal aguda") OR (tw:"injuria renal aguda")';
     case 'Chronic Kidney Disease':
-      return '(ti:"chronic kidney disease" OR ti:"enfermedad renal cronica" OR ti:"insuficiencia renal cronica" OR mh:"Renal Insufficiency, Chronic")';
+      return '(tw:"chronic kidney disease") OR (tw:"enfermedad renal cronica") OR (tw:"insuficiencia renal cronica")';
     case 'Glomerular Diseases':
-      return '(ti:"glomerulonephritis" OR ti:"glomerulonefritis" OR ti:"iga nephropathy" OR mh:"Glomerulonephritis")';
+      return '(tw:"glomerulonephritis") OR (tw:"glomerulonefritis") OR (tw:"iga nephropathy")';
     case 'Hypertension':
-      return '(ti:"renal hypertension" OR ti:"hipertension renal" OR mh:"Hypertension, Renal")';
+      return '(tw:"renal hypertension") OR (tw:"hipertension renal")';
     case 'Renal Support Therapies':
-      return '(ti:"hemodialysis" OR ti:"hemodiálisis" OR ti:"peritoneal dialysis" OR mh:"Renal Dialysis")';
+      return '(tw:"hemodialysis") OR (tw:"hemodialisis") OR (tw:"peritoneal dialysis")';
     case 'Onco-Nephrology':
-      return '(ti:"renal cell carcinoma" OR ti:"carcinoma de celulas renales" OR ti:"kidney neoplasms")';
+      return '(tw:"renal cell carcinoma") OR (tw:"carcinoma de celulas renales") OR (tw:"kidney neoplasms")';
     case 'General':
     default:
-      return '(nephrology OR nefrologia OR kidney OR riñon OR rim)';
+      return '(tw:"nephrology") OR (tw:"nefrologia") OR (tw:"kidney") OR (tw:"rinon") OR (tw:"rim")';
   }
 };
 
