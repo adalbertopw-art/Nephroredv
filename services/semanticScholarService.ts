@@ -35,6 +35,82 @@ const fetchWithRetry = async (url: string, headers: HeadersInit = {}, retries = 
     }
 };
 
+export const fetchArticleReferences = async (articleId: string, doi?: string, apiKey?: string): Promise<Article[]> => {
+    let s2Id = articleId;
+    if (articleId.startsWith('s2-')) {
+        s2Id = articleId.replace('s2-', '');
+    } else if (articleId.startsWith('pmid-')) {
+        s2Id = `PMID:${articleId.replace('pmid-', '')}`;
+    } else if (articleId.startsWith('pm-')) {
+        s2Id = `PMID:${articleId.replace('pm-', '')}`;
+    } else if (doi) {
+        s2Id = `DOI:${doi}`;
+    } else {
+        // Semantic Scholar might not find it without proper ID format, but we can try
+        s2Id = articleId;
+    }
+
+    const fields = 'title,abstract,year,authors,url,isOpenAccess,openAccessPdf';
+    let url = `${S2_API_BASE.replace('/search', '')}/${s2Id}/references?fields=contexts,intents,isInfluential,citedPaper.${fields.split(',').join(',citedPaper.')}&limit=50`;
+
+    if (!Capacitor.isNativePlatform()) {
+        url = `/api/proxy?url=${encodeURIComponent(url)}`;
+    }
+
+    const headers: HeadersInit = {};
+    if (apiKey) headers['x-api-key'] = apiKey;
+
+    try {
+        const response = await fetchWithRetry(url, headers, 1, 1000);
+        if (!response.ok) {
+            console.warn(`S2 References API failed: ${response.status}`);
+            return [];
+        }
+        
+        const data = await response.json();
+        const results = data.data || [];
+        
+        const articles: Article[] = results
+            .filter((item: any) => item.citedPaper && item.citedPaper.title)
+            .map((item: any) => {
+                const cited = item.citedPaper;
+                const title = cited.title || 'Untitled';
+                const abstract = cited.abstract || "";
+                const category = detectArticleCategory(title, abstract, 'Semantic Scholar');
+                
+                let authorsStr = "";
+                let fullAuthorsStr = "";
+                if (cited.authors && cited.authors.length > 0) {
+                    const names = cited.authors.slice(0, 5).map((a: any) => a.name || '');
+                    if (cited.authors.length > 5) names.push("et al");
+                    authorsStr = names.join(", ");
+                    fullAuthorsStr = cited.authors.map((a: any) => a.name || '').filter(Boolean).join(", ");
+                }
+
+                return {
+                    id: cited.paperId ? `s2-${cited.paperId}` : `ref-${Math.random().toString(36).substr(2, 9)}`,
+                    title: title,
+                    summary: abstract || "No abstract available.",
+                    source: 'Semantic Scholar',
+                    authors: authorsStr,
+                    fullAuthors: fullAuthorsStr || authorsStr,
+                    url: cited.openAccessPdf?.url || cited.url || `https://www.semanticscholar.org/paper/${cited.paperId}`,
+                    date: cited.year?.toString() || 'N/A',
+                    category: category,
+                    relevanceScore: 50, // Reference default
+                    topic: 'Reference',
+                    isFree: !!(cited.openAccessPdf || cited.isOpenAccess),
+                    pdfUrl: cited.openAccessPdf?.url,
+                };
+            });
+            
+        return articles;
+    } catch (error) {
+        console.error("Failed to fetch references:", error);
+        return [];
+    }
+};
+
 export const fetchSemanticScholarArticles = async (
   topic: Topic | string,
   language: 'es' | 'original' = 'original',

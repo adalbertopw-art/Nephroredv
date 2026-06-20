@@ -10,6 +10,7 @@ import PdfViewer from './PdfViewer';
 import ArticleChat from './ArticleChat';
 import SocialJournalClub from './SocialJournalClub';
 import { generateDeepAnalysis } from '../services/geminiService';
+import { fetchArticleReferences } from '../services/semanticScholarService';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ImmersiveReaderProps {
@@ -28,7 +29,7 @@ interface ImmersiveReaderProps {
   onOpenAuth?: () => void;
 }
 
-type Tab = 'text' | 'pdf' | 'chat' | 'analysis' | 'club';
+type Tab = 'text' | 'pdf' | 'web' | 'chat' | 'analysis' | 'club' | 'references';
 
 const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({ 
   article, 
@@ -63,6 +64,12 @@ const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
   
   const [analysisData, setAnalysisData] = useState<DeepAnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  
+  // References State
+  const [references, setReferences] = useState<Article[]>([]);
+  const [isFetchingReferences, setIsFetchingReferences] = useState(false);
+  const [hasFetchedReferences, setHasFetchedReferences] = useState(false);
+
   const journalLogo = getJournalLogo(article?.source || '');
 
   const translations = {
@@ -90,9 +97,11 @@ const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
       tabs: {
         text: 'Texto',
         pdf: 'PDF',
+        web: 'Web',
         chat: 'Chat',
         analysis: 'Análisis',
-        club: 'Club'
+        club: 'Club',
+        references: 'Referencias'
       }
     },
     en: {
@@ -119,14 +128,30 @@ const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
       tabs: {
         text: 'Text',
         pdf: 'PDF',
+        web: 'Web',
         chat: 'Chat',
         analysis: 'Analysis',
-        club: 'Club'
+        club: 'Club',
+        references: 'References'
       }
     }
   };
 
   const t = translations[language];
+
+  useEffect(() => {
+    if (activeTab === 'references' && !hasFetchedReferences && article) {
+        setIsFetchingReferences(true);
+        fetchArticleReferences(article.id).then((refs) => {
+            setReferences(refs);
+            setHasFetchedReferences(true);
+        }).catch(err => {
+            console.error(err);
+        }).finally(() => {
+            setIsFetchingReferences(false);
+        });
+    }
+  }, [activeTab, article, hasFetchedReferences]);
 
   const displayImageUrl = (article && (!article.imageUrl || imageError))
     ? `https://picsum.photos/seed/${article.id}/1200/600?blur=2`
@@ -324,11 +349,13 @@ const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                 {/* Desktop Tabs */}
                 <div className={`hidden md:flex p-1 rounded-xl border ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-slate-100 border-slate-200'}`}>
                     {[
-                        { id: 'text', label: 'Texto', icon: FileText },
-                        { id: 'pdf', label: 'PDF', icon: PdfIcon, disabled: !article.localPdfData },
-                        { id: 'chat', label: 'Chat', icon: MessageSquare },
-                        { id: 'analysis', label: 'Análisis', icon: BarChart2 },
-                        { id: 'club', label: 'Club', icon: MessageCircle }
+                        { id: 'text', label: t.tabs.text, icon: FileText },
+                        { id: 'pdf', label: t.tabs.pdf, icon: PdfIcon, disabled: !article.localPdfData },
+                        { id: 'web', label: t.tabs.web, icon: ExternalLink },
+                        { id: 'chat', label: t.tabs.chat, icon: MessageSquare },
+                        { id: 'analysis', label: t.tabs.analysis, icon: BarChart2 },
+                        { id: 'club', label: t.tabs.club, icon: MessageCircle },
+                        { id: 'references', label: t.tabs.references, icon: BookOpen }
                     ].map(tab => (
                         <button 
                             key={tab.id} 
@@ -396,13 +423,15 @@ const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
         </div>
 
         {/* Mobile Floating Bottom Bar - Glassmorphism */}
-        <div className={`md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[110] flex items-center gap-2 p-1.5 rounded-full border shadow-2xl backdrop-blur-[40px] saturate-[2] transition-all duration-500 ${isScrollingDown ? 'opacity-0 pointer-events-none translate-y-20' : 'opacity-100 translate-y-0'}`} style={{ backgroundColor: isDarkMode ? 'rgba(2, 6, 23, 0.5)' : 'rgba(255, 255, 255, 0.5)', borderColor: isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.4)' }}>
+        <div className={`md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[110] flex items-center gap-2 p-1.5 rounded-full border shadow-2xl backdrop-blur-[40px] saturate-[2] transition-all duration-500 overflow-x-auto no-scrollbar max-w-[90vw] ${isScrollingDown ? 'opacity-0 pointer-events-none translate-y-20' : 'opacity-100 translate-y-0'}`} style={{ backgroundColor: isDarkMode ? 'rgba(2, 6, 23, 0.5)' : 'rgba(255, 255, 255, 0.5)', borderColor: isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.4)' }}>
              {[
-                { id: 'text', icon: FileText, label: 'Text' },
-                { id: 'pdf', icon: PdfIcon, disabled: !article.localPdfData, label: 'PDF' },
-                { id: 'chat', icon: MessageSquare, label: 'Chat' },
-                { id: 'analysis', icon: BarChart2, label: 'Analysis' },
-                { id: 'club', icon: MessageCircle, label: 'Club' }
+                { id: 'text', icon: FileText, label: t.tabs.text },
+                { id: 'pdf', icon: PdfIcon, disabled: !article.localPdfData, label: t.tabs.pdf },
+                { id: 'web', icon: ExternalLink, label: t.tabs.web },
+                { id: 'chat', icon: MessageSquare, label: t.tabs.chat },
+                { id: 'analysis', icon: BarChart2, label: t.tabs.analysis },
+                { id: 'club', icon: MessageCircle, label: t.tabs.club },
+                { id: 'references', icon: BookOpen, label: t.tabs.references }
             ].map(tab => (
                 <button 
                     key={tab.id} 
@@ -485,12 +514,49 @@ const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                                 {abstractWithHighlights}
                             </div>
 
+                            {(targetUrl || article.url) && (
+                                <div className="mt-8 flex justify-center">
+                                    <button
+                                        onClick={() => setActiveTab('web')}
+                                        className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-md hover:shadow-lg active:scale-95 ${isDarkMode ? 'bg-slate-800 text-blue-400 hover:bg-slate-700' : 'bg-slate-100 text-blue-600 hover:bg-slate-200'}`}
+                                    >
+                                        <ExternalLink size={16} />
+                                        {language === 'es' ? 'Leer Artículo Original en Web' : 'Read Full Original Web Article'}
+                                    </button>
+                                </div>
+                            )}
+
                             <div className="pt-20 pb-32 flex flex-col items-center opacity-30">
                                 <ChevronUp size={24} className={swipeCount > 0 ? "animate-bounce" : ""} />
                                 <span className="text-[10px] font-black uppercase tracking-[0.3em] mt-2">{swipeCount > 0 ? "Release to Close" : "End of Article"}</span>
                             </div>
                         </div>
                     </div>
+                </div>
+            )}
+
+            {/* WEB VIEW (Iframe embedded) */}
+            {activeTab === 'web' && (targetUrl || article.url) && (
+                <div className="flex-1 flex flex-col h-full w-full overflow-hidden bg-white pb-24 md:pb-0 relative">
+                    {/* Header bar indicating it's the external web view */}
+                    <div className="flex items-center justify-between p-2 px-4 shadow-sm z-10 sticky top-0 bg-slate-50 border-b border-slate-200 text-slate-800">
+                         <span className="text-xs font-bold uppercase flex items-center gap-2">
+                              <ExternalLink size={14}/> Original Web View: {new URL(targetUrl || article.url).hostname}
+                         </span>
+                         <button 
+                             onClick={() => window.open(targetUrl || article.url, '_system', 'noopener,noreferrer')}
+                             className="text-xs font-bold bg-slate-200 px-3 py-1 rounded-md hover:bg-slate-300 transition-colors uppercase tracking-widest text-slate-700"
+                         >
+                             {language === 'es' ? 'Saltar al Navegador Externo' : 'Open in System Browser'}
+                         </button>
+                    </div>
+                    {/* The iframe rendering the external URL via proxy to bypass Frame Options */}
+                    <iframe 
+                        src={`/api/html-iframe-proxy?url=${encodeURIComponent(targetUrl || article.url)}`}
+                        className="w-full h-full border-none flex-1 bg-white"
+                        title="Original Source"
+                        sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                    />
                 </div>
             )}
 
@@ -602,6 +668,69 @@ const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                         geminiApiKey={geminiApiKey} 
                         onOpenAuth={onOpenAuth}
                     />
+                </div>
+            )}
+
+            {/* 6. REFERENCES VIEW */}
+            {activeTab === 'references' && (
+                <div className={`flex-1 overflow-y-auto no-scrollbar pb-24 md:pb-0 p-6 md:p-12 ${isDarkMode ? 'text-slate-200 bg-slate-950' : 'text-slate-800 bg-white'}`}>
+                    <div className="max-w-4xl mx-auto">
+                        <div className="mb-8">
+                            <h2 className="text-2xl font-black uppercase tracking-tight flex items-center gap-3">
+                                <BookOpen size={28} className="text-emerald-500" /> {t.tabs.references}
+                            </h2>
+                            <p className="text-xs font-bold opacity-50 uppercase tracking-widest mt-2">Semantic Scholar Graph API</p>
+                        </div>
+
+                        {isFetchingReferences ? (
+                            <div className="flex flex-col items-center justify-center py-20 space-y-4">
+                                <Activity size={32} className="animate-pulse text-emerald-500" />
+                                <span className="text-xs font-black uppercase tracking-widest opacity-50">Localizando referencias...</span>
+                            </div>
+                        ) : references.length === 0 ? (
+                            <div className="text-center py-20 opacity-50">
+                                <span className="text-sm font-bold uppercase tracking-widest">No se encontraron referencias o no hay acceso abierto.</span>
+                            </div>
+                        ) : (
+                            <div className="grid gap-6">
+                                {references.map(ref => (
+                                    <div key={ref.id} className={`p-6 rounded-3xl border text-left flex flex-col gap-3 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded border ${isDarkMode ? 'bg-blue-900/30 border-blue-800 text-blue-300' : 'bg-blue-50 border-blue-200 text-blue-700'}`}>{ref.category}</span>
+                                            <span className="text-[10px] font-bold opacity-50">{ref.date}</span>
+                                            {ref.isFree && <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-widest rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">Open Access</span>}
+                                        </div>
+                                        <h3 className="text-lg font-black leading-snug">{ref.title}</h3>
+                                        <p className="text-xs font-bold opacity-60 uppercase tracking-widest line-clamp-1">{ref.authors}</p>
+                                        
+                                        <div className="mt-2 flex-1 relative group/ref">
+                                            <div className="text-sm leading-relaxed opacity-80 text-justify">
+                                                {ref.summary}
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-4 pt-4 border-t dark:border-slate-800 flex items-center justify-between">
+                                            <button
+                                                onClick={() => ref.url && window.open(ref.url, '_system', 'noopener,noreferrer')}
+                                                className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-colors ${ref.url ? 'text-blue-500 hover:text-blue-600' : 'opacity-30 cursor-not-allowed'}`}
+                                                title={ref.url ? "Fuente Original" : "Sin URL"}
+                                            >
+                                                <ExternalLink size={14} /> Link Original
+                                            </button>
+                                            {ref.pdfUrl && (
+                                                <button 
+                                                    onClick={() => window.open(ref.pdfUrl, '_system', 'noopener,noreferrer')}
+                                                    className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:text-emerald-600"
+                                                >
+                                                    <PdfIcon size={14} /> PDF
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
 

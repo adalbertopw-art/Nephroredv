@@ -81,6 +81,52 @@ async function startServer() {
     }
   });
 
+  // Dedicated proxy for rendering external pages in an iframe
+  app.get("/api/html-iframe-proxy", async (req, res) => {
+    const targetUrl = req.query.url as string;
+    if (!targetUrl) {
+      return res.status(400).send("Missing 'url' query parameter");
+    }
+
+    try {
+      const response = await fetch(targetUrl, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+        }
+      });
+      
+      const contentType = response.headers.get("content-type") || "";
+      if (!contentType.includes("text/html")) {
+         // If it's not HTML (e.g. an actual PDF), redirect to normal proxy or return raw
+         const arrayBuffer = await response.arrayBuffer();
+         res.setHeader("Content-Type", contentType);
+         return res.send(Buffer.from(arrayBuffer));
+      }
+
+      let html = await response.text();
+      
+      // Inject <base> tag to fix relative links and assets
+      const originMatch = targetUrl.match(/^https?:\/\/[^\/]+/);
+      if (originMatch) {
+         const baseHref = new URL(targetUrl).href;
+         const baseTag = `<base href="${baseHref}">`;
+         if (html.includes("<head>")) {
+             html = html.replace("<head>", `<head>\n${baseTag}`);
+         } else {
+             // Fallback if no <head> tag
+             html = baseTag + "\n" + html;
+         }
+      }
+
+      res.setHeader("Content-Type", "text/html");
+      res.status(response.status).send(html);
+    } catch (error: any) {
+      console.error(`[HTML Proxy Error] ${targetUrl}:`, error);
+      res.status(500).send(`Failed to load page: ${error.message}`);
+    }
+  });
+
   // Healthcheck
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });

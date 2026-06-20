@@ -1322,6 +1322,39 @@ function MainApp() {
     }
   };
 
+  const handleToolCall = async (name: string, args: any) => {
+    switch (name) {
+      case 'saveArticlesByTopic': {
+        const topic = args.topic.toLowerCase();
+        let count = 0;
+        const toSave = articles.filter(a => (a.title + " " + a.summary).toLowerCase().includes(topic));
+        for (const a of toSave) {
+          if (!savedArticles.some(sa => sa.id === a.id)) {
+            toggleSave(a);
+            count++;
+          }
+        }
+        return { success: true, savedCount: count };
+      }
+      case 'getAllArticlesContent':
+        return { articles: articles.map(a => ({ title: a.title, summary: a.summary })) };
+      case 'getNewsForTopic':
+        handleTopicClick(args.topic);
+        return { result: `Navegando a ${args.topic} y buscando artículos. Informa al usuario que la búsqueda ha comenzado.` };
+      case 'changeTopic':
+        handleTopicClick(args.topic);
+        return { success: true };
+      case 'navigateTab':
+        setActiveTab(args.tab);
+        return { success: true };
+      case 'searchArticles':
+        handleManualSearch(args.query);
+        return { success: true };
+      default:
+        return { error: 'Unknown tool' };
+    }
+  };
+
   const handlePicoSearch = async () => {
     setIsManualSearchOpen(false);
     setLoading(true);
@@ -4662,6 +4695,13 @@ function MainApp() {
                 <p className={`text-sm ${isDarkMode ? "text-slate-400" : "text-slate-600"}`}>
                   Esta función avanzada requiere de una API Key de <strong>{missingProvider === "groq" ? "Groq" : "Gemini"}</strong>. 
                   Puedes obtenerla en <a href={missingProvider === "groq" ? "https://console.groq.com/keys" : "https://aistudio.google.com/app/apikey"} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline font-bold">{missingProvider === "groq" ? "console.groq.com" : "Google AI Studio"}</a> y luego configurarla en Ajustes.
+                  <br /><br />
+                  {missingProvider === "gemini" && (
+                     <>Opcional: Obtén también tu clave de <strong>Groq</strong> desde <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="text-blue-500 underline font-bold">console.groq.com</a> para otras funciones rápidas.</>
+                  )}
+                  {missingProvider === "groq" && (
+                     <>Opcional: Obtén también tu clave de <strong>Gemini</strong> desde <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-blue-500 underline font-bold">Google AI Studio</a>.</>
+                  )}
                 </p>
                 <div className="flex items-center gap-3 w-full pt-4">
                   <button
@@ -6132,6 +6172,7 @@ function MainApp() {
         isDarkMode={isDarkMode}
         language={uiLanguage === "es" ? "es" : "original"}
         apiKey={geminiApiKey}
+        onToolCall={handleToolCall}
       />
       <AnimatePresence>
         {activeImmersiveArticle && (

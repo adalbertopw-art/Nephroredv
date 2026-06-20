@@ -55,6 +55,18 @@ const getNewsForTopicTool: FunctionDeclaration = {
   },
 };
 
+const searchArticlesTool: FunctionDeclaration = {
+  name: 'searchArticles',
+  description: 'Searches for articles using a specific keyword or query.',
+  parameters: {
+    type: Type.OBJECT,
+    properties: {
+      query: { type: Type.STRING, description: 'The search query or keyword.' }
+    },
+    required: ['query']
+  }
+};
+
 const changeTopicTool: FunctionDeclaration = {
   name: 'changeTopic',
   description: 'Changes the currently active topic in the main Discover view. Use this when the user explicitly wants to switch the main view to a different topic.',
@@ -112,7 +124,7 @@ const VoiceModal: React.FC<VoiceModalProps> = ({ isOpen, onClose, contextText, i
       
       const key = apiKey || process.env.API_KEY;
       if (!key) {
-          throw new Error("Gemini API Key missing.");
+          throw new Error("MISSING_API_KEY");
       }
 
       const ai = new GoogleGenAI({ apiKey: key });
@@ -139,13 +151,15 @@ const VoiceModal: React.FC<VoiceModalProps> = ({ isOpen, onClose, contextText, i
 
       let systemInstruction = language === 'es' 
         ? "Eres NephroBot, un asistente experto en Nefrología. Tienes control total sobre la aplicación. Habla con naturalidad y precisión clínica.\n" +
-          "1. Para cambiar de tema, usa `changeTopic`.\n" +
-          "2. Para navegar, usa `navigateTab`.\n" +
-          "3. Si piden guardar artículos por tema, `saveArticlesByTopic`."
+          "1. Para buscar artículos, usa `searchArticles`.\n" +
+          "2. Para cambiar de tema, usa `changeTopic` o `getNewsForTopic`.\n" +
+          "3. Para navegar, usa `navigateTab`.\n" +
+          "4. Si piden guardar artículos por tema, `saveArticlesByTopic`."
         : "You are NephroBot, an expert assistant in Nephrology. You have full control over the app. Speak naturally with clinical precision.\n" +
-          "1. To switch topics, use `changeTopic`.\n" +
-          "2. To navigate, use `navigateTab`.\n" +
-          "3. To save by topic, use `saveArticlesByTopic`.";
+          "1. To search articles, use `searchArticles`.\n" +
+          "2. To switch topics, use `changeTopic` or `getNewsForTopic`.\n" +
+          "3. To navigate, use `navigateTab`.\n" +
+          "4. To save by topic, use `saveArticlesByTopic`.";
 
       if (initialMode === 'read_summary' && safeContext) {
         systemInstruction += ` TAREA PRIORITARIA: Lee el siguiente resumen: "${safeContext}"`;
@@ -162,7 +176,7 @@ const VoiceModal: React.FC<VoiceModalProps> = ({ isOpen, onClose, contextText, i
           speechConfig: {
             voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } },
           },
-          tools: [{ functionDeclarations: [saveArticlesTool, getAllArticlesTool, getNewsForTopicTool, changeTopicTool, navigateTabTool] }],
+          tools: [{ functionDeclarations: [saveArticlesTool, getAllArticlesTool, getNewsForTopicTool, changeTopicTool, navigateTabTool, searchArticlesTool] }],
         },
         callbacks: {
           onopen: () => {
@@ -239,7 +253,7 @@ const VoiceModal: React.FC<VoiceModalProps> = ({ isOpen, onClose, contextText, i
           if (sessionPromiseRef.current) {
             sessionPromiseRef.current.then(session => {
               session.sendRealtimeInput({
-                media: { mimeType: 'audio/pcm;rate=16000', data: base64Data }
+                audio: { mimeType: 'audio/pcm;rate=16000', data: base64Data }
               });
             }).catch(() => {});
           }
@@ -350,11 +364,26 @@ const VoiceModal: React.FC<VoiceModalProps> = ({ isOpen, onClose, contextText, i
                 <div className="p-6 flex flex-col items-center gap-6">
                      <div className="flex flex-col items-center">
                         <h3 className={`text-lg font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>NephroBot Live</h3>
-                        <p className={`text-[10px] font-bold uppercase tracking-widest ${status === 'error' ? 'text-red-500' : 'text-slate-500'}`}>
-                           {status === 'connecting' && (language === 'es' ? 'Conectando...' : 'Connecting...')}
-                           {status === 'connected' && (language === 'es' ? 'En línea' : 'Listening...')}
-                           {status === 'error' && (language === 'es' ? 'Error' : 'Error')}
-                        </p>
+                        {status === 'error' && errorMessage === 'MISSING_API_KEY' ? (
+                           <div className="text-center mt-2 max-w-[200px]">
+                              <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest">
+                                 {language === 'es' ? 'Falta configurar API Key' : 'API Key missing'}
+                              </p>
+                              <p className={`text-[10px] mt-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                                 {language === 'es' ? 'Obtén tu API Key de Gemini en ' : 'Get your Gemini API Key at '}
+                                 <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-blue-500 underline font-bold" onClick={(e) => e.stopPropagation()}>Google AI Studio</a>.
+                                 <br/><br/>
+                                 {language === 'es' ? 'Para otras funciones, también obtén de Groq en ' : 'For other features, also get from Groq at '}
+                                 <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="text-blue-500 underline font-bold" onClick={(e) => e.stopPropagation()}>console.groq.com</a>.
+                              </p>
+                           </div>
+                        ) : (
+                           <p className={`text-[10px] font-bold uppercase tracking-widest ${status === 'error' ? 'text-red-500' : 'text-slate-500'}`}>
+                              {status === 'connecting' && (language === 'es' ? 'Conectando...' : 'Connecting...')}
+                              {status === 'connected' && (language === 'es' ? 'En línea' : 'Listening...')}
+                              {status === 'error' && errorMessage}
+                           </p>
+                        )}
                      </div>
                      <div className="relative w-24 h-24 flex items-center justify-center">
                         <div className={`relative z-10 w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg ${
