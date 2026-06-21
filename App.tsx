@@ -1228,6 +1228,7 @@ function MainApp() {
   const [showApiKeyWarning, setShowApiKeyWarning] = useState(false);
   const [missingProvider, setMissingProvider] = useState<"gemini" | "groq" | null>(null);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
+  const [isLanguageSelectOpen, setIsLanguageSelectOpen] = useState(false);
   const [aiProvider, setAiProvider] = useState<AIProvider>("gemini");
   const [autoXray, setAutoXray] = useState(true);
   const [geminiApiKey, setGeminiApiKey] = useState("");
@@ -2984,18 +2985,27 @@ function MainApp() {
     };
   }, [handleBack]);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.targetTouches[0].clientX);
-    touchStartY.current = e.targetTouches[0].clientY;
+  const handleTouchStart = (e: React.TouchEvent | React.MouseEvent) => {
+    if (!("touches" in e) && e.button !== 0) return;
+    const clientX = "touches" in e ? e.targetTouches[0].clientX : e.clientX;
+    const clientY = "touches" in e ? e.targetTouches[0].clientY : e.clientY;
+    setTouchStart(clientX);
+    touchStartY.current = clientY;
   };
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
+  const handleTouchEnd = (e: React.TouchEvent | React.MouseEvent) => {
     if (touchStart === null) return;
+    
+    if (window.getSelection()?.toString().length) {
+      setTouchStart(null);
+      return;
+    }
 
-    const touchEnd = e.changedTouches[0].clientX;
-    const touchEndY = e.changedTouches[0].clientY;
-    const distance = touchStart - touchEnd;
-    const deltaY = Math.abs(touchEndY - touchStartY.current);
+    const endX = "changedTouches" in e ? e.changedTouches[0].clientX : e.clientX;
+    const endY = "changedTouches" in e ? e.changedTouches[0].clientY : e.clientY;
+
+    const distance = touchStart - endX;
+    const deltaY = Math.abs(endY - touchStartY.current);
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
 
@@ -3197,10 +3207,15 @@ function MainApp() {
 
   useEffect(() => {
     const load = async () => {
-      const hasSeenIntro = localStorage.getItem("ne_intro_seen");
-      if (!hasSeenIntro) {
-        setIsInfoModalOpen(true);
-        localStorage.setItem("ne_intro_seen", "true");
+      const hasSelectedLang = localStorage.getItem("ne_lang_selected");
+      if (!hasSelectedLang) {
+        setIsLanguageSelectOpen(true);
+      } else {
+        const hasSeenIntro = localStorage.getItem("ne_intro_seen");
+        if (!hasSeenIntro) {
+          setIsInfoModalOpen(true);
+          localStorage.setItem("ne_intro_seen", "true");
+        }
       }
 
       const saved = localStorage.getItem("ne_saved");
@@ -3315,6 +3330,9 @@ function MainApp() {
       className={`min-h-screen font-sans overflow-hidden flex flex-col noise-bg ${isDarkMode ? "bg-[#020617] text-slate-100" : "bg-[#f8fafc] text-slate-900"}`}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
+      onMouseDown={handleTouchStart}
+      onMouseUp={handleTouchEnd}
+      onMouseLeave={handleTouchEnd}
     >
       <style>{`
         .noise-bg {
@@ -6150,6 +6168,69 @@ function MainApp() {
               </div>
             </motion.div>
           </>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isLanguageSelectOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[140] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className={`w-full max-w-sm overflow-hidden flex flex-col rounded-[2.5rem] shadow-2xl border ${isDarkMode ? "bg-slate-950 border-slate-800" : "bg-white border-slate-200"}`}
+            >
+              <div
+                className={`p-6 border-b text-center ${isDarkMode ? "border-slate-800 bg-slate-900/50" : "border-slate-100 bg-slate-50/50"}`}
+              >
+                <div className="mx-auto w-12 h-12 rounded-xl bg-blue-600 mb-3 flex items-center justify-center text-white shadow-lg">
+                  <Globe size={24} />
+                </div>
+                <h2 className={`text-xl font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>Select Language<br/>Seleccionar Idioma</h2>
+              </div>
+              <div className="p-6 space-y-4">
+                <button
+                  onClick={() => {
+                     setUiLanguage("en");
+                     setContentLanguage("en");
+                     localStorage.setItem("ne_lang_selected", "en");
+                     setIsLanguageSelectOpen(false);
+                     const hasSeenIntro = localStorage.getItem("ne_intro_seen");
+                     if (!hasSeenIntro) {
+                       setIsInfoModalOpen(true);
+                       localStorage.setItem("ne_intro_seen", "true");
+                     }
+                  }}
+                  className={`w-full flex items-center justify-center gap-3 py-4 rounded-2xl font-bold border-2 transition-all ${isDarkMode ? "border-slate-800 hover:border-blue-500 hover:bg-slate-800 text-white" : "border-slate-200 hover:border-blue-500 hover:bg-slate-50 text-slate-900"}`}
+                >
+                  <span className="text-2xl">🇺🇸</span>
+                  English
+                </button>
+                <button
+                  onClick={() => {
+                     setUiLanguage("es");
+                     setContentLanguage("es");
+                     localStorage.setItem("ne_lang_selected", "es");
+                     setIsLanguageSelectOpen(false);
+                     const hasSeenIntro = localStorage.getItem("ne_intro_seen");
+                     if (!hasSeenIntro) {
+                       setIsInfoModalOpen(true);
+                       localStorage.setItem("ne_intro_seen", "true");
+                     }
+                  }}
+                  className={`w-full flex items-center justify-center gap-3 py-4 rounded-2xl font-bold border-2 transition-all ${isDarkMode ? "border-slate-800 hover:border-blue-500 hover:bg-slate-800 text-white" : "border-slate-200 hover:border-blue-500 hover:bg-slate-50 text-slate-900"}`}
+                >
+                  <span className="text-2xl">🇪🇸</span>
+                  Español
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
 
