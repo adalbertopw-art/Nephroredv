@@ -71,7 +71,7 @@ const fetchEutils = async (endpoint: string, params: Record<string, string>, met
 };
 
 
-const searchPubMed = async (term: string, years?: number, offset: number = 0, onlyFullText: boolean = false): Promise<string[]> => {
+const searchPubMed = async (term: string, years?: number, offset: number = 0, onlyFullText: boolean = false, sortBy: 'date' | 'relevance' = 'date'): Promise<string[]> => {
     // Construct date filter if years provided
     let dateFilter = '';
     if (years) {
@@ -86,14 +86,20 @@ const searchPubMed = async (term: string, years?: number, offset: number = 0, on
         fullTextFilter = ' AND "pubmed pmc"[Filter]';
     }
 
-    const response = await fetchEutils('esearch.fcgi', {
+    const eutilsParams: Record<string, string> = {
         db: 'pubmed',
         term: term + dateFilter + fullTextFilter,
         retmode: 'json',
         retmax: '200', 
-        retstart: offset.toString(), // Server-side pagination
-        sort: 'date' 
-    });
+        retstart: offset.toString()
+    };
+    if (sortBy === 'date') {
+        eutilsParams.sort = 'date';
+    } else {
+        eutilsParams.sort = 'relevance';
+    }
+
+    const response = await fetchEutils('esearch.fcgi', eutilsParams);
     
     // Check if the response is actually valid JSON
     const text = await response.text();
@@ -240,7 +246,8 @@ export const fetchPubMedArticles = async (
   customQuery?: string,
   years?: number,
   offset: number = 0,
-  onlyFullText: boolean = false
+  onlyFullText: boolean = false,
+  sortBy: 'date' | 'relevance' = 'date'
 ): Promise<ResearchUpdate> => {
   try {
     const mainTerm = customQuery || getPubMedTopicQuery(topic);
@@ -259,7 +266,7 @@ export const fetchPubMedArticles = async (
     }
     
     // Pass offset and onlyFullText to search
-    const ids = await searchPubMed(query, years, offset, onlyFullText);
+    const ids = await searchPubMed(query, years, offset, onlyFullText, sortBy);
     if (!ids || ids.length === 0) return { summary: "No results found in PubMed.", articles: [] };
 
     const articles = await fetchDetails(ids, typeof topic === 'string' ? topic : 'General');

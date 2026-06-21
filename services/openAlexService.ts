@@ -53,13 +53,13 @@ export const fetchOpenAlexArticles = async (
   language: 'es' | 'original' = 'original',
   customQuery?: string,
   years?: number,
-  offset: number = 0
+  offset: number = 0,
+  sortBy: 'date' | 'relevance' = 'date'
 ): Promise<ResearchUpdate> => {
   try {
     const mainTerm = customQuery || getOpenAlexTopicQuery(topic);
     const kidneyContext = '(nephrology OR kidney OR renal)';
     const searchTerm = customQuery ? `(${mainTerm}) AND ${kidneyContext}` : `(${mainTerm}) AND ${kidneyContext}`;
-    const encodedTerm = encodeURIComponent(searchTerm);
     
     // Calculate page from offset (assuming 200 per page as below)
     const page = Math.floor(offset / 200) + 1;
@@ -90,7 +90,8 @@ export const fetchOpenAlexArticles = async (
         searchParam = `search=${encodedTerm}`;
     }
 
-    const url = `${OPENALEX_API_BASE}?${searchParam}${searchParam && filter ? '&' : ''}${filter.replace(/^&/, '')}&sort=publication_date:desc&per-page=200&page=${page}&select=id,title,type,open_access,cited_by_count,primary_location,publication_date,doi,abstract_inverted_index,authorships,publication_year,concepts`;
+    const sortString = sortBy === 'relevance' ? '&sort=relevance_score:desc' : '&sort=publication_date:desc';
+    const url = `${OPENALEX_API_BASE}?${searchParam}${searchParam && filter ? '&' : ''}${filter.replace(/^&/, '')}${sortString}&per-page=200&page=${page}&select=id,title,type,open_access,cited_by_count,primary_location,publication_date,doi,abstract_inverted_index,authorships,publication_year,concepts`;
     
     const data = await fetchWithProxyFallback(url);
     const results = data.results || [];

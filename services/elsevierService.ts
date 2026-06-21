@@ -16,7 +16,8 @@ export const fetchElsevierArticles = async (
   topic: Topic | string,
   language: 'es' | 'original' = 'original',
   customQuery?: string,
-  apiKey?: string 
+  apiKey?: string,
+  sortBy: 'date' | 'relevance' = 'date'
 ): Promise<ResearchUpdate> => {
   const currentYear = new Date().getFullYear();
   const dateRange = `${currentYear - 2}-${currentYear}`;
@@ -37,6 +38,17 @@ export const fetchElsevierArticles = async (
         if (!Capacitor.isNativePlatform()) {
             url = `/api/proxy?url=${encodeURIComponent(url)}`;
         }
+        
+        const displayObj: any = {
+            offset: 0,
+            show: 100
+        };
+        if (sortBy === 'date') {
+            displayObj.sortBy = "date";
+        } else {
+            displayObj.sortBy = "relevance";
+        }
+
         const response = await fetch(url, {
             method: 'PUT',
             headers: {
@@ -47,11 +59,7 @@ export const fetchElsevierArticles = async (
             body: JSON.stringify({
                 qs: qsTerm,
                 date: isAuthorSearch ? undefined : dateRange,
-                display: {
-                    offset: 0,
-                    show: 100,
-                    sortBy: "date"
-                }
+                display: displayObj
             })
         });
 
@@ -99,7 +107,8 @@ export const fetchElsevierArticles = async (
 
   // Fallback: Shadow Search on Crossref for Elsevier (member:78)
   try {
-      let crossrefUrl = `${CROSSREF_API_BASE}?query=${encodeURIComponent(qsTerm)}&filter=type:journal-article,has-abstract:true,member:78&select=DOI,title,created,author,abstract,container-title,URL,is-referenced-by-count,published-print,published-online&rows=100&sort=published&order=desc&mailto=adalberto.pw@gmail.com`;
+      const crossrefSort = sortBy === 'relevance' ? 'relevance' : 'published';
+      let crossrefUrl = `${CROSSREF_API_BASE}?query=${encodeURIComponent(qsTerm)}&filter=type:journal-article,has-abstract:true,member:78&select=DOI,title,created,author,abstract,container-title,URL,is-referenced-by-count,published-print,published-online&rows=100&sort=${crossrefSort}&order=desc&mailto=adalberto.pw@gmail.com`;
       
       if (!Capacitor.isNativePlatform()) {
           crossrefUrl = `/api/proxy?url=${encodeURIComponent(crossrefUrl)}`;

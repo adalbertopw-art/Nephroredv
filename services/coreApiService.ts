@@ -9,7 +9,8 @@ export const fetchCoreArticles = async (
   topic: Topic | string,
   language: 'es' | 'original' = 'original',
   customQuery?: string,
-  apiKey?: string
+  apiKey?: string,
+  sortBy: 'date' | 'relevance' = 'date'
 ): Promise<ResearchUpdate> => {
   try {
     const term = customQuery || getGeneralTopicQuery(topic);
@@ -26,16 +27,20 @@ export const fetchCoreArticles = async (
         if (apiKey) {
             headers['Authorization'] = `Bearer ${apiKey}`;
         }
+        
+        const requestBody: any = {
+            q: query,
+            limit: 60, // Increased to 60
+            offset: 0
+        };
+        if (sortBy === 'date') {
+            requestBody.sort = 'publishedDate:desc';
+        }
 
         const response = await fetch(CORE_API_BASE, {
             method: 'POST',
             headers: headers,
-            body: JSON.stringify({
-                q: query,
-                limit: 60, // Increased to 60
-                offset: 0,
-                sort: 'publishedDate:desc'
-            })
+            body: JSON.stringify(requestBody)
         });
 
         if (!response.ok) {

@@ -74,7 +74,8 @@ const normalizeText = (text: string) => {
 export const fetchLilacsArticles = async (
   topic: Topic | string,
   language: 'es' | 'original' = 'original',
-  customQuery?: string
+  customQuery?: string,
+  sortBy: 'date' | 'relevance' = 'date'
 ): Promise<ResearchUpdate> => {
   try {
     let mainTerm = "";
@@ -97,9 +98,12 @@ export const fetchLilacsArticles = async (
         lang: language === 'es' ? 'es' : 'en',
         output: 'json',
         count: '30', 
-        sort: 'year_cluster', // Sort by year descending to get recent
         filter: 'db:LILACS'
     });
+    
+    if (sortBy === 'date') {
+        params.append('sort', 'year_cluster');
+    }
 
     const url = `${BVS_API_BASE}?${params.toString()}`;
     

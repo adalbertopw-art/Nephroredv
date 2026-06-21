@@ -2032,25 +2032,49 @@ function MainApp() {
     try {
       const baseSearchTerm = queryToUse || topicToUse;
       let effectiveQuery = queryToUse;
-      const isAuthorSearch = baseSearchTerm?.startsWith("AUTHOR:");
-      const finalYearsToFetch = isAuthorSearch ? undefined : yearsToFetch;
+      
+      let parsedYears = yearsToFetch;
+      let cleanedTerm = baseSearchTerm;
+      
+      if (cleanedTerm?.includes("Last 6 months")) {
+          parsedYears = 1;
+          cleanedTerm = cleanedTerm.replace("Last 6 months", "").replace(/\s+/g, " ").trim();
+          effectiveQuery = effectiveQuery?.replace("Last 6 months", "").replace(/\s+/g, " ").trim();
+      } else if (cleanedTerm?.includes("2025-2026")) {
+          parsedYears = 2;
+          cleanedTerm = cleanedTerm.replace("2025-2026", "").replace(/\s+/g, " ").trim();
+          effectiveQuery = effectiveQuery?.replace("2025-2026", "").replace(/\s+/g, " ").trim();
+      }
+
+      const extractedDesigns: string[] = [];
+      ["RCT", "Guideline", "Meta-Analysis"].forEach(design => {
+          if (cleanedTerm?.includes(design)) {
+              extractedDesigns.push(design);
+              cleanedTerm = cleanedTerm.replace(design, "").replace(/\s+/g, " ").trim();
+              effectiveQuery = effectiveQuery?.replace(design, "").replace(/\s+/g, " ").trim();
+          }
+      });
+
+      const isAuthorSearch = cleanedTerm?.startsWith("AUTHOR:");
+      const finalYearsToFetch = isAuthorSearch ? undefined : parsedYears;
 
       const needsTranslation =
-        baseSearchTerm &&
+        cleanedTerm &&
         !isAuthorSearch &&
-        !baseSearchTerm.includes("(") &&
-        !baseSearchTerm.includes("AND") &&
-        !baseSearchTerm.includes("[MeSH]") &&
-        !baseSearchTerm.includes("[Title]");
+        !cleanedTerm.includes("(") &&
+        !cleanedTerm.includes("AND") &&
+        !cleanedTerm.includes("[MeSH]") &&
+        !cleanedTerm.includes("[Title]");
       const isManualSearch = !!queryToUse;
 
       if (needsTranslation && (isManualSearch || modeToUse === "ai")) {
         setSummary(t.translating);
-        effectiveQuery = await translateManualQueryWithoutAI(baseSearchTerm);
+        effectiveQuery = await translateManualQueryWithoutAI(cleanedTerm);
       }
 
-      if (filterDesign.length > 0) {
-        const filterTerms = filterDesign
+      const combinedDesigns = Array.from(new Set([...filterDesign, ...extractedDesigns]));
+      if (combinedDesigns.length > 0) {
+        const filterTerms = combinedDesigns
           .map((d) => {
             if (d === "RCT")
               return '("Randomized Controlled Trial" OR "Clinical Trial" OR "Ensayo Clinico")';
@@ -2075,6 +2099,7 @@ function MainApp() {
 
       const sourcePromises: Promise<ResearchUpdate>[] = [];
       const offset = (page - 1) * 200;
+      const sortPref: 'date' | 'relevance' = isManualSearch ? 'relevance' : 'date';
 
       if (page === 1) {
         if (activeSources.pubmed)
@@ -2086,6 +2111,7 @@ function MainApp() {
               finalYearsToFetch,
               offset,
               onlyFullText,
+              sortPref
             ),
           );
         if (activeSources.openalex)
@@ -2096,6 +2122,7 @@ function MainApp() {
               effectiveQuery,
               finalYearsToFetch,
               offset,
+              sortPref
             ),
           );
         if (activeSources.europepmc)
@@ -2129,6 +2156,7 @@ function MainApp() {
               langToUse,
               effectiveQuery,
               coreApiKey,
+              sortPref
             ),
           );
         if (activeSources.doaj)
@@ -2142,11 +2170,12 @@ function MainApp() {
               langToUse,
               effectiveQuery,
               elsevierApiKey,
+              sortPref
             ),
           );
         if (activeSources.lilacs)
           sourcePromises.push(
-            fetchLilacsArticles(topicToUse, langToUse, effectiveQuery),
+            fetchLilacsArticles(topicToUse, langToUse, effectiveQuery, sortPref),
           );
 
         if (modeToUse === "ai") {
@@ -2168,6 +2197,7 @@ function MainApp() {
               finalYearsToFetch,
               offset,
               onlyFullText,
+              sortPref
             ),
           );
         if (activeSources.openalex)
@@ -2178,6 +2208,7 @@ function MainApp() {
               effectiveQuery,
               finalYearsToFetch,
               offset,
+              sortPref
             ),
           );
       }
@@ -3690,6 +3721,44 @@ function MainApp() {
                           </span>
                         </button>
                       )}
+                    </div>
+
+                    <div className="flex gap-2 mb-4 overflow-x-auto no-scrollbar pb-2 mt-[-10px]">
+                      {[
+                        "Last 6 months",
+                        "2025-2026",
+                        "RCT",
+                        "Guideline",
+                        "Meta-Analysis"
+                      ].map((chip) => {
+                        const isActive = searchQuery.includes(chip);
+                        return (
+                          <button
+                            key={chip}
+                            onClick={() => {
+                              let newQuery = searchQuery || "";
+                              if (isActive) {
+                                newQuery = newQuery.replace(chip, "").replace(/\s+/g, " ").trim();
+                              } else {
+                                newQuery = newQuery ? `${newQuery} ${chip}` : chip;
+                              }
+                              setSearchQuery(newQuery);
+                              fetchNews(selectedTopic, newQuery, undefined, undefined, true);
+                            }}
+                            className={`shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-colors ${
+                              isActive
+                                ? isDarkMode
+                                  ? "bg-white/20 border-white/30 text-white"
+                                  : "bg-slate-200 border-slate-300 text-slate-900"
+                                : isDarkMode
+                                  ? "border-white/10 hover:bg-white/5 text-slate-400"
+                                  : "border-slate-200 hover:bg-slate-50 text-slate-500"
+                            }`}
+                          >
+                            {chip}
+                          </button>
+                        );
+                      })}
                     </div>
 
                     {translationNotice && (
