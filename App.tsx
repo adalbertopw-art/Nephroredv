@@ -1502,6 +1502,18 @@ function MainApp() {
     };
   }, [activeImmersiveArticle, isFlashcardMode]);
 
+  // Prevent accidental closure of the app
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
+
   useEffect(() => {
     localStorage.setItem("nephro_layout_mode", layoutMode);
   }, [layoutMode]);
