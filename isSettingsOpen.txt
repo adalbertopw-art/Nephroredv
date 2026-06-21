@@ -1,0 +1,6 @@
+1061:  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+2732:    if (isSettingsOpen) {
+2776:    isSettingsOpen,
+2847:    if (activeImmersiveArticle || isSettingsOpen || isManualSearchOpen || isReaderOpen) {
+3165:        isSettingsOpen ||
+4976:        {isSettingsOpen && (

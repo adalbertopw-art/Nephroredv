@@ -8,9 +8,10 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   isDarkMode: boolean;
+  t?: any;
 }
 
-export function AuthModal({ isOpen, onClose, isDarkMode }: AuthModalProps) {
+export function AuthModal({ isOpen, onClose, isDarkMode, t }: AuthModalProps) {
   const { user, signOut, updateVerificationStatus } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   
@@ -232,20 +233,20 @@ export function AuthModal({ isOpen, onClose, isDarkMode }: AuthModalProps) {
 
           <div className="mb-6">
             <h2 className="text-2xl font-black mb-2">
-              {isLogin ? 'Iniciar Sesión' : (
-                signupStep === 1 ? 'Crear Cuenta' : 
-                signupStep === 2 ? 'Verificación Profesional' :
-                signupStep === 3 ? 'Reto Médico' : '¡Solicitud Enviada!'
+              {isLogin ? (t?.login || 'Iniciar Sesión') : (
+                signupStep === 1 ? (t?.createAccount || 'Crear Cuenta') : 
+                signupStep === 2 ? (t?.profVerification || 'Verificación Profesional') :
+                signupStep === 3 ? (t?.medChallenge || 'Reto Médico') : (t?.reqSent || '¡Solicitud Enviada!')
               )}
             </h2>
             <p className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
               {isLogin
-                ? 'Accede a tus artículos guardados y preferencias.'
+                ? (t?.loginDesc || 'Accede a tus artículos guardados y preferencias.')
                 : (
-                  signupStep === 1 ? 'Únete para guardar artículos y personalizar tu experiencia.' :
-                  signupStep === 2 ? 'Necesitamos validar tu identidad médica para darte acceso a la comunidad.' :
-                  signupStep === 3 ? 'Demuestra tus conocimientos clínicos para completar el registro.' :
-                  'Revisa tu correo para confirmar tu cuenta. Tu perfil será validado pronto.'
+                  signupStep === 1 ? (t?.signupDesc1 || 'Únete para guardar artículos y personalizar tu experiencia.') :
+                  signupStep === 2 ? (t?.signupDesc2 || 'Necesitamos validar tu identidad médica para darte acceso a la comunidad.') :
+                  signupStep === 3 ? (t?.signupDesc3 || 'Demuestra tus conocimientos clínicos para completar el registro.') :
+                  (t?.signupDesc4 || 'Revisa tu correo para confirmar tu cuenta. Tu perfil será validado pronto.')
                 )
               }
             </p>
@@ -555,7 +556,7 @@ export function AuthModal({ isOpen, onClose, isDarkMode }: AuthModalProps) {
                     isDarkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
                   }`}
                 >
-                  {isLogin ? '¿No tienes cuenta? Regístrate y Verifícate' : '¿Ya tienes cuenta? Inicia sesión'}
+                  {isLogin ? (t?.noAccount || '¿No tienes cuenta? Regístrate y Verifícate') : (t?.haveAccount || '¿Ya tienes cuenta? Inicia sesión')}
                 </button>
               ) : (
                 <button
@@ -567,7 +568,7 @@ export function AuthModal({ isOpen, onClose, isDarkMode }: AuthModalProps) {
                   className="text-sm font-bold text-red-500 hover:text-red-600 transition-colors flex items-center justify-center gap-2 mx-auto"
                 >
                   <Loader2 className="animate-spin hidden" size={14} />
-                  Cerrar Sesión
+                  {t?.logout || 'Cerrar Sesión'}
                 </button>
               )}
             </div>

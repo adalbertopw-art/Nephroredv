@@ -39,7 +39,7 @@ export const fetchCrossrefArticles = async (
     params.append('rows', '40');
     params.append('sort', 'relevance');
     // Using a mailto is polite for Crossref and places us in the "Polite Pool"
-    params.append('mailto', 'ai.studio.agent@example.com');
+    params.append('mailto', 'adalberto.pw@gmail.com');
 
     let url = `${CROSSREF_API_BASE}?${params.toString()}`;
 
@@ -48,7 +48,13 @@ export const fetchCrossrefArticles = async (
     }
 
     const response = await fetch(url);
-    if (!response.ok) return { summary: `Crossref API Status: ${response.status}`, articles: [] };
+    if (!response.ok) {
+        if (response.status === 429) {
+            console.warn("Crossref API rate limit exceeded (429).");
+            return { summary: "Crossref rate limit exceeded.", articles: [] };
+        }
+        return { summary: `Crossref API Status: ${response.status}`, articles: [] };
+    }
 
     const data = await response.json();
     const items = data.message?.items || [];

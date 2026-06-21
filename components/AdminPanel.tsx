@@ -15,9 +15,10 @@ interface UserProfile {
 interface AdminPanelProps {
   onClose: () => void;
   isDarkMode: boolean;
+  t?: any;
 }
 
-export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, isDarkMode }) => {
+export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, isDarkMode, t }) => {
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'pending' | 'verified' | 'unverified'>('all');
@@ -82,7 +83,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, isDarkMode }) =
       ));
     } catch (error) {
       console.error('Error updating status:', error);
-      alert('Error al actualizar el estado.');
+      alert(t?.errUpdate || 'Error al actualizar el estado.');
     } finally {
       setActionLoading(null);
     }
@@ -107,9 +108,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, isDarkMode }) =
         <div>
           <h2 className="text-2xl font-black flex items-center gap-2">
             <ShieldCheck className="text-blue-500" size={28} />
-            Panel de Administración
+            {t?.panel || 'Panel de Administración'}
           </h2>
-          <p className="text-sm opacity-60 mt-1">Verificación de Especialistas y Acceso</p>
+          <p className="text-sm opacity-60 mt-1">{t?.desc || 'Verificación de Especialistas y Acceso'}</p>
         </div>
         <button 
           onClick={fetchProfiles}
@@ -125,7 +126,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, isDarkMode }) =
             <Search className="absolute left-3 text-slate-400" size={18} />
             <input 
               type="text" 
-              placeholder="Buscar por nombre, licencia o correo..."
+              placeholder={t?.search || "Buscar por nombre, licencia o correo..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-transparent py-2.5 pl-10 pr-4 outline-none text-sm"
@@ -139,7 +140,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, isDarkMode }) =
               onClick={() => setFilter(tab)}
               className={`px-4 py-1.5 rounded-lg text-sm font-medium capitalize transition-all ${filter === tab ? (isDarkMode ? 'bg-slate-700 text-white' : 'bg-slate-100 text-slate-900') : 'opacity-60 hover:opacity-100'}`}
             >
-              {tab === 'all' ? 'Todos' : tab === 'pending' ? 'Pendientes' : tab === 'verified' ? 'Verificados' : 'Rechazados'}
+              {tab === 'all' ? (t?.all || 'Todos') : tab === 'pending' ? (t?.pending || 'Pendientes') : tab === 'verified' ? (t?.verified || 'Verificados') : (t?.unverified || 'Rechazados')}
             </button>
           ))}
         </div>
@@ -151,8 +152,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, isDarkMode }) =
              <ShieldCheck size={20} />
           </div>
           <div className="text-sm">
-             <p className="font-bold mb-1">¿No puedes aprobar usuarios o los usuarios no ven su estado?</p>
-             <p className="opacity-90 mb-2">Supabase usa políticas de seguridad (RLS). Si al aprobar un usuario este sigue como "Pendiente" para él, necesitas actualizar las reglas de acceso. Ejecuta esto en tu SQL Editor:</p>
+             <p className="font-bold mb-1">{t?.cantApprove || '¿No puedes aprobar usuarios o los usuarios no ven su estado?'}</p>
+             <p className="opacity-90 mb-2">{t?.sqlDesc || 'Supabase usa políticas de seguridad (RLS). Si al aprobar un usuario este sigue como "Pendiente" para él, necesitas actualizar las reglas de acceso. Ejecuta esto en tu SQL Editor:'}</p>
              <pre className={`p-1.5 sm:p-2.5 rounded justify-start mt-2 text-[10px] sm:text-[11px] overflow-x-auto font-mono whitespace-pre ${isDarkMode ? 'bg-black/40 text-amber-300' : 'bg-white/80 text-amber-900'} border ${isDarkMode ? 'border-amber-500/20' : 'border-amber-300'}`}>
 {`-- 1. Asegurar perfil del Administrador
 insert into public.profiles (id, email, username, full_name, verification_status)
@@ -185,7 +186,7 @@ create policy "Public Select" on profiles for select using (true);
 create policy "Users update own" on profiles for update using (auth.uid() = id);
 create policy "Admins update all" on profiles for update using ( lower(auth.jwt() ->> 'email') = 'adalberto.pw@gmail.com' );`}
              </pre>
-             <p className="opacity-95 font-semibold mt-3 text-sm">💡 Después de ejecutarlo, aprueba a los usuarios aquí y pídeles que recarguen la página.</p>
+             <p className="opacity-95 font-semibold mt-3 text-sm">{t?.tip || '💡 Después de ejecutarlo, aprueba a los usuarios aquí y pídeles que recarguen la página.'}</p>
           </div>
         </div>
       )}
@@ -198,7 +199,7 @@ create policy "Admins update all" on profiles for update using ( lower(auth.jwt(
         ) : filteredProfiles.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 opacity-50">
             <ShieldCheck size={48} className="mb-4" />
-            <p>No se encontraron perfiles</p>
+            <p>{t?.noUsers || 'No se encontraron perfiles'}</p>
           </div>
         ) : (
           <div className="grid gap-4">
@@ -213,15 +214,15 @@ create policy "Admins update all" on profiles for update using ( lower(auth.jwt(
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-1">
-                      <h3 className="font-bold text-lg">{profile.full_name || 'Usuario sin nombre'}</h3>
+                      <h3 className="font-bold text-lg">{profile.full_name || (t?.noName || 'Usuario sin nombre')}</h3>
                       {profile.verification_status === 'verified' && <CheckCircle2 size={16} className="text-green-500" />}
                       {profile.verification_status === 'pending' && <Clock size={16} className="text-amber-500" />}
                       {profile.verification_status === 'unverified' && <AlertTriangle size={16} className="text-red-500" />}
                     </div>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm opacity-70">
-                      <span>Correo: <strong>{profile.email || 'N/A'}</strong></span>
-                      <span>Licencia: <strong>{profile.license_number || 'N/A'}</strong></span>
-                      <span>País: <strong>{profile.country || 'N/A'}</strong></span>
+                      <span>{t?.email || 'Correo:'} <strong>{profile.email || 'N/A'}</strong></span>
+                      <span>{t?.licenseNum || 'Licencia:'} <strong>{profile.license_number || 'N/A'}</strong></span>
+                      <span>{t?.countryField || 'País:'} <strong>{profile.country || 'N/A'}</strong></span>
                     </div>
                     <div className="text-xs opacity-50 mt-2 font-mono">{profile.id}</div>
                   </div>
@@ -234,8 +235,8 @@ create policy "Admins update all" on profiles for update using ( lower(auth.jwt(
                         className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-500/20 px-4 py-2 rounded-xl font-medium transition-colors"
                       >
                         {actionLoading === profile.id ? <RefreshCw size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
-                        <span className="sm:hidden">Aprobar</span>
-                        <span className="hidden sm:inline">Verificar</span>
+                        <span className="sm:hidden">{t?.approve || 'Aprobar'}</span>
+                        <span className="hidden sm:inline">{t?.verifyAction || 'Verificar'}</span>
                       </button>
                     )}
                     {profile.verification_status !== 'unverified' && (
@@ -245,8 +246,8 @@ create policy "Admins update all" on profiles for update using ( lower(auth.jwt(
                         className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 px-4 py-2 rounded-xl font-medium transition-colors"
                       >
                        {actionLoading === profile.id ? <RefreshCw size={16} className="animate-spin" /> : <XCircle size={16} />}
-                       <span className="sm:hidden">Rechazar</span>
-                       <span className="hidden sm:inline">Desverificar</span>
+                       <span className="sm:hidden">{t?.rejectAction || 'Rechazar'}</span>
+                       <span className="hidden sm:inline">{t?.unverifyAction || 'Desverificar'}</span>
                       </button>
                     )}
                   </div>

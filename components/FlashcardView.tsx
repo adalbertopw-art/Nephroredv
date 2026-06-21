@@ -13,6 +13,7 @@ interface FlashcardViewProps {
   savedArticles: Article[];
   geminiApiKey?: string;
   fontStyle: FontStyle;
+  t?: any;
 }
 
 export default function FlashcardView({
@@ -23,7 +24,8 @@ export default function FlashcardView({
   onToggleSave,
   savedArticles,
   geminiApiKey,
-  fontStyle
+  fontStyle,
+  t
 }: FlashcardViewProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
@@ -152,7 +154,7 @@ export default function FlashcardView({
                     {article.category}
                   </span>
                   <span className="text-[10px] font-bold text-white/90 line-clamp-1 flex-1">
-                    {article.source} • {Array.isArray(article.authors) ? article.authors.join(', ') : article.authors || 'Autores desconocidos'}
+                    {article.source} • {Array.isArray(article.authors) ? article.authors.join(', ') : article.authors || (t?.unknownAuthors || 'Autores desconocidos')}
                   </span>
                 </div>
                 <h2 className={`text-xl font-black text-white leading-tight line-clamp-5 ${fontClass}`}>
@@ -166,27 +168,27 @@ export default function FlashcardView({
               {isGenerating && !currentPico ? (
                 <div className="flex-1 flex flex-col items-center justify-center opacity-50">
                   <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4" />
-                  <span className="text-xs font-bold uppercase tracking-widest">Extrayendo PICO...</span>
+                  <span className="text-xs font-bold uppercase tracking-widest">{t?.extracting || 'Extrayendo PICO...'}</span>
                 </div>
               ) : currentPico ? (
                 <>
                   <div className={`p-4 rounded-2xl border ${isDarkMode ? 'bg-blue-900/10 border-blue-800/30' : 'bg-blue-50 border-blue-100'}`}>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-blue-500 mb-1 block">Paciente / Problema</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-blue-500 mb-1 block">{t?.pLabel || 'Paciente / Problema'}</span>
                     <p className="font-bold text-sm leading-relaxed">{currentPico.p}</p>
                   </div>
                   <div className={`p-4 rounded-2xl border ${isDarkMode ? 'bg-emerald-900/10 border-emerald-800/30' : 'bg-emerald-50 border-emerald-100'}`}>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500 mb-1 block">Intervención</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500 mb-1 block">{t?.iLabel || 'Intervención'}</span>
                     <p className="font-bold text-sm leading-relaxed">{currentPico.i}</p>
                   </div>
                   <div className={`p-4 rounded-2xl border ${isDarkMode ? 'bg-amber-900/10 border-amber-800/30' : 'bg-amber-50 border-amber-100'}`}>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-amber-500 mb-1 block">Resultado (Outcome)</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-amber-500 mb-1 block">{t?.oLabel || 'Resultado (Outcome)'}</span>
                     <p className="font-bold text-sm leading-relaxed">{currentPico.o}</p>
                   </div>
                 </>
               ) : (
                 <div className="flex-1 flex items-center justify-center opacity-50">
                   <AlertCircle size={32} className="mb-2" />
-                  <span className="text-xs font-bold">No se pudo extraer PICO</span>
+                  <span className="text-xs font-bold">{t?.noPico || 'No se pudo extraer PICO'}</span>
                 </div>
               )}
             </div>
@@ -204,7 +206,7 @@ export default function FlashcardView({
                 onClick={() => onOpenImmersive(article)}
                 className="flex-1 mx-4 py-3 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold text-sm flex items-center justify-center gap-2 shadow-xl transition-transform active:scale-95"
               >
-                <BookOpen size={18} /> Leer Completo
+                <BookOpen size={18} /> {t?.readFull || 'Leer Completo'}
               </button>
 
               <button 

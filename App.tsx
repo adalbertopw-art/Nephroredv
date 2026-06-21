@@ -249,11 +249,16 @@ const translations = {
       profStatus: "ESTADO PROFESIONAL",
       verified: "Verificado",
       pending: "Pendiente",
+      invalid: "Inválida",
       guest: "Invitado (Guest)",
       guestDesc: "Acceso limitado a lectura.",
+      guestInitials: "US",
       createAccountTxt: "Crear Cuenta y Verificar",
       verifyDesc: "Para participar en encuestas de impacto y foros clínicos, requerimos validación de licencia profesional durante el registro.",
       pendingDesc: "Hemos recibido tus credenciales. La validación manual puede tomar hasta 24 horas.",
+      verifiedDr: "DR",
+      verifiedUser: "Dr.",
+      verifiedDesc: "NPI Verificado • Nefrología",
       filters: "FILTROS DE BÚSQUEDA",
       fullTextOnly: "Solo Texto Completo (PMC)",
       fullTextDesc: "Muestra solo artículos disponibles en PubMed Central.",
@@ -266,6 +271,7 @@ const translations = {
       aiSearchDesc: "Analiza resultados y genera síntesis ejecutiva.",
       connectivity: "CONECTIVIDAD Y SEGURIDAD",
       apiKeyRequired: "Necesaria para búsqueda IA, Voice Mode y Resúmenes.",
+      groqDesc: "NLP de baja latencia para re-escritura de abstracts y lenguaje clínico directo.",
       verifyBtn: "Verificar",
       getGoogleAI: "Obtener en Google AI Studio",
       getGroq: "Obtener en console.groq.com",
@@ -313,6 +319,57 @@ const translations = {
       currentVersion: "Versión Actual",
       viewFullInfo: "VER INFORMACIÓN COMPLETA"
     },
+    infoMenu: {
+      navAndDock: "Navegación & Dock",
+      discoverLabel: "Descubrir",
+      discoverDesc: "Feed principal de artículos por tópico.",
+      historyLabel: "Historial",
+      historyDesc: "Línea de tiempo de búsquedas anteriores.",
+      libraryLabel: "Biblioteca",
+      libraryDesc: "Artículos guardados y lectura offline.",
+      voiceLabel: "Voz (IA)",
+      voiceDesc: "Asistente Gemini Live para comandos verbales.",
+      communityLabel: "Comunidad",
+      communityDesc: "Red social médica, foros y encuestas.",
+      cloudSyncLabel: "Cloud Sync",
+      cloudSyncDesc: "Sincronización de biblioteca en la nube.",
+      studyTools: "Herramientas de Estudio",
+      saveOfflineLabel: "Guardar / Offline",
+      saveOfflineDesc: "Descarga para leer sin internet.",
+      notesLabel: "Notas Personales",
+      notesDesc: "Añade observaciones clínicas.",
+      debateLabel: "Debate Clínico",
+      debateDesc: "Discute artículos con otros médicos.",
+      citeLabel: "Citar (APA)",
+      citeDesc: "Copia la referencia bibliográfica.",
+      aiEnhanceLabel: "IA Enhance (Groq)",
+      aiEnhanceDesc: "Reescribe el abstract con lenguaje claro.",
+      visualAbstractLabel: "Visual Abstract",
+      visualAbstractDesc: "Genera diagrama de flujo (Mermaid).",
+      relatedLabel: "Relacionados",
+      relatedDesc: "Busca estudios similares con IA.",
+      fullTextFlowLabel: "Full Text Flow",
+      fullTextFlowDesc: "Intenta acceder al texto completo.",
+      statusGlossary: "Glosario de Estado",
+      highImpact: "Alto Impacto / Tendencia",
+      openAccess: "Acceso Abierto (Gratis)",
+      offlineAvailable: "Disponible Offline",
+      clinicalCapsule: "Cápsula Clínica",
+      clinicalTrial: "Ensayo Clínico",
+      clinicalGuideline: "Guía Clínica",
+      searchEngineTitle: "Motor de Búsqueda Inteligente",
+      searchEngineIntro: "NephroUpdate utiliza un motor híbrido que combina la precisión de bases de datos médicas con la flexibilidad de la IA Generativa.",
+      neuralTranslationTitle: "Traducción Neural:",
+      neuralTranslationDesc: " Puedes escribir en español (ej. \"Nefropatía IgA\"). El sistema lo traduce internamente a términos MeSH en inglés (\"IgA Glomerulonephritis\") para maximizar resultados en PubMed y OpenAlex.",
+      picoModeTitle: "Modo PICO:",
+      picoModeDesc: " Utiliza la búsqueda estructurada (Paciente, Intervención, Comparación, Outcome) para generar queries booleanas complejas automáticamente.",
+      groundingTitle: "Grounding:",
+      groundingDesc: " Las búsquedas se verifican contra Google Search para incluir noticias de última hora que aún no están indexadas en PubMed.",
+      aboutAppTitle: "Sobre la Aplicación",
+      aboutAppDesc: "NephroUpdate es una herramienta de descubrimiento de investigación médica de alto nivel diseñada para nefrólogos. Utiliza inteligencia artificial para rastrear, filtrar y sintetizar la evidencia más reciente de múltiples bases de datos biomédicas.",
+      medicalDirection: "Dirección Médica & Desarrollo",
+      role: "Nefrólogo / Developer"
+    },
     libraryEmptyTitle: "Tu Biblioteca Personal",
     libraryEmptyDesc: "Inicia sesión para guardar artículos, sincronizar tu biblioteca entre dispositivos y acceder a tus notas personales.",
     loginToContinue: "Iniciar Sesión para Continuar",
@@ -335,7 +392,145 @@ const translations = {
     author: "Autor",
     searchAuthor: "Buscar artículos del autor:",
     time: "Tiempo",
-    evidenceType: "Tipo de Evidencia"
+    evidenceType: "Tipo de Evidencia",
+    social: {
+      proposeCase: "Proponer un Caso Clínico",
+      takeToMainDebate: "Llevar a Debate Principal",
+      proposeArticle: "Proponer Artículo",
+      articleTitlePh: "Título del artículo...",
+      linkPh: "Enlace / URL (opcional)...",
+      doiPh: "DOI (opcional)...",
+      sendProposal: "Enviar Propuesta",
+      beTheFirst: "Sé el primero en opinar",
+      activeDebate: "Debate Activo",
+      generalComments: "Comentarios Generales",
+      aiAnalyzing: "Consultor AI analizando...",
+      aiModeratorAnalyzing: "Moderador IA analizando sesgo...",
+      invokeAI: "Invocar Consultor AI (Segunda Opinión)",
+      invokeDevil: "Invocar Moderador (Devil's Advocate)",
+      replyingTo: "Replying to @",
+      writeReply: "Escribe tu respuesta...",
+      shareCase: "Comparte un caso, pregunta o comentario...",
+      addCritique: "Añade tu crítica o comentario...",
+      loginToParticipate: "Inicia sesión para participar",
+      loginToParticipateDesc: "Debes iniciar sesión para dar tu opinión en el Social Club",
+      solid: "Sólido",
+      biased: "Sesgado",
+      novel: "Novedoso",
+      limited: "Limitado",
+      like: "Me gusta",
+      useful: "Útil",
+      doubt: "Duda"
+    },
+    debate: {
+      noDebatesFound: "No se encontraron debates",
+      tryOtherTerms: "Intenta con otros términos de búsqueda o propón un nuevo tema.",
+      deleteDebate: "Eliminar debate",
+      propose: "Proponer",
+      proposeDebate: "Proponer Debate Clínico",
+      discoverDebates: "Descubre y debate temas controversiales...",
+      searchDiscussions: "Buscar discusiones, autores o temas...",
+      newDebateProposal: "Nueva Propuesta de Debate",
+      debateTitle: "Título del Debate",
+      debateTitlePh: "Ej: Impacto de la IA en el diagnóstico radiológico",
+      contentQuestion: "Contenido / Pregunta",
+      contentQuestionPh: "Describe el tema o lanza una pregunta para iniciar la discusión...",
+      linkOpt: "Enlace (Opcional)",
+      doiOpt: "DOI (Opcional)",
+      tags: "Etiquetas (Separadas por coma)",
+      tagsPh: "Cardiología, IA, Ética",
+      activeDebate: "Debate Activo"
+    },
+    apiKeyMissing: {
+      title: "Configuración Necesaria",
+      desc1: "Esta función avanzada requiere de una API Key de",
+      desc2: "Puedes obtenerla en",
+      desc3: "y luego configurarla en Ajustes.",
+      optionalGroq: "Opcional: Obtén también tu clave de",
+      optionalGroq2: "desde",
+      optionalGroq3: "para otras funciones rápidas.",
+      optionalGemini: "Opcional: Obtén también tu clave de",
+      optionalGemini2: "desde",
+      close: "Cerrar",
+      configure: "Configurar"
+    },
+    auth: {
+      login: "Iniciar Sesión",
+      register: "Registrarse",
+      createAccount: "Crear Cuenta",
+      profVerification: "Verificación Profesional",
+      medChallenge: "Reto Médico",
+      reqSent: "¡Solicitud Enviada!",
+      loginDesc: "Accede a tus artículos guardados y preferencias.",
+      signupDesc1: "Únete para guardar artículos y personalizar tu experiencia.",
+      signupDesc2: "Necesitamos validar tu identidad médica para darte acceso a la comunidad.",
+      signupDesc3: "Demuestra tus conocimientos clínicos para completar el registro.",
+      signupDesc4: "Revisa tu correo para confirmar tu cuenta. Tu perfil será validado pronto.",
+      haveAccount: "¿Ya tienes cuenta? Inicia sesión",
+      noAccount: "¿No tienes cuenta? Regístrate y Verifícate",
+      logout: "Cerrar Sesión",
+      welcomeBack: "Rápido de vuelta",
+      enterEmail: "Ingresa tu email clínico",
+      email: "Correo Electrónico Médico u Oficial",
+      password: "Contraseña (Mínimo 6 caracteres)",
+      medicalInfo: "Información Médica (Para validación)",
+      continueParams: "Continuar con Registro Profesional",
+      name: "Nombre Completo (Como aparece en licencia)",
+      specialty: "Especialidad Médica",
+      license: "Número de Licencia Médica / NPI",
+      country: "País de Ejercicio",
+      city: "Ciudad y Hospital Primario"
+    },
+    admin: {
+      panel: "Panel de Administración",
+      desc: "Verificación de Especialistas y Acceso",
+      cantApprove: "¿No puedes aprobar usuarios o los usuarios no ven su estado?",
+      sqlDesc: "Supabase usa políticas de seguridad (RLS). Si al aprobar un usuario este sigue como 'Pendiente' para él, necesitas actualizar las reglas de acceso. Ejecuta esto en tu SQL Editor:",
+      copyRefresh: "Cópialo, ejecútalo en la web de Supabase y luego recarga esta tabla.",
+      close: "Cerrar",
+      filters: "Filtros",
+      all: "Todos",
+      pending: "Pendientes",
+      verified: "Verificados",
+      search: "Buscar usuario...",
+      noUsers: "No se encontraron usuarios",
+      name: "Usuario",
+      country: "País",
+      license: "Licencia / NPI",
+      approve: "Aprobar",
+      revoke: "Revocar",
+      revoking: "Revocando...",
+      approving: "Aprobando...",
+      loading: "Cargando perfiles...",
+      tip: "💡 Después de ejecutarlo, aprueba a los usuarios aquí y pídeles que recarguen la página.",
+      noName: "Usuario sin nombre",
+      email: "Correo:",
+      licenseNum: "Licencia:",
+      countryField: "País:",
+      verifyAction: "Verificar",
+      rejectAction: "Rechazar",
+      unverifyAction: "Desverificar",
+      errUpdate: "Error al actualizar el estado."
+    },
+    userMenu: {
+      unverified: "No Verificado",
+      pending: "Verificación Pendiente",
+      verified: "Médico Verificado",
+      digitalCard: "Credencial Digital",
+      license: "Licencia:",
+      country: "País:",
+      logout: "Cerrar Sesión",
+      unknownUser: "Usuario"
+    },
+    flashcard: {
+      extracting: "Extrayendo PICO...",
+      pLabel: "Paciente / Problema",
+      iLabel: "Intervención",
+      oLabel: "Resultado (Outcome)",
+      noPico: "No se pudo extraer PICO",
+      readFull: "Leer Completo",
+      unknownAuthors: "Autores desconocidos"
+    }
   },
   en: {
     discover: "Discover",
@@ -378,11 +573,16 @@ const translations = {
       profStatus: "PROFESSIONAL STATUS",
       verified: "Verified",
       pending: "Pending",
+      invalid: "Invalid",
       guest: "Guest",
       guestDesc: "Limited read-only access.",
+      guestInitials: "US",
       createAccountTxt: "Create Account & Verify",
       verifyDesc: "To participate in impact surveys and clinical forums, we require professional license validation during registration.",
       pendingDesc: "We have received your credentials. Manual validation can take up to 24 hours.",
+      verifiedDr: "DR",
+      verifiedUser: "Dr.",
+      verifiedDesc: "NPI Verified • Nephrology",
       filters: "SEARCH FILTERS",
       fullTextOnly: "Full Text Only (PMC)",
       fullTextDesc: "Show only articles available in PubMed Central.",
@@ -395,6 +595,7 @@ const translations = {
       aiSearchDesc: "Analyzes results and generates executive synthesis.",
       connectivity: "CONNECTIVITY & SECURITY",
       apiKeyRequired: "Required for AI search, Voice Mode and Summaries.",
+      groqDesc: "Low latency NLP for abstract re-writing and direct clinical language.",
       verifyBtn: "Verify",
       getGoogleAI: "Get from Google AI Studio",
       getGroq: "Get from console.groq.com",
@@ -442,6 +643,57 @@ const translations = {
       currentVersion: "Current Version",
       viewFullInfo: "VIEW FULL INFO"
     },
+    infoMenu: {
+      navAndDock: "Navigation & Dock",
+      discoverLabel: "Discover",
+      discoverDesc: "Main article feed by topic.",
+      historyLabel: "History",
+      historyDesc: "Timeline of previous searches.",
+      libraryLabel: "Library",
+      libraryDesc: "Saved articles and offline reading.",
+      voiceLabel: "Voice (AI)",
+      voiceDesc: "Gemini Live assistant for voice commands.",
+      communityLabel: "Community",
+      communityDesc: "Medical social network, forums & surveys.",
+      cloudSyncLabel: "Cloud Sync",
+      cloudSyncDesc: "Cloud sync for your library.",
+      studyTools: "Study Tools",
+      saveOfflineLabel: "Save / Offline",
+      saveOfflineDesc: "Download to read without internet.",
+      notesLabel: "Personal Notes",
+      notesDesc: "Add clinical observations.",
+      debateLabel: "Clinical Debate",
+      debateDesc: "Discuss articles with other physicians.",
+      citeLabel: "Cite (APA)",
+      citeDesc: "Copy bibliographic reference.",
+      aiEnhanceLabel: "AI Enhance (Groq)",
+      aiEnhanceDesc: "Rewrite abstract with clear language.",
+      visualAbstractLabel: "Visual Abstract",
+      visualAbstractDesc: "Generate flowchart (Mermaid).",
+      relatedLabel: "Related",
+      relatedDesc: "Search similar studies using AI.",
+      fullTextFlowLabel: "Full Text Flow",
+      fullTextFlowDesc: "Attempts to access the full text.",
+      statusGlossary: "Status Glossary",
+      highImpact: "High Impact / Trending",
+      openAccess: "Open Access (Free)",
+      offlineAvailable: "Available Offline",
+      clinicalCapsule: "Clinical Capsule",
+      clinicalTrial: "Clinical Trial",
+      clinicalGuideline: "Clinical Guideline",
+      searchEngineTitle: "Intelligent Search Engine",
+      searchEngineIntro: "NephroUpdate uses a hybrid engine combining medical database precision with Generative AI flexibility.",
+      neuralTranslationTitle: "Neural Translation:",
+      neuralTranslationDesc: " You can type in Spanish (e.g. \"Nefropatía IgA\"). The system internally translates to English MeSH terms (\"IgA Glomerulonephritis\") to maximize results from PubMed and OpenAlex.",
+      picoModeTitle: "PICO Mode:",
+      picoModeDesc: " Uses structured search (Patient, Intervention, Comparison, Outcome) to generate complex boolean queries automatically.",
+      groundingTitle: "Grounding:",
+      groundingDesc: " Searches are verified against Google Search to include breaking news not yet indexed in PubMed.",
+      aboutAppTitle: "About the Application",
+      aboutAppDesc: "NephroUpdate is a high-level medical research discovery tool designed for nephrologists. It uses AI to crawl, filter, and synthesize the latest evidence from multiple biomedical databases.",
+      medicalDirection: "Medical Direction & Development",
+      role: "Nephrologist / Developer"
+    },
     libraryEmptyTitle: "Your Personal Library",
     libraryEmptyDesc: "Sign in to save articles, sync your library across devices and access your personal notes.",
     loginToContinue: "Sign In to Continue",
@@ -464,7 +716,145 @@ const translations = {
     author: "Author",
     searchAuthor: "Search articles by author:",
     time: "Time",
-    evidenceType: "Evidence Type"
+    evidenceType: "Evidence Type",
+    social: {
+      proposeCase: "Propose a Clinical Case",
+      takeToMainDebate: "Take to Main Debate",
+      proposeArticle: "Propose Article",
+      articleTitlePh: "Article Title...",
+      linkPh: "Link / URL (optional)...",
+      doiPh: "DOI (optional)...",
+      sendProposal: "Send Proposal",
+      beTheFirst: "Be the first to comment",
+      activeDebate: "Active Debate",
+      generalComments: "General Comments",
+      aiAnalyzing: "AI Consultant analyzing...",
+      aiModeratorAnalyzing: "AI Moderator analyzing bias...",
+      invokeAI: "Invoke AI Consultant (Second Opinion)",
+      invokeDevil: "Invoke Moderator (Devil's Advocate)",
+      replyingTo: "Replying to @",
+      writeReply: "Write your reply...",
+      shareCase: "Share a case, question or comment...",
+      addCritique: "Add your critique or comment...",
+      loginToParticipate: "Sign in to participate",
+      loginToParticipateDesc: "You must sign in to share your opinion in the Social Club",
+      solid: "Solid",
+      biased: "Biased",
+      novel: "Novel",
+      limited: "Limited",
+      like: "Like",
+      useful: "Useful",
+      doubt: "Doubt"
+    },
+    debate: {
+      noDebatesFound: "No debates found",
+      tryOtherTerms: "Try other search terms or propose a new topic.",
+      deleteDebate: "Delete debate",
+      propose: "Propose",
+      proposeDebate: "Propose Clinical Debate",
+      discoverDebates: "Discover and debate controversial topics...",
+      searchDiscussions: "Search discussions, authors or topics...",
+      newDebateProposal: "New Debate Proposal",
+      debateTitle: "Debate Title",
+      debateTitlePh: "e.g.: Impact of AI on radiological diagnosis",
+      contentQuestion: "Content / Question",
+      contentQuestionPh: "Describe the topic or ask a question to start the discussion...",
+      linkOpt: "Link (Optional)",
+      doiOpt: "DOI (Optional)",
+      tags: "Tags (Comma separated)",
+      tagsPh: "Cardiology, AI, Ethics",
+      activeDebate: "Active Debate"
+    },
+    apiKeyMissing: {
+      title: "Configuration Required",
+      desc1: "This advanced feature requires an API Key from",
+      desc2: "You can get it at",
+      desc3: "and then configure it in Settings.",
+      optionalGroq: "Optional: Also get your",
+      optionalGroq2: "key from",
+      optionalGroq3: "for other fast features.",
+      optionalGemini: "Optional: Also get your",
+      optionalGemini2: "key from",
+      close: "Close",
+      configure: "Settings"
+    },
+    auth: {
+      login: "Sign In",
+      register: "Register",
+      createAccount: "Create Account",
+      profVerification: "Professional Verification",
+      medChallenge: "Medical Challenge",
+      reqSent: "Request Sent!",
+      loginDesc: "Access your saved articles and preferences.",
+      signupDesc1: "Join to save articles and personalize your experience.",
+      signupDesc2: "We need to validate your medical identity to give you community access.",
+      signupDesc3: "Demonstrate your clinical knowledge to complete registration.",
+      signupDesc4: "Check your email to confirm your account. Your profile will be validated soon.",
+      haveAccount: "Already have an account? Sign in",
+      noAccount: "Don't have an account? Register and Verify",
+      logout: "Sign Out",
+      welcomeBack: "Welcome back",
+      enterEmail: "Enter your clinical email",
+      email: "Medical or Official Email",
+      password: "Password (Minimum 6 characters)",
+      medicalInfo: "Medical Information (For validation)",
+      continueParams: "Continue with Professional Registration",
+      name: "Full Name (As appears on license)",
+      specialty: "Medical Specialty",
+      license: "Medical License Number / NPI",
+      country: "Country of Practice",
+      city: "City and Primary Hospital"
+    },
+    admin: {
+      panel: "Admin Panel",
+      desc: "Specialist Verification and Access",
+      cantApprove: "Can't approve users or users don't see their status?",
+      sqlDesc: "Supabase uses Row Level Security (RLS). If a user remains 'Pending' after approval, you need to update access rules. Run this in your SQL Editor:",
+      copyRefresh: "Copy it, run it on the Supabase website, and then reload this table.",
+      close: "Close",
+      filters: "Filters",
+      all: "All",
+      pending: "Pending",
+      verified: "Verified",
+      search: "Search user...",
+      noUsers: "No users found",
+      name: "User",
+      country: "Country",
+      license: "License / NPI",
+      approve: "Approve",
+      revoke: "Revoke",
+      revoking: "Revoking...",
+      approving: "Approving...",
+      loading: "Loading profiles...",
+      tip: "💡 After running it, approve users here and ask them to reload the page.",
+      noName: "Unnamed user",
+      email: "Email:",
+      licenseNum: "License:",
+      countryField: "Country:",
+      verifyAction: "Verify",
+      rejectAction: "Reject",
+      unverifyAction: "Unverify",
+      errUpdate: "Error updating status."
+    },
+    userMenu: {
+      unverified: "Unverified",
+      pending: "Verification Pending",
+      verified: "Verified Physician",
+      digitalCard: "Digital ID Card",
+      license: "License:",
+      country: "Country:",
+      logout: "Sign Out",
+      unknownUser: "User"
+    },
+    flashcard: {
+      extracting: "Extracting PICO...",
+      pLabel: "Patient / Problem",
+      iLabel: "Intervention",
+      oLabel: "Outcome",
+      noPico: "Could not extract PICO",
+      readFull: "Read Full Text",
+      unknownAuthors: "Unknown authors"
+    }
   },
 };
 
@@ -1966,6 +2356,9 @@ function MainApp() {
         }
         return prev;
       });
+      setActiveImmersiveArticle((prev) => 
+        prev && prev.id === articleId ? { ...prev, note } : prev
+      );
     },
     [articles],
   );
@@ -2301,6 +2694,11 @@ function MainApp() {
       }
       return prev;
     });
+    setActiveImmersiveArticle((prev) =>
+      prev && prev.id === articleId
+        ? { ...prev, highlights: [...(prev.highlights || []), text] }
+        : prev
+    );
   }, []);
 
   const handleRemoveHighlight = useCallback(
@@ -2316,13 +2714,24 @@ function MainApp() {
         }),
       );
       setSavedArticles((prev) => {
-        const idx = prev.findIndex((a) => a.id === articleId);
-        if (idx !== -1 && prev[idx].highlights) {
+        const existingIndex = prev.findIndex((a) => a.id === articleId);
+        if (existingIndex !== -1) {
           const next = [...prev];
-          const newH = [...next[idx].highlights!];
+          const newH = [...(next[existingIndex].highlights || [])];
           newH.splice(index, 1);
-          next[idx] = { ...next[idx], highlights: newH };
+          next[existingIndex] = {
+            ...next[existingIndex],
+            highlights: newH,
+          };
           return next;
+        }
+        return prev;
+      });
+      setActiveImmersiveArticle((prev) => {
+        if (prev && prev.id === articleId && prev.highlights) {
+          const newH = [...prev.highlights];
+          newH.splice(index, 1);
+          return { ...prev, highlights: newH };
         }
         return prev;
       });
@@ -2983,6 +3392,7 @@ function MainApp() {
             onClose={() => setIsUserMenuOpen(false)}
             onOpenAuth={() => setIsAuthModalOpen(true)}
             isDarkMode={isDarkMode}
+            t={t.userMenu}
           />
           <button
             onClick={() => setIsSettingsOpen(true)}
@@ -3165,6 +3575,7 @@ function MainApp() {
                 onClose={() => setIsUserMenuOpen(false)}
                 onOpenAuth={() => setIsAuthModalOpen(true)}
                 isDarkMode={isDarkMode}
+                t={t.userMenu}
               />
               <button
                 onClick={() => setIsSettingsOpen(true)}
@@ -4035,6 +4446,7 @@ function MainApp() {
                                     onOpenAuth={() => setIsAuthModalOpen(true)}
                                     isGeneralForum={true}
                                     onRefresh={() => refetchCollaborations()}
+                                    t={t.social}
                                   />
                                 </div>
                               </div>
@@ -4172,6 +4584,7 @@ function MainApp() {
                                       "general-community-forum"
                                     }
                                     onRefresh={() => refetchDebates()}
+                                    t={t.social}
                                   />
                                 </div>
                               </div>
@@ -4183,6 +4596,7 @@ function MainApp() {
                                 user={user}
                                 isAdmin={isAdmin}
                                 onRefresh={() => refetchDebates()}
+                                t={t.debate}
                               />
                             )}
                           </div>
@@ -4372,6 +4786,7 @@ function MainApp() {
                   <AdminPanel
                     onClose={() => navigateToTab("discover")}
                     isDarkMode={isDarkMode}
+                    t={t.admin}
                   />
                 </motion.div>
               )}
@@ -4691,16 +5106,16 @@ function MainApp() {
                 <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
                   <ShieldAlert size={32} />
                 </div>
-                <h2 className={`text-xl font-black ${isDarkMode ? "text-white" : "text-slate-900"}`}>Configuración Necesaria</h2>
+                <h2 className={`text-xl font-black ${isDarkMode ? "text-white" : "text-slate-900"}`}>{t.apiKeyMissing.title}</h2>
                 <p className={`text-sm ${isDarkMode ? "text-slate-400" : "text-slate-600"}`}>
-                  Esta función avanzada requiere de una API Key de <strong>{missingProvider === "groq" ? "Groq" : "Gemini"}</strong>. 
-                  Puedes obtenerla en <a href={missingProvider === "groq" ? "https://console.groq.com/keys" : "https://aistudio.google.com/app/apikey"} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline font-bold">{missingProvider === "groq" ? "console.groq.com" : "Google AI Studio"}</a> y luego configurarla en Ajustes.
+                  {t.apiKeyMissing.desc1} <strong>{missingProvider === "groq" ? "Groq" : "Gemini"}</strong>. 
+                  {t.apiKeyMissing.desc2} <a href={missingProvider === "groq" ? "https://console.groq.com/keys" : "https://aistudio.google.com/app/apikey"} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline font-bold">{missingProvider === "groq" ? "console.groq.com" : "Google AI Studio"}</a> {t.apiKeyMissing.desc3}
                   <br /><br />
                   {missingProvider === "gemini" && (
-                     <>Opcional: Obtén también tu clave de <strong>Groq</strong> desde <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="text-blue-500 underline font-bold">console.groq.com</a> para otras funciones rápidas.</>
+                     <>{t.apiKeyMissing.optionalGroq} <strong>Groq</strong> {t.apiKeyMissing.optionalGroq2} <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" className="text-blue-500 underline font-bold">console.groq.com</a> {t.apiKeyMissing.optionalGroq3}</>
                   )}
                   {missingProvider === "groq" && (
-                     <>Opcional: Obtén también tu clave de <strong>Gemini</strong> desde <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-blue-500 underline font-bold">Google AI Studio</a>.</>
+                     <>{t.apiKeyMissing.optionalGemini} <strong>Gemini</strong> {t.apiKeyMissing.optionalGemini2} <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-blue-500 underline font-bold">Google AI Studio</a>.</>
                   )}
                 </p>
                 <div className="flex items-center gap-3 w-full pt-4">
@@ -4708,7 +5123,7 @@ function MainApp() {
                     onClick={() => setShowApiKeyWarning(false)}
                     className={`flex-1 py-3 rounded-xl font-bold border transition-colors ${isDarkMode ? "border-slate-700 hover:bg-slate-800 text-slate-300" : "border-slate-200 hover:bg-slate-50 text-slate-700"}`}
                   >
-                    Cerrar
+                    {t.apiKeyMissing.close}
                   </button>
                   <button
                     onClick={() => {
@@ -4717,7 +5132,7 @@ function MainApp() {
                     }}
                     className="flex-1 py-3 rounded-xl font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors"
                   >
-                    Configurar
+                    {t.apiKeyMissing.configure}
                   </button>
                 </div>
               </div>
@@ -4845,19 +5260,19 @@ function MainApp() {
                       <div className="flex items-center gap-3 p-3 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
                         <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-emerald-500">
                           <div className="h-full w-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs font-bold">
-                            DR
+                            {t.settings.verifiedDr}
                           </div>
                         </div>
                         <div>
                           <div className="text-sm font-bold flex items-center gap-1">
-                            Dr. {user?.user_metadata?.full_name || "User"}{" "}
+                            {t.settings.verifiedUser} {user?.user_metadata?.full_name || "User"}{" "}
                             <BadgeCheck
                               size={14}
                               className="text-emerald-500"
                             />
                           </div>
                           <div className="text-[10px] opacity-60">
-                            NPI Verified • Nephrology
+                            {t.settings.verifiedDesc}
                           </div>
                         </div>
                       </div>
@@ -4984,7 +5399,7 @@ function MainApp() {
                         )}
                         {geminiStatus === "invalid" && (
                           <span className="px-2 py-0.5 rounded bg-red-500/10 text-red-500 text-[8px] font-black uppercase flex items-center gap-1">
-                            <X size={10} /> Inválida
+                            <X size={10} /> {t.settings.invalid}
                           </span>
                         )}
                       </div>
@@ -5044,13 +5459,12 @@ function MainApp() {
                         )}
                         {groqStatus === "invalid" && (
                           <span className="px-2 py-0.5 rounded bg-red-500/10 text-red-500 text-[8px] font-black uppercase flex items-center gap-1">
-                            <X size={10} /> Inválida
+                            <X size={10} /> {t.settings.invalid}
                           </span>
                         )}
                       </div>
                       <p className="text-[9px] leading-relaxed opacity-60 italic">
-                        NLP de baja latencia para re-escritura de abstracts y
-                        lenguaje clínico directo.
+                        {t.settings.groqDesc}
                       </p>
                       <div className="relative">
                         <input
@@ -5782,7 +6196,7 @@ function MainApp() {
               <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
                 <section>
                   <h3 className="text-xs font-black uppercase tracking-widest opacity-50 mb-4 border-b pb-2 border-slate-200 dark:border-slate-800">
-                    Navegación & Dock
+                    {t.infoMenu.navAndDock}
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div
@@ -5793,10 +6207,10 @@ function MainApp() {
                       </div>
                       <div>
                         <h4 className="text-[10px] font-black uppercase">
-                          Descubrir
+                          {t.infoMenu.discoverLabel}
                         </h4>
                         <p className="text-[10px] opacity-60 leading-tight mt-1">
-                          Feed principal de artículos por tópico.
+                          {t.infoMenu.discoverDesc}
                         </p>
                       </div>
                     </div>
@@ -5808,10 +6222,10 @@ function MainApp() {
                       </div>
                       <div>
                         <h4 className="text-[10px] font-black uppercase">
-                          Historial
+                          {t.infoMenu.historyLabel}
                         </h4>
                         <p className="text-[10px] opacity-60 leading-tight mt-1">
-                          Línea de tiempo de búsquedas anteriores.
+                          {t.infoMenu.historyDesc}
                         </p>
                       </div>
                     </div>
@@ -5823,10 +6237,10 @@ function MainApp() {
                       </div>
                       <div>
                         <h4 className="text-[10px] font-black uppercase">
-                          Biblioteca
+                          {t.infoMenu.libraryLabel}
                         </h4>
                         <p className="text-[10px] opacity-60 leading-tight mt-1">
-                          Artículos guardados y lectura offline.
+                          {t.infoMenu.libraryDesc}
                         </p>
                       </div>
                     </div>
@@ -5838,10 +6252,10 @@ function MainApp() {
                       </div>
                       <div>
                         <h4 className="text-[10px] font-black uppercase">
-                          Voz (IA)
+                          {t.infoMenu.voiceLabel}
                         </h4>
                         <p className="text-[10px] opacity-60 leading-tight mt-1">
-                          Asistente Gemini Live para comandos verbales.
+                          {t.infoMenu.voiceDesc}
                         </p>
                       </div>
                     </div>
@@ -5853,10 +6267,10 @@ function MainApp() {
                       </div>
                       <div>
                         <h4 className="text-[10px] font-black uppercase">
-                          Comunidad
+                          {t.infoMenu.communityLabel}
                         </h4>
                         <p className="text-[10px] opacity-60 leading-tight mt-1">
-                          Red social médica, foros y encuestas.
+                          {t.infoMenu.communityDesc}
                         </p>
                       </div>
                     </div>
@@ -5868,10 +6282,10 @@ function MainApp() {
                       </div>
                       <div>
                         <h4 className="text-[10px] font-black uppercase">
-                          Cloud Sync
+                          {t.infoMenu.cloudSyncLabel}
                         </h4>
                         <p className="text-[10px] opacity-60 leading-tight mt-1">
-                          Sincronización de biblioteca en la nube.
+                          {t.infoMenu.cloudSyncDesc}
                         </p>
                       </div>
                     </div>
@@ -5880,49 +6294,49 @@ function MainApp() {
 
                 <section>
                   <h3 className="text-xs font-black uppercase tracking-widest opacity-50 mb-4 border-b pb-2 border-slate-200 dark:border-slate-800">
-                    Herramientas de Estudio
+                    {t.infoMenu.studyTools}
                   </h3>
                   <div className="grid grid-cols-2 gap-3">
                     {[
                       {
                         icon: Bookmark,
-                        label: "Guardar / Offline",
-                        desc: "Descarga para leer sin internet.",
+                        label: t.infoMenu.saveOfflineLabel,
+                        desc: t.infoMenu.saveOfflineDesc,
                       },
                       {
                         icon: StickyNote,
-                        label: "Notas Personales",
-                        desc: "Añade observaciones clínicas.",
+                        label: t.infoMenu.notesLabel,
+                        desc: t.infoMenu.notesDesc,
                       },
                       {
                         icon: MessageCircle,
-                        label: "Debate Clínico",
-                        desc: "Discute artículos con otros médicos.",
+                        label: t.infoMenu.debateLabel,
+                        desc: t.infoMenu.debateDesc,
                       },
                       {
                         icon: Quote,
-                        label: "Citar (APA)",
-                        desc: "Copia la referencia bibliográfica.",
+                        label: t.infoMenu.citeLabel,
+                        desc: t.infoMenu.citeDesc,
                       },
                       {
                         icon: Zap,
-                        label: "IA Enhance (Groq)",
-                        desc: "Reescribe el abstract con lenguaje claro.",
+                        label: t.infoMenu.aiEnhanceLabel,
+                        desc: t.infoMenu.aiEnhanceDesc,
                       },
                       {
                         icon: ImageIcon,
-                        label: "Visual Abstract",
-                        desc: "Genera diagrama de flujo (Mermaid).",
+                        label: t.infoMenu.visualAbstractLabel,
+                        desc: t.infoMenu.visualAbstractDesc,
                       },
                       {
                         icon: Sparkles,
-                        label: "Relacionados",
-                        desc: "Busca estudios similares con IA.",
+                        label: t.infoMenu.relatedLabel,
+                        desc: t.infoMenu.relatedDesc,
                       },
                       {
                         icon: Workflow,
-                        label: "Full Text Flow",
-                        desc: "Intenta acceder al texto completo.",
+                        label: t.infoMenu.fullTextFlowLabel,
+                        desc: t.infoMenu.fullTextFlowDesc,
                       },
                     ].map((item, i) => (
                       <div
@@ -5950,39 +6364,39 @@ function MainApp() {
 
                 <section>
                   <h3 className="text-xs font-black uppercase tracking-widest opacity-50 mb-4 border-b pb-2 border-slate-200 dark:border-slate-800">
-                    Glosario de Estado
+                    {t.infoMenu.statusGlossary}
                   </h3>
                   <div className="grid grid-cols-2 gap-3">
                     {[
                       {
                         icon: Flame,
                         color: "text-orange-500",
-                        label: "Alto Impacto / Tendencia",
+                        label: t.infoMenu.highImpact,
                       },
                       {
                         icon: Unlock,
                         color: "text-emerald-500",
-                        label: "Acceso Abierto (Gratis)",
+                        label: t.infoMenu.openAccess,
                       },
                       {
                         icon: WifiOff,
                         color: "text-emerald-500",
-                        label: "Disponible Offline",
+                        label: t.infoMenu.offlineAvailable,
                       },
                       {
                         icon: Activity,
                         color: "text-blue-500",
-                        label: "Cápsula Clínica",
+                        label: t.infoMenu.clinicalCapsule,
                       },
                       {
                         icon: FlaskConical,
                         color: "text-blue-400",
-                        label: "Ensayo Clínico",
+                        label: t.infoMenu.clinicalTrial,
                       },
                       {
                         icon: Scale,
                         color: "text-emerald-400",
-                        label: "Guía Clínica",
+                        label: t.infoMenu.clinicalGuideline,
                       },
                     ].map((item, i) => (
                       <div
@@ -6006,33 +6420,22 @@ function MainApp() {
                   <div className="flex items-center gap-2 mb-3">
                     <BrainCircuit size={16} className="text-blue-500" />
                     <h3 className="text-xs font-black uppercase tracking-widest text-blue-600 dark:text-blue-400">
-                      Motor de Búsqueda Inteligente
+                      {t.infoMenu.searchEngineTitle}
                     </h3>
                   </div>
                   <div className="space-y-3 text-[11px] leading-relaxed opacity-80">
                     <p>
-                      NephroUpdate utiliza un motor híbrido que combina la
-                      precisión de bases de datos médicas con la flexibilidad de
-                      la IA Generativa.
+                      {t.infoMenu.searchEngineIntro}
                     </p>
                     <ul className="space-y-2 list-disc list-inside">
                       <li>
-                        <strong>Traducción Neural:</strong> Puedes escribir en
-                        español (ej. "Nefropatía IgA"). El sistema lo traduce
-                        internamente a términos MeSH en inglés ("IgA
-                        Glomerulonephritis") para maximizar resultados en PubMed
-                        y OpenAlex.
+                        <strong>{t.infoMenu.neuralTranslationTitle}</strong>{t.infoMenu.neuralTranslationDesc}
                       </li>
                       <li>
-                        <strong>Modo PICO:</strong> Utiliza la búsqueda
-                        estructurada (Paciente, Intervención, Comparación,
-                        Outcome) para generar queries booleanas complejas
-                        automáticamente.
+                        <strong>{t.infoMenu.picoModeTitle}</strong>{t.infoMenu.picoModeDesc}
                       </li>
                       <li>
-                        <strong>Grounding:</strong> Las búsquedas se verifican
-                        contra Google Search para incluir noticias de última
-                        hora que aún no están indexadas en PubMed.
+                        <strong>{t.infoMenu.groundingTitle}</strong>{t.infoMenu.groundingDesc}
                       </li>
                     </ul>
                   </div>
@@ -6040,22 +6443,18 @@ function MainApp() {
 
                 <section>
                   <h3 className="text-xs font-black uppercase tracking-widest opacity-50 mb-3">
-                    Sobre la Aplicación
+                    {t.infoMenu.aboutAppTitle}
                   </h3>
                   <p
                     className={`text-sm leading-relaxed ${isDarkMode ? "text-slate-300" : "text-slate-600"}`}
                   >
-                    NephroUpdate es una herramienta de descubrimiento de
-                    investigación médica de alto nivel diseñada para nefrólogos.
-                    Utiliza inteligencia artificial para rastrear, filtrar y
-                    sintetizar la evidencia más reciente de múltiples bases de
-                    datos biomédicas.
+                    {t.infoMenu.aboutAppDesc}
                   </p>
                 </section>
 
                 <section>
                   <h3 className="text-xs font-black uppercase tracking-widest opacity-50 mb-3">
-                    Dirección Médica & Desarrollo
+                    {t.infoMenu.medicalDirection}
                   </h3>
                   <div
                     className={`p-4 rounded-2xl border flex items-center gap-4 ${isDarkMode ? "bg-slate-900 border-slate-800" : "bg-slate-50 border-blue-100"}`}
@@ -6070,7 +6469,7 @@ function MainApp() {
                         Dr. Adalberto Peña Wilches
                       </h4>
                       <p className="text-[10px] opacity-60 font-medium uppercase tracking-wider mb-1">
-                        Nefrólogo / Developer
+                        {t.infoMenu.role}
                       </p>
                       <a
                         href="mailto:adalberto.pw@gmail.com"
@@ -6239,6 +6638,7 @@ function MainApp() {
             savedArticles={savedArticles}
             geminiApiKey={geminiApiKey}
             fontStyle={fontStyle}
+            t={t.flashcard}
           />
         )}
       </AnimatePresence>
@@ -6247,6 +6647,7 @@ function MainApp() {
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         isDarkMode={isDarkMode}
+        t={t.auth}
       />
 
       <AnimatePresence>

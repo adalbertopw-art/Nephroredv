@@ -17,6 +17,7 @@ interface SocialJournalClubProps {
   isGeneralForum?: boolean;
   isDebate?: boolean;
   onRefresh?: () => void;
+  t?: any;
 }
 
 const REACTION_CONFIG: Record<ReactionType, { icon: React.ElementType, label: string, color: string }> = {
@@ -651,7 +652,7 @@ const SocialJournalClub: React.FC<SocialJournalClubProps> = ({ article, isDarkMo
                     }}
                     className={`mt-3 w-full py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-colors ${isDarkMode ? 'bg-blue-900/20 text-blue-400 hover:bg-blue-900/30' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}`}
                 >
-                    <BookOpen size={14} /> {isGeneralForum ? 'Proponer un Caso Clínico' : 'Llevar a Debate Principal'}
+                    <BookOpen size={14} /> {isGeneralForum ? (t?.proposeCase || 'Proponer un Caso Clínico') : (t?.takeToMainDebate || 'Llevar a Debate Principal')}
                 </button>
             )}
         </div>
@@ -662,7 +663,7 @@ const SocialJournalClub: React.FC<SocialJournalClubProps> = ({ article, isDarkMo
                 <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2 text-blue-500">
                         <BookOpen size={14} />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Proponer Artículo</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest">{t?.proposeArticle || "Proponer Artículo"}</span>
                     </div>
                     <button onClick={() => setIsProposing(false)} className="opacity-50 hover:opacity-100"><X size={14} /></button>
                 </div>
@@ -671,21 +672,21 @@ const SocialJournalClub: React.FC<SocialJournalClubProps> = ({ article, isDarkMo
                         type="text" 
                         value={propTitle}
                         onChange={e => setPropTitle(e.target.value)}
-                        placeholder="Título del artículo..."
+                        placeholder={t?.articleTitlePh || "Título del artículo..."}
                         className={`w-full p-2 rounded-lg text-xs outline-none border ${isDarkMode ? 'bg-slate-950 border-slate-800 text-white placeholder-slate-500' : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'}`}
                     />
                     <input 
                         type="text" 
                         value={propUrl}
                         onChange={e => setPropUrl(e.target.value)}
-                        placeholder="Enlace / URL (opcional)..."
+                        placeholder={t?.linkPh || "Enlace / URL (opcional)..."}
                         className={`w-full p-2 rounded-lg text-xs outline-none border ${isDarkMode ? 'bg-slate-950 border-slate-800 text-white placeholder-slate-500' : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'}`}
                     />
                     <input 
                         type="text" 
                         value={propDoi}
                         onChange={e => setPropDoi(e.target.value)}
-                        placeholder="DOI (opcional)..."
+                        placeholder={t?.doiPh || "DOI (opcional)..."}
                         className={`w-full p-2 rounded-lg text-xs outline-none border ${isDarkMode ? 'bg-slate-950 border-slate-800 text-white placeholder-slate-500' : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'}`}
                     />
                     <textarea 
@@ -700,7 +701,7 @@ const SocialJournalClub: React.FC<SocialJournalClubProps> = ({ article, isDarkMo
                         disabled={sending || !propTitle.trim()}
                         className="w-full py-2 rounded-lg bg-blue-600 text-white text-xs font-bold uppercase tracking-widest shadow-lg active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
                     >
-                        {sending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />} Enviar Propuesta
+                        {sending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />} {t?.sendProposal || "Enviar Propuesta"}
                     </button>
                 </div>
             </div>
@@ -713,7 +714,7 @@ const SocialJournalClub: React.FC<SocialJournalClubProps> = ({ article, isDarkMo
             ) : comments.length === 0 ? (
                 <div className="text-center py-10 opacity-30">
                     <MessageCircle size={48} className="mx-auto mb-2" />
-                    <p className="text-xs font-bold uppercase">Sé el primero en opinar</p>
+                    <p className="text-xs font-bold uppercase">{t?.beTheFirst || "Sé el primero en opinar"}</p>
                 </div>
             ) : isGeneralForum ? (
                 <>
@@ -722,7 +723,7 @@ const SocialJournalClub: React.FC<SocialJournalClubProps> = ({ article, isDarkMo
                         <div key={thread.proposal.id} className={`p-4 rounded-3xl border-2 ${isDarkMode ? 'bg-slate-900/40 border-blue-500/20' : 'bg-blue-50/30 border-blue-100'} space-y-4`}>
                             <div className="flex items-center gap-2 mb-2 px-2">
                                 <Zap size={14} className="text-blue-500" />
-                                <span className="text-[10px] font-black uppercase tracking-widest text-blue-500">Debate Activo</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-blue-500">{t?.activeDebate || "Debate Activo"}</span>
                             </div>
                             {renderCommentTree(thread.proposal, comments)}
                             {thread.children.filter(c => !c.parent_id || c.parent_id === thread.proposal.id).map(child => {
@@ -739,7 +740,7 @@ const SocialJournalClub: React.FC<SocialJournalClubProps> = ({ article, isDarkMo
                         <div className="space-y-4 pt-4 border-t border-dashed border-slate-200 dark:border-slate-800">
                             <div className="flex items-center gap-2 mb-2 px-2 opacity-50">
                                 <MessageSquare size={14} />
-                                <span className="text-[10px] font-black uppercase tracking-widest">Comentarios Generales</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest">{t?.generalComments || "Comentarios Generales"}</span>
                             </div>
                             {groupedComments.orphans.map(orphan => renderCommentTree(orphan, comments))}
                         </div>
@@ -770,7 +771,7 @@ const SocialJournalClub: React.FC<SocialJournalClubProps> = ({ article, isDarkMo
             
             {moderatorThinking && (
                 <div className="flex gap-2 items-center text-xs font-bold text-purple-500 animate-pulse">
-                    <Bot size={14} /> {isGeneralForum ? 'Consultor AI analizando...' : 'AI Moderator analyzing bias...'}
+                    <Bot size={14} /> {isGeneralForum ? (t?.aiAnalyzing || 'Consultor AI analizando...') : (t?.aiModeratorAnalyzing || 'AI Moderator analyzing bias...')}
                 </div>
             )}
         </div>
@@ -791,7 +792,7 @@ const SocialJournalClub: React.FC<SocialJournalClubProps> = ({ article, isDarkMo
                             } hover:brightness-110`}
                         >
                             <conf.icon size={16} />
-                            <span className="text-[8px] font-black uppercase">{conf.label}</span>
+                            <span className="text-[8px] font-black uppercase">{t?.[type] || conf.label}</span>
                             {getReactionCounts()[type] > 0 && (
                                 <span className="text-[8px] font-bold">{getReactionCounts()[type]}</span>
                             )}
@@ -808,7 +809,7 @@ const SocialJournalClub: React.FC<SocialJournalClubProps> = ({ article, isDarkMo
                     onClick={handleTriggerModerator}
                     className={`w-full py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-colors ${isDarkMode ? 'bg-purple-900/20 text-purple-400 hover:bg-purple-900/30' : 'bg-purple-100 text-purple-600 hover:bg-purple-200'}`}
                 >
-                    <Bot size={12} /> {isGeneralForum ? 'Invocar Consultor AI (Segunda Opinión)' : 'Invocar Moderador (Devil\'s Advocate)'}
+                    <Bot size={12} /> {isGeneralForum ? (t?.invokeAI || 'Invocar Consultor AI (Segunda Opinión)') : (t?.invokeDevil || 'Invocar Moderador (Devil\'s Advocate)')}
                 </button>
             )}
             
@@ -819,7 +820,7 @@ const SocialJournalClub: React.FC<SocialJournalClubProps> = ({ article, isDarkMo
                     {replyTo && (
                         <div className={`flex items-center justify-between px-3 py-1.5 rounded-t-xl text-[10px] font-bold ${isDarkMode ? 'bg-slate-800 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
                             <span className="flex items-center gap-1">
-                                <MessageSquare size={12} /> Replying to @{replyTo.user_name.toLowerCase().replace(/\s+/g, '')}
+                                <MessageSquare size={12} /> {t?.replyingTo || "Replying to @"}{replyTo.user_name.toLowerCase().replace(/\s+/g, '')}
                             </span>
                             <button onClick={() => setReplyTo(null)} className="opacity-50 hover:opacity-100"><X size={12} /></button>
                         </div>
@@ -831,7 +832,7 @@ const SocialJournalClub: React.FC<SocialJournalClubProps> = ({ article, isDarkMo
                             value={newComment}
                             onChange={e => setNewComment(e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && handlePostComment()}
-                            placeholder={replyTo ? "Escribe tu respuesta..." : (isGeneralForum ? "Comparte un caso, pregunta o comentario..." : "Añade tu crítica o comentario...")}
+                            placeholder={replyTo ? (t?.writeReply || "Escribe tu respuesta...") : (isGeneralForum ? (t?.shareCase || "Comparte un caso, pregunta o comentario...") : (t?.addCritique || "Añade tu crítica o comentario..."))}
                             className={`flex-1 p-3 rounded-xl text-sm outline-none ${isDarkMode ? 'bg-slate-800 text-white placeholder-slate-500' : 'bg-slate-100 text-slate-900 placeholder-slate-400'} ${replyTo ? 'rounded-tl-none' : ''}`}
                         />
                         <button 
@@ -852,8 +853,8 @@ const SocialJournalClub: React.FC<SocialJournalClubProps> = ({ article, isDarkMo
                 >
                     <LogIn size={24} className="opacity-50" />
                     <div className="text-center">
-                        <p className="text-xs font-black uppercase tracking-widest">Inicia sesión para participar</p>
-                        <p className="text-[10px] opacity-60">Debes iniciar sesión para dar tu opinión en el Social Club</p>
+                        <p className="text-xs font-black uppercase tracking-widest">{t?.loginToParticipate || "Inicia sesión para participar"}</p>
+                        <p className="text-[10px] opacity-60">{t?.loginToParticipateDesc || "Debes iniciar sesión para dar tu opinión en el Social Club"}</p>
                     </div>
                 </button>
             )}

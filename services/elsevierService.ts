@@ -99,7 +99,7 @@ export const fetchElsevierArticles = async (
 
   // Fallback: Shadow Search on Crossref for Elsevier (member:78)
   try {
-      let crossrefUrl = `${CROSSREF_API_BASE}?query=${encodeURIComponent(qsTerm)}&filter=type:journal-article,has-abstract:true,member:78&select=DOI,title,created,author,abstract,container-title,URL,is-referenced-by-count,published-print,published-online&rows=100&sort=published&order=desc`;
+      let crossrefUrl = `${CROSSREF_API_BASE}?query=${encodeURIComponent(qsTerm)}&filter=type:journal-article,has-abstract:true,member:78&select=DOI,title,created,author,abstract,container-title,URL,is-referenced-by-count,published-print,published-online&rows=100&sort=published&order=desc&mailto=adalberto.pw@gmail.com`;
       
       if (!Capacitor.isNativePlatform()) {
           crossrefUrl = `/api/proxy?url=${encodeURIComponent(crossrefUrl)}`;
@@ -108,6 +108,10 @@ export const fetchElsevierArticles = async (
       const crossrefResponse = await fetch(crossrefUrl);
 
       if (!crossrefResponse.ok) {
+          if (crossrefResponse.status === 429) {
+              console.warn("Crossref rate limit exceeded (429).");
+              return { summary: "Crossref rate limit exceeded.", articles: [] };
+          }
           throw new Error(`Crossref fallback failed: ${crossrefResponse.status}`);
       }
 
@@ -166,7 +170,7 @@ export const fetchElsevierArticles = async (
       return { summary: `Elsevier (Crossref Shadow): ${articles.length} results.`, articles: articles };
 
   } catch (error) {
-      console.error("Error in Elsevier Fallback (Crossref)", error);
+      console.warn("Warning in Elsevier Fallback (Crossref)", error);
       return { summary: "Error fetching Elsevier & Fallback", articles: [] };
   }
 };

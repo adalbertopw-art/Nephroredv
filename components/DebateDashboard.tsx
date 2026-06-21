@@ -12,9 +12,10 @@ interface DebateDashboardProps {
   user?: any;
   isAdmin?: boolean;
   onRefresh?: () => void;
+  t?: any;
 }
 
-const DebateDashboard: React.FC<DebateDashboardProps> = ({ debates, onSelectDebate, isDarkMode, user, isAdmin, onRefresh }) => {
+const DebateDashboard: React.FC<DebateDashboardProps> = ({ debates, onSelectDebate, isDarkMode, user, isAdmin, onRefresh, t }) => {
   const [isCreating, setIsCreating] = useState(false);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -102,10 +103,10 @@ const DebateDashboard: React.FC<DebateDashboardProps> = ({ debates, onSelectDeba
                     </div>
                     <div>
                         <h2 className={`text-xl font-black uppercase tracking-tighter ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                            Debates de la Comunidad
+                            {t?.activeDebate || "Debates de la Comunidad"}
                         </h2>
                         <p className="text-[10px] opacity-50 font-black uppercase tracking-widest">
-                            {debates.length} Temas propuestos • Tendencias médicas
+                            {debates.length} {t?.discoverDebates || "Temas propuestos • Tendencias médicas"}
                         </p>
                     </div>
                 </div>
@@ -115,7 +116,7 @@ const DebateDashboard: React.FC<DebateDashboardProps> = ({ debates, onSelectDeba
                 <div className={`relative flex-1 sm:w-64 group`}>
                     <input 
                         type="text"
-                        placeholder="Buscar debates..."
+                        placeholder={t?.searchDiscussions || "Buscar debates..."}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className={`w-full pl-9 pr-4 py-2.5 rounded-2xl text-xs font-bold border transition-all outline-none ${
@@ -133,7 +134,7 @@ const DebateDashboard: React.FC<DebateDashboardProps> = ({ debates, onSelectDeba
                         className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-600 transition-all active:scale-95 whitespace-nowrap"
                     >
                         <Plus size={18} strokeWidth={3} />
-                        <span className="text-xs font-black uppercase tracking-widest hidden sm:inline">Proponer</span>
+                        <span className="text-xs font-black uppercase tracking-widest hidden sm:inline">{t?.proposeDebate || "Proponer"}</span>
                     </button>
                 )}
             </div>
@@ -154,7 +155,7 @@ const DebateDashboard: React.FC<DebateDashboardProps> = ({ debates, onSelectDeba
                     <div className="w-8 h-8 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
                         <Plus size={18} />
                     </div>
-                    <h3 className="text-sm font-black uppercase tracking-widest">Nueva Propuesta de Debate</h3>
+                    <h3 className="text-sm font-black uppercase tracking-widest">{t?.newDebateProposal || "Nueva Propuesta de Debate"}</h3>
                 </div>
                 <button 
                   onClick={() => setIsCreating(false)}
@@ -167,19 +168,19 @@ const DebateDashboard: React.FC<DebateDashboardProps> = ({ debates, onSelectDeba
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                     <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Título del Debate</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">{t?.debateTitle || "Título del Debate"}</label>
                         <input 
                             type="text"
-                            placeholder="Ej: Impacto de la IA en el diagnóstico radiológico"
+                            placeholder={t?.debateTitlePh || "Ej: Impacto de la IA en el diagnóstico radiológico"}
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             className={`w-full px-4 py-3 rounded-2xl text-sm font-bold border outline-none transition-all ${isDarkMode ? 'bg-slate-800 border-slate-700 focus:border-blue-500' : 'bg-slate-50 border-slate-200 focus:border-blue-500'}`}
                         />
                     </div>
                     <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Contenido / Pregunta</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">{t?.contentQuestion || "Contenido / Pregunta"}</label>
                         <textarea 
-                            placeholder="Describe el tema o lanza una pregunta para iniciar la discusión..."
+                            placeholder={t?.contentQuestionPh || "Describe el tema o lanza una pregunta para iniciar la discusión..."}
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
                             rows={4}
@@ -190,7 +191,7 @@ const DebateDashboard: React.FC<DebateDashboardProps> = ({ debates, onSelectDeba
 
                 <div className="space-y-4">
                     <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Enlace (Opcional)</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">{t?.linkOpt || "Enlace (Opcional)"}</label>
                         <input 
                             type="text"
                             placeholder="https://pubmed.ncbi.nlm.nih.gov/..."
@@ -200,7 +201,7 @@ const DebateDashboard: React.FC<DebateDashboardProps> = ({ debates, onSelectDeba
                         />
                     </div>
                     <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">DOI (Opcional)</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">{t?.doiOpt || "DOI (Opcional)"}</label>
                         <input 
                             type="text"
                             placeholder="10.1038/s41586-021-03430-5"
@@ -210,10 +211,10 @@ const DebateDashboard: React.FC<DebateDashboardProps> = ({ debates, onSelectDeba
                         />
                     </div>
                     <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">Etiquetas (Separadas por coma)</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest opacity-50 ml-1">{t?.tags || "Etiquetas (Separadas por coma)"}</label>
                         <input 
                             type="text"
-                            placeholder="Cardiología, IA, Ética"
+                            placeholder={t?.tagsPh || "Cardiología, IA, Ética"}
                             value={tags}
                             onChange={(e) => setTags(e.target.value)}
                             className={`w-full px-4 py-3 rounded-2xl text-sm font-bold border outline-none transition-all ${isDarkMode ? 'bg-slate-800 border-slate-700 focus:border-blue-500' : 'bg-slate-50 border-slate-200 focus:border-blue-500'}`}
@@ -229,7 +230,7 @@ const DebateDashboard: React.FC<DebateDashboardProps> = ({ debates, onSelectDeba
                   className="flex items-center gap-2 px-8 py-3 rounded-2xl bg-blue-600 text-white font-black uppercase tracking-widest text-xs shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {sending ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
-                  Publicar Debate
+                  {t?.proposeDebate || "Publicar Debate"}
                 </button>
               </div>
             </div>
@@ -244,8 +245,8 @@ const DebateDashboard: React.FC<DebateDashboardProps> = ({ debates, onSelectDeba
                 <MessageCircle size={40} />
             </div>
             <div className="space-y-1">
-                <p className="text-sm font-black uppercase tracking-widest">No se encontraron debates</p>
-                <p className="text-[10px] max-w-[200px] mx-auto">Intenta con otros términos de búsqueda o propón un nuevo tema.</p>
+                <p className="text-sm font-black uppercase tracking-widest">{t?.noDebatesFound || "No se encontraron debates"}</p>
+                <p className="text-[10px] max-w-[200px] mx-auto">{t?.tryOtherTerms || "Intenta con otros términos de búsqueda o propón un nuevo tema."}</p>
             </div>
           </div>
         ) : (
@@ -293,7 +294,7 @@ const DebateDashboard: React.FC<DebateDashboardProps> = ({ debates, onSelectDeba
                       <button 
                         onClick={(e) => handleDeleteDebate(e, debate.id)}
                         className="p-2 rounded-xl text-rose-500 hover:bg-rose-500/10 transition-colors opacity-0 group-hover:opacity-100"
-                        title="Eliminar debate"
+                        title={t?.deleteDebate || "Eliminar debate"}
                       >
                         <Trash2 size={16} />
                       </button>

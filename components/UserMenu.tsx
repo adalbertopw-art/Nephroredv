@@ -8,30 +8,31 @@ interface UserMenuProps {
   onClose: () => void;
   onOpenAuth: () => void;
   isDarkMode: boolean;
+  t?: any;
 }
 
-export function UserMenu({ isOpen, onClose, onOpenAuth, isDarkMode }: UserMenuProps) {
+export function UserMenu({ isOpen, onClose, onOpenAuth, isDarkMode, t }: UserMenuProps) {
   const { user, signOut, verificationStatus } = useAuth();
 
   if (!user) return null;
 
   const statusConfig = {
     unverified: {
-      label: 'No Verificado',
+      label: t?.unverified || 'No Verificado',
       icon: ShieldAlert,
       color: 'text-red-500',
       bg: 'bg-red-500/10',
       border: 'border-red-500/20'
     },
     pending: {
-      label: 'Verificación Pendiente',
+      label: t?.pending || 'Verificación Pendiente',
       icon: ShieldCheck,
       color: 'text-amber-500',
       bg: 'bg-amber-500/10',
       border: 'border-amber-500/20'
     },
     verified: {
-      label: 'Médico Verificado',
+      label: t?.verified || 'Médico Verificado',
       icon: BadgeCheck,
       color: 'text-emerald-500',
       bg: 'bg-emerald-500/10',
@@ -43,7 +44,7 @@ export function UserMenu({ isOpen, onClose, onOpenAuth, isDarkMode }: UserMenuPr
   const StatusIcon = config.icon;
 
   // Extract metadata
-  const fullName = user.user_metadata?.full_name || 'Usuario';
+  const fullName = user.user_metadata?.full_name || (t?.unknownUser || 'Usuario');
   const specialty = user.user_metadata?.specialty || 'Nephrology';
   const licenseNumber = user.user_metadata?.license_number || 'N/A';
   const country = user.user_metadata?.country || 'N/A';
@@ -157,7 +158,7 @@ export function UserMenu({ isOpen, onClose, onOpenAuth, isDarkMode }: UserMenuPr
                   <div className="p-2 rounded-xl bg-blue-500/10 text-blue-500">
                     <CreditCard size={18} />
                   </div>
-                  <span className="text-sm font-bold">Gestionar Credencial</span>
+                  <span className="text-sm font-bold">{t?.digitalCard || 'Gestionar Credencial'}</span>
                 </div>
                 <ChevronRight size={14} className="opacity-40" />
               </button>
@@ -172,7 +173,7 @@ export function UserMenu({ isOpen, onClose, onOpenAuth, isDarkMode }: UserMenuPr
                 <div className="p-2 rounded-xl bg-red-500/10">
                     <LogOut size={18} />
                 </div>
-                <span className="text-sm font-bold">Cerrar Sesión</span>
+                <span className="text-sm font-bold">{t?.logout || 'Cerrar Sesión'}</span>
               </button>
             </div>
           </motion.div>
