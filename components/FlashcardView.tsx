@@ -140,26 +140,29 @@ export default function FlashcardView({
             }}
             className={`w-full max-w-md h-full max-h-[800px] flex flex-col rounded-[2rem] shadow-2xl border overflow-hidden ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}
           >
-            {/* Image or Gradient Header */}
-            <div className="h-64 relative shrink-0">
-              {article.imageUrl ? (
-                <img src={article.imageUrl} alt="Cover" className="w-full h-full object-cover" />
-              ) : (
-                <div className={`w-full h-full bg-gradient-to-br ${isDarkMode ? 'from-blue-900/40 to-indigo-900/40' : 'from-blue-100 to-indigo-100'}`} />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-              <div className="absolute bottom-4 left-4 right-4">
-                <div className="flex flex-wrap items-center gap-2 mb-2">
-                  <span className="px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest bg-blue-600 text-white">
-                    {article.category}
+            {/* Clean Header instead of Image Cover */}
+            <div className={`p-6 pb-2 shrink-0 border-b ${isDarkMode ? 'border-slate-800 bg-slate-900' : 'border-slate-100 bg-white'}`}>
+              <div className="flex items-center justify-between mb-4">
+                <span className={`px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest ${isDarkMode ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-700'}`}>
+                  {article.category}
+                </span>
+                {article.date && (
+                  <span className={`text-[10px] font-bold ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                    {article.date}
                   </span>
-                  <span className="text-[10px] font-bold text-white/90 line-clamp-1 flex-1">
-                    {article.source} • {Array.isArray(article.authors) ? article.authors.join(', ') : article.authors || (t?.unknownAuthors || 'Autores desconocidos')}
-                  </span>
-                </div>
-                <h2 className={`text-xl font-black text-white leading-tight line-clamp-5 ${fontClass}`}>
-                  {article.title}
-                </h2>
+                )}
+              </div>
+              <h2 className={`text-xl font-black leading-tight mb-4 ${fontClass}`}>
+                {article.title}
+              </h2>
+              <div className={`text-[8px] font-bold p-2 flex items-center gap-1.5 rounded-xl border overflow-hidden ${isDarkMode ? 'bg-slate-800/50 border-slate-700/50 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-600'}`}>
+                <span className={`shrink-0 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                  {article.source}
+                </span>
+                <span className="opacity-40 shrink-0">•</span>
+                <span className="truncate opacity-80">
+                  {Array.isArray(article.authors) ? article.authors.join(', ') : article.authors || (t?.unknownAuthors || 'Autores desconocidos')}
+                </span>
               </div>
             </div>
 

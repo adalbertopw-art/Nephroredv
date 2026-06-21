@@ -1474,6 +1474,34 @@ function MainApp() {
 
   const t = translations[uiLanguage];
 
+  const isBackNavigationRef = useRef(false);
+
+  // Intercept back gesture (swipe back / hardware back button) for full-screen modes
+  useEffect(() => {
+    const isFullScreenModalOpen = !!activeImmersiveArticle || isFlashcardMode;
+
+    const handlePopState = (e: PopStateEvent) => {
+      isBackNavigationRef.current = true;
+      if (activeImmersiveArticle) setActiveImmersiveArticle(null);
+      if (isFlashcardMode) setIsFlashcardMode(false);
+    };
+
+    if (isFullScreenModalOpen) {
+      window.history.pushState({ fullScreenModalOpen: true }, "");
+      window.addEventListener("popstate", handlePopState);
+    }
+
+    return () => {
+      if (isFullScreenModalOpen) {
+        window.removeEventListener("popstate", handlePopState);
+        if (!isBackNavigationRef.current) {
+          setTimeout(() => window.history.back(), 0);
+        }
+        isBackNavigationRef.current = false;
+      }
+    };
+  }, [activeImmersiveArticle, isFlashcardMode]);
+
   useEffect(() => {
     localStorage.setItem("nephro_layout_mode", layoutMode);
   }, [layoutMode]);
