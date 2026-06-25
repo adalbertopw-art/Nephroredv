@@ -1475,38 +1475,63 @@ function MainApp() {
   const t = translations[uiLanguage];
 
   const isBackNavigationRef = useRef(false);
+  const programmaticBacksRef = useRef(0);
+  const activeModalsCountRef = useRef(0);
 
-  // Intercept back gesture (swipe back / hardware back button) for full-screen modes
+  const currentModalsCount = [
+    isFlashcardMode,
+    !!activeImmersiveArticle,
+    isReaderOpen,
+    !!viewingHistorySnapshot
+  ].filter(Boolean).length;
+
   useEffect(() => {
-    const isFullScreenModalOpen = !!activeImmersiveArticle || isFlashcardMode;
-
-    const handlePopState = (e: PopStateEvent) => {
-      isBackNavigationRef.current = true;
-      if (activeImmersiveArticle) setActiveImmersiveArticle(null);
-      if (isFlashcardMode) setIsFlashcardMode(false);
-    };
-
-    if (isFullScreenModalOpen) {
-      window.history.pushState({ fullScreenModalOpen: true }, "");
-      window.addEventListener("popstate", handlePopState);
-    }
-
-    return () => {
-      if (isFullScreenModalOpen) {
-        window.removeEventListener("popstate", handlePopState);
-        if (!isBackNavigationRef.current) {
+    if (currentModalsCount > activeModalsCountRef.current) {
+      const diff = currentModalsCount - activeModalsCountRef.current;
+      for (let i = 0; i < diff; i++) {
+        window.history.pushState({ modalOpen: true }, "");
+      }
+    } else if (currentModalsCount < activeModalsCountRef.current) {
+      if (!isBackNavigationRef.current) {
+        const diff = activeModalsCountRef.current - currentModalsCount;
+        for (let i = 0; i < diff; i++) {
+          programmaticBacksRef.current++;
           setTimeout(() => window.history.back(), 0);
         }
-        isBackNavigationRef.current = false;
+      }
+    }
+    activeModalsCountRef.current = currentModalsCount;
+    isBackNavigationRef.current = false;
+  }, [currentModalsCount]);
+
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      if (programmaticBacksRef.current > 0) {
+        programmaticBacksRef.current--;
+        return;
+      }
+      isBackNavigationRef.current = true;
+      if (activeImmersiveArticle) {
+        setActiveImmersiveArticle(null);
+      } else if (isFlashcardMode) {
+        setIsFlashcardMode(false);
+      } else if (viewingHistorySnapshot) {
+        setViewingHistorySnapshot(null);
+      } else if (isReaderOpen) {
+        setIsReaderOpen(false);
       }
     };
-  }, [activeImmersiveArticle, isFlashcardMode]);
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [activeImmersiveArticle, isFlashcardMode, viewingHistorySnapshot, isReaderOpen]);
 
   // Prevent accidental closure of the app
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
+      // Chrome and standard require returnValue to be set.
       e.returnValue = "";
+      return "";
     };
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => {
@@ -2833,28 +2858,59 @@ function MainApp() {
 
   const handleUpdateArticle = useCallback(
     (articleId: string, updates: Partial<Article>) => {
+      let resolvedArticle: Article | null = null;
       setArticles((prev) =>
-        prev.map((a) => (a.id === articleId ? { ...a, ...updates } : a)),
+        prev.map((a) => {
+          if (a.id === articleId) {
+             resolvedArticle = { ...a, ...updates };
+             return resolvedArticle;
+          }
+          return a;
+        })
       );
       setSavedArticles((prev) => {
         const idx = prev.findIndex((a) => a.id === articleId);
         if (idx !== -1) {
           const next = [...prev];
           next[idx] = { ...next[idx], ...updates };
+          if (!resolvedArticle) resolvedArticle = next[idx];
           return next;
         }
         return prev;
       });
-      setActiveImmersiveArticle((prev) =>
-        prev && prev.id === articleId ? { ...prev, ...updates } : prev,
-      );
+      setActiveImmersiveArticle((prev) => {
+        if (prev && prev.id === articleId) {
+           const next = { ...prev, ...updates };
+           if (!resolvedArticle) resolvedArticle = next;
+           return next;
+        }
+        return prev;
+      });
       setViewingHistorySnapshot((prev) => {
         if (!prev) return null;
-        const updatedArticles = prev.articles.map((a) =>
-          a.id === articleId ? { ...a, ...updates } : a,
-        );
+        const updatedArticles = prev.articles.map((a) => {
+          if (a.id === articleId) {
+             const next = { ...a, ...updates };
+             if (!resolvedArticle) resolvedArticle = next;
+             return next;
+          }
+          return a;
+        });
         return { ...prev, articles: updatedArticles };
       });
+
+      // Persist the pdf to IndexedDB if it was updated
+      if (updates.localPdfData) {
+         setTimeout(() => {
+             if (resolvedArticle) {
+                 saveArticleOffline(resolvedArticle, resolvedArticle.fullTextContent || '', !!resolvedArticle.fullTextContent)
+                   .then(() => {
+                       setOfflineStatus(prev => ({ ...prev, [articleId]: true }));
+                   })
+                   .catch((e) => console.error("Error offline save:", e));
+             }
+         }, 0);
+      }
     },
     [],
   );
