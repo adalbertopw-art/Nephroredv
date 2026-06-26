@@ -317,7 +317,16 @@ const translations = {
       resetVerify: "Resetear Verificación (Debug)",
       infoHelp: "INFORMACIÓN & AYUDA",
       currentVersion: "Versión Actual",
-      viewFullInfo: "VER INFORMACIÓN COMPLETA"
+      viewFullInfo: "VER INFORMACIÓN COMPLETA",
+      pwaTitle: "INSTALAR APLICACIÓN",
+      pwaInstalled: "¡NephroUpdate ya está instalada!",
+      pwaInstalledDesc: "Puedes abrir NephroUpdate directamente desde tu pantalla de inicio como una aplicación nativa.",
+      pwaInstallBtn: "Instalar NephroUpdate",
+      pwaInstallDesc: "Instala NephroUpdate en tu dispositivo para acceder rápidamente con un solo toque, pantalla completa y mejor rendimiento.",
+      pwaIosTitle: "Instalación en iOS (Safari)",
+      pwaIosDesc: "Toca el botón 'Compartir' en la barra inferior de Safari, luego selecciona 'Añadir a pantalla de inicio' o 'Agregar a inicio'.",
+      pwaManualTitle: "Instalación manual",
+      pwaManualDesc: "Si la opción automática no aparece, abre el menú de tu navegador (los tres puntos o la barra de herramientas) y selecciona 'Instalar aplicación' o 'Agregar a la pantalla principal'."
     },
     infoMenu: {
       navAndDock: "Navegación & Dock",
@@ -641,7 +650,16 @@ const translations = {
       resetVerify: "Reset Verification (Debug)",
       infoHelp: "INFORMATION & HELP",
       currentVersion: "Current Version",
-      viewFullInfo: "VIEW FULL INFO"
+      viewFullInfo: "VIEW FULL INFO",
+      pwaTitle: "INSTALL APPLICATION",
+      pwaInstalled: "NephroUpdate is already installed!",
+      pwaInstalledDesc: "You can open NephroUpdate directly from your home screen as a native app.",
+      pwaInstallBtn: "Install NephroUpdate",
+      pwaInstallDesc: "Install NephroUpdate on your device for quick one-tap access, full screen view, and better performance.",
+      pwaIosTitle: "iOS Installation (Safari)",
+      pwaIosDesc: "Tap the 'Share' button in Safari's bottom toolbar, then select 'Add to Home Screen'.",
+      pwaManualTitle: "Manual installation",
+      pwaManualDesc: "If the automatic option doesn't appear, open your browser menu (the three dots or toolbox) and select 'Install app' or 'Add to home screen'."
     },
     infoMenu: {
       navAndDock: "Navigation & Dock",
@@ -1112,6 +1130,36 @@ function MainApp() {
     {},
   );
   const [syncState, setSyncState] = useState<SyncState>(backgroundSyncService.getState());
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    const handleAppInstalled = () => {
+      setIsInstalled(true);
+      setDeferredPrompt(null);
+      showToast("¡Aplicación instalada con éxito!", "success");
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("appinstalled", handleAppInstalled);
+
+    if (
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as any).standalone
+    ) {
+      setIsInstalled(true);
+    }
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("appinstalled", handleAppInstalled);
+    };
+  }, []);
 
   useEffect(() => {
     const unsubscribe = backgroundSyncService.subscribe((state) => {
@@ -1257,6 +1305,22 @@ function MainApp() {
     },
     [],
   );
+
+  const handleInstallApp = useCallback(async () => {
+    if (!deferredPrompt) {
+      showToast("La instalación automática no está disponible en este momento. Consulta las instrucciones.", "error");
+      return;
+    }
+    try {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`User response to install prompt: ${outcome}`);
+      setDeferredPrompt(null);
+    } catch (error) {
+      console.error("PWA Installation failed:", error);
+    }
+  }, [deferredPrompt, showToast]);
+
   const [fontStyle, setFontStyle] = useState<FontStyle>("sans");
   const [onlyFullText, setOnlyFullText] = useState(false);
   const [newTopicInput, setNewTopicInput] = useState("");
@@ -6245,6 +6309,69 @@ function MainApp() {
                       />
                     </button>
                   </div>
+                </div>
+
+                {/* PWA INSTALLATION SECTION */}
+                <div
+                  className={`p-5 rounded-3xl border shadow-sm ${isDarkMode ? "bg-slate-800/50 border-white/5" : "bg-white border-slate-100"}`}
+                >
+                  <div className="flex items-center gap-2 mb-4">
+                    <Download size={16} className="text-blue-500" />
+                    <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
+                      {t.settings.pwaTitle}
+                    </span>
+                  </div>
+
+                  {isInstalled ? (
+                    <div className="space-y-2 text-center py-2">
+                      <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto">
+                        <CheckCircle size={24} />
+                      </div>
+                      <h4 className="font-black text-xs uppercase tracking-tight text-emerald-500">
+                        {t.settings.pwaInstalled}
+                      </h4>
+                      <p className="text-[10px] opacity-60 leading-relaxed">
+                        {t.settings.pwaInstalledDesc}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <p className="text-[10px] opacity-60 leading-relaxed italic">
+                        {t.settings.pwaInstallDesc}
+                      </p>
+
+                      {deferredPrompt ? (
+                        <button
+                          onClick={handleInstallApp}
+                          className="w-full py-3 rounded-xl bg-blue-600 text-white font-black text-xs uppercase tracking-wider shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2"
+                        >
+                          <Download size={14} /> {t.settings.pwaInstallBtn}
+                        </button>
+                      ) : (
+                        <div className="space-y-3 pt-2 border-t border-dashed dark:border-white/5 border-slate-100">
+                          {/iPhone|iPad|iPod/i.test(navigator.userAgent) ? (
+                            <div className="p-3 rounded-2xl bg-blue-500/5 border border-blue-500/10 space-y-1 text-left">
+                              <h5 className="font-black text-[10px] uppercase text-blue-500 flex items-center gap-1">
+                                <span className="text-base">📱</span> {t.settings.pwaIosTitle}
+                              </h5>
+                              <p className="text-[10px] opacity-70 leading-relaxed">
+                                {t.settings.pwaIosDesc}
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="p-3 rounded-2xl bg-black/5 dark:bg-white/5 space-y-1 text-left">
+                              <h5 className="font-black text-[10px] uppercase opacity-70 flex items-center gap-1">
+                                <span className="text-base">⚙️</span> {t.settings.pwaManualTitle}
+                              </h5>
+                              <p className="text-[10px] opacity-60 leading-relaxed">
+                                {t.settings.pwaManualDesc}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div
