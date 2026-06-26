@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { X, ChevronUp, Calendar, Users, BookOpen, Highlighter, StickyNote, Plus, Trash2, Check, Copy, Image as ImageIcon, Activity, Type, Link as LinkIcon, FileText, MessageSquare, BarChart2, Zap, Flame, AlertTriangle, ShieldCheck, AlertCircle, FileText as PdfIcon, Download, ExternalLink, MessageCircle, Paperclip, Unlock, Lock } from 'lucide-react';
+import { X, ChevronUp, Calendar, Users, BookOpen, Highlighter, StickyNote, Plus, Trash2, Check, Copy, Image as ImageIcon, Activity, Type, Link as LinkIcon, FileText, MessageSquare, BarChart2, Zap, Flame, AlertTriangle, ShieldCheck, AlertCircle, FileText as PdfIcon, Download, ExternalLink, MessageCircle, Paperclip, Unlock, Lock, Share2 } from 'lucide-react';
 import { Article, FontStyle, DeepAnalysisResult } from '../types';
 import { getJournalLogo } from '../constants/journalLogos';
 import { highlightMedicalText } from '../utils/semanticHighlighter';
@@ -392,6 +392,21 @@ const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                     <Paperclip size={18} />
                 </button>
 
+                <button 
+                    onClick={async () => {
+                        const targetUrl = article?.url || article?.sourceUrl || '';
+                        if (navigator.share) {
+                            try { await navigator.share({ title: article?.title, text: article?.summary, url: targetUrl }); } catch (e) {}
+                        } else {
+                            navigator.clipboard.writeText(targetUrl);
+                        }
+                    }}
+                    className={`p-2 rounded-xl transition-all ${isDarkMode ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-600'}`}
+                    title="Compartir"
+                >
+                    <Share2 size={18} />
+                </button>
+
                 {activeTab === 'text' && (
                     <div className="relative">
                         <button onClick={() => setShowFontMenu(!showFontMenu)} className={`p-2 rounded-xl transition-all ${isDarkMode ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-600'}`}>
@@ -449,6 +464,23 @@ const ImmersiveReader: React.FC<ImmersiveReaderProps> = ({
                     )}
                 </button>
             ))}
+            
+            <div className={`w-[1px] h-8 mx-1 ${isDarkMode ? 'bg-slate-800' : 'bg-slate-200'}`} />
+
+            <button 
+                onClick={async () => {
+                    const targetUrl = article?.url || article?.sourceUrl || '';
+                    if (navigator.share) {
+                        try { await navigator.share({ title: article?.title, text: article?.summary, url: targetUrl }); } catch (e) {}
+                    } else {
+                        navigator.clipboard.writeText(targetUrl);
+                    }
+                }}
+                className={`p-3.5 rounded-full transition-all duration-300 ${isDarkMode ? 'text-slate-400 hover:bg-white/5' : 'text-slate-500 hover:bg-slate-100'}`}
+                title="Compartir"
+            >
+                <Share2 size={20} strokeWidth={2} />
+            </button>
         </div>
 
         {/* Content Area - Split Logic for PDF vs Text */}

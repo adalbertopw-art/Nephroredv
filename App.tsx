@@ -2499,6 +2499,18 @@ function MainApp() {
 
           if (error) {
             console.error("Error posting forum proposal:", error);
+            
+            // Ensure General Forum exists before inserting comment
+            await supabase.from("forums").upsert([{
+               id: "general-community-forum",
+               title: "Foro Clínico General",
+               content: "Espacio abierto para consultas, casos clínicos y discusión general de la comunidad.",
+               author_name: "Sistema",
+               author_specialty: "Admin",
+               author_id: "system",
+               tags: ["General", "Comunidad"]
+            }], { onConflict: "id", ignoreDuplicates: true });
+
             // Fallback to comment in general forum if forum insert fails
             const commentContent = `🚀 **PROPUESTA DE DEBATE**\n\n**Artículo:** ${article.title}\n**Enlace:** ${article.url || "No provisto"}\n**DOI:** ${doi || "No provisto"}\n\n**¿Por qué discutirlo?:** Propuesto desde la Vista Inmersiva.`;
             await supabase.from("comments").insert([
@@ -2586,6 +2598,18 @@ function MainApp() {
     try {
       if (supabase) {
         console.log("Inserting shared collection into Supabase comments...");
+        
+        // Ensure General Forum exists before inserting comment to prevent foreign key errors
+        await supabase.from("forums").upsert([{
+           id: "general-community-forum",
+           title: "Foro Clínico General",
+           content: "Espacio abierto para consultas, casos clínicos y discusión general de la comunidad.",
+           author_name: "Sistema",
+           author_specialty: "Admin",
+           author_id: "system",
+           tags: ["General", "Comunidad"]
+        }], { onConflict: "id", ignoreDuplicates: true });
+
         const { error } = await supabase.from("comments").insert([payload]);
         if (error) throw error;
 
