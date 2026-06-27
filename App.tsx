@@ -1132,6 +1132,14 @@ function MainApp() {
   const [syncState, setSyncState] = useState<SyncState>(backgroundSyncService.getState());
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isInstalled, setIsInstalled] = useState(false);
+  const [showInstallBanner, setShowInstallBanner] = useState(() => {
+    return localStorage.getItem("hideInstallBanner") !== "true";
+  });
+
+  const dismissInstallBanner = useCallback(() => {
+    setShowInstallBanner(false);
+    localStorage.setItem("hideInstallBanner", "true");
+  }, []);
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -3670,6 +3678,27 @@ function MainApp() {
         </aside>
 
         <main className="relative flex h-full flex-1 flex-col overflow-hidden">
+          {(!isInstalled && showInstallBanner && (deferredPrompt || /iPhone|iPad|iPod/i.test(navigator.userAgent))) && (
+            <div className={`flex items-center justify-between p-3 px-4 z-50 text-sm ${isDarkMode ? "bg-blue-900/50 text-blue-100 border-b border-blue-900" : "bg-blue-50 text-blue-900 border-b border-blue-100"}`}>
+              <div className="flex items-center gap-3">
+                <Download size={18} className="text-blue-500" />
+                <span className="font-medium">
+                  {t.settings.pwaInstallBtn || "Instalar Aplicación"}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => setIsSettingsOpen(true)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${isDarkMode ? "bg-blue-500 text-white hover:bg-blue-600" : "bg-blue-600 text-white hover:bg-blue-700"}`}
+                >
+                  Ver Instrucciones
+                </button>
+                <button onClick={dismissInstallBanner} className="p-1.5 rounded-lg opacity-70 hover:opacity-100 transition-opacity">
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+          )}
           <header
             className={`hidden h-16 items-center justify-between gap-4 border-b px-8 z-50 lg:flex ${isDarkMode ? "bg-slate-950/70 border-slate-800" : "bg-white/70 border-slate-200"} backdrop-blur-sm`}
           >
